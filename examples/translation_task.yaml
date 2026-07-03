@@ -1,0 +1,8 @@
+title: "군사 전문문서 번역"
+objective: "군사용어 일관성을 유지하면서 자연스러운 한국어 번역문을 작성한다."
+mission_type: "TRANSLATION"
+priority: "NORMAL"
+expected_output: "translated_text"
+constraints:
+  - "의미 보존"
+  - "용어 일관성"

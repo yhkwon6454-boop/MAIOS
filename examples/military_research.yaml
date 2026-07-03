@@ -1,0 +1,8 @@
+title: "북한군 드론 위협 분석"
+objective: "북한군 드론 위협의 작전적 의미를 분석하고 7군단 차원의 대응 방향을 도출한다."
+mission_type: "MILITARY_RESEARCH"
+priority: "HIGH"
+expected_output: "brief"
+constraints:
+  - "군사 보고서 문체"
+  - "위협-영향-대응 구조"
