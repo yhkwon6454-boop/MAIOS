@@ -1,36 +1,29 @@
-from __future__ import annotations
-
-from maios.runtime.models import QAResult, Status
+from maios.kernel.base import BaseKernel
 
 
-class QualityKernel:
-    """
-    최소 품질검증 커널.
-    실제 구현에서는 사실성, 논리성, 완전성, 위험성 검사를 별도 모듈로 분리한다.
-    """
+class QualityKernel(BaseKernel):
+    """실행 결과를 검증하는 Kernel"""
 
-    def evaluate(self, outputs: list[str]) -> QAResult:
-        issues: list[str] = []
-        score = 40
+    def initialize(self):
+        return True
 
-        joined = "\n".join(outputs).strip()
+    def execute(self, result):
+        score = 0
 
-        if not joined:
-            return QAResult(status=Status.FAILED, score=0, issues=["출력 없음"])
+        if result.get("status") == "EXECUTED":
+            score += 50
 
-        if len(joined) < 300:
-            score -= 8
-            issues.append("출력이 짧아 분석 깊이가 부족할 수 있음")
+        if result.get("cognitive_result"):
+            score += 50
 
-        if "근거" not in joined and "분석" not in joined:
-            score -= 4
-            issues.append("근거 또는 분석 표현이 부족함")
+        return {
+            "passed": score >= 100,
+            "score": score,
+            "result": result,
+        }
 
-        if score >= 36:
-            status = Status.COMPLETED
-        elif score >= 28:
-            status = Status.NEEDS_REVISION
-        else:
-            status = Status.FAILED
+    def validate(self, quality_result):
+        return quality_result["passed"]
 
-        return QAResult(status=status, score=score, issues=issues)
+    def shutdown(self):
+        return True
