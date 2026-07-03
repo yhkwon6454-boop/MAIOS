@@ -1,10 +1,10 @@
 from maios.kernel.base import BaseKernel
 from maios.kernel.cognitive_kernel import CognitiveKernel
-from maios.runtime.packet import Packet
+from maios.runtime.plan import Plan
 
 
 class ExecutiveKernel(BaseKernel):
-    """Packet 실행을 지휘하는 Kernel"""
+    """Plan 실행을 담당하는 Kernel"""
 
     def __init__(self):
         self.cognitive_kernel = CognitiveKernel()
@@ -12,13 +12,14 @@ class ExecutiveKernel(BaseKernel):
     def initialize(self):
         return True
 
-    def execute(self, packet: Packet):
-        cognitive_result = self.cognitive_kernel.execute(packet)
+    def execute(self, plan: Plan):
+        cognitive_result = self.cognitive_kernel.execute(plan)
 
         return {
-            "packet_id": packet.packet_id,
-            "mission_id": packet.mission_id,
-            "instruction": packet.instruction,
+            "objective": plan.objective,
+            "tasks": plan.tasks,
+            "risk": plan.risk,
+            "priority": plan.priority,
             "cognitive_result": cognitive_result,
             "status": "EXECUTED",
         }

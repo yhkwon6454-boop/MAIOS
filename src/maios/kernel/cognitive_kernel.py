@@ -1,23 +1,19 @@
-from maios.kernel.base import BaseKernel
-from maios.runtime.packet import Packet
+from maios.runtime.plan import Plan
 
 
-class CognitiveKernel(BaseKernel):
-    """사고(Thinking)를 담당하는 Kernel"""
+class CognitiveKernel:
 
-    def initialize(self):
-        return True
+    def execute(self, plan: Plan):
 
-    def execute(self, packet: Packet):
         return {
-            "packet_id": packet.packet_id,
-            "instruction": packet.instruction,
-            "analysis": f"Analyze: {packet.instruction}",
-            "status": "SUCCESS",
+            "objective": plan.objective,
+            "analysis": f"Mission Analysis Complete: {plan.objective}",
+            "tasks": plan.tasks,
+            "risk": plan.risk,
+            "priority": plan.priority,
+            "status": "THINK_COMPLETE",
         }
 
     def validate(self, result):
-        return "analysis" in result
 
-    def shutdown(self):
-        return True
+        return result["status"] == "THINK_COMPLETE"
