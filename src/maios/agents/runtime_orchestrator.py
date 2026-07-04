@@ -1,0 +1,124 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any
+
+from maios.adapters.gpt_adapter import GPTAdapter
+from maios.agents.executor_agent import ExecutorAgent
+from maios.agents.memory_agent import MemoryAgent
+from maios.agents.planner_agent import PlannerAgent
+from maios.kernel.quality_kernel import QualityKernel
+from maios.runtime.models import Mission, QAResult, Status
+from maios.runtime.plan import Plan
+
+
+@dataclass
+class MultiAgentRuntimeResult:
+    mission: Mission
+    plan: Plan
+    memory_context: dict[str, str]
+    model_output: str
+    execution_result: dict[str, Any]
+    qa_result: QAResult
+    final_output: str
+    context: dict[str, Any]
+
+
+class RuntimeOrchestrator:
+    """Coordinates Planner -> Memory -> GPTAdapter -> Executor -> Quality."""
+
+    def __init__(
+        self,
+        planner_agent: PlannerAgent | None = None,
+        memory_agent: MemoryAgent | None = None,
+        gpt_adapter: GPTAdapter | None = None,
+        executor_agent: ExecutorAgent | None = None,
+        quality_kernel: QualityKernel | None = None,
+    ) -> None:
+        self.planner_agent = planner_agent or PlannerAgent()
+        self.memory_agent = memory_agent or MemoryAgent()
+        self.gpt_adapter = gpt_adapter or GPTAdapter()
+        self.executor_agent = executor_agent or ExecutorAgent()
+        self.quality_kernel = quality_kernel or QualityKernel()
+
+    def run(self, mission: Mission) -> MultiAgentRuntimeResult:
+        mission.status = Status.RUNNING
+        context: dict[str, Any] = {"mission": mission, "trace": []}
+
+        context = self._execute_agent(self.planner_agent, context)
+        context = self._execute_agent(self.memory_agent, context)
+
+        prompt = self._build_prompt(context)
+        model_output = self.gpt_adapter.generate(prompt)
+        context = {
+            **context,
+            "prompt": prompt,
+            "model_output": model_output,
+            "trace": [*context["trace"], "gpt_adapter"],
+        }
+
+        context = self._execute_agent(self.executor_agent, context)
+
+        qa_result = self.quality_kernel.evaluate([model_output])
+        mission.status = qa_result.status
+        final_output = self._compose_output(context, qa_result)
+        context = {
+            **context,
+            "qa_result": qa_result,
+            "final_output": final_output,
+            "trace": [*context["trace"], "quality"],
+        }
+
+        return MultiAgentRuntimeResult(
+            mission=mission,
+            plan=context["execution_plan"],
+            memory_context=context["memory_context"],
+            model_output=model_output,
+            execution_result=context["execution_result"],
+            qa_result=qa_result,
+            final_output=final_output,
+            context=context,
+        )
+
+    def _execute_agent(self, agent, context: dict[str, Any]) -> dict[str, Any]:
+        next_context = agent.execute(context)
+        return {
+            **next_context,
+            "trace": [*next_context.get("trace", []), agent.name],
+        }
+
+    def _build_prompt(self, context: dict[str, Any]) -> str:
+        mission = context["mission"]
+        plan = context["execution_plan"]
+        memory = "\n".join(
+            f"- {key}: {value}"
+            for key, value in context.get("memory_context", {}).items()
+        )
+
+        return "\n".join(
+            [
+                f"Mission: {mission.title}",
+                f"Objective: {plan.objective}",
+                f"Tasks: {', '.join(plan.tasks)}",
+                f"Risk: {plan.risk}",
+                f"Priority: {plan.priority}",
+                "Memory:",
+                memory or "None",
+                f"Output: {plan.output}",
+            ]
+        )
+
+    def _compose_output(self, context: dict[str, Any], qa_result: QAResult) -> str:
+        mission = context["mission"]
+        return "\n".join(
+            [
+                f"# Multi-Agent Runtime Output: {mission.title}",
+                "",
+                "## Model Output",
+                context["model_output"],
+                "",
+                "## QA Result",
+                f"- Status: {qa_result.status.value}",
+                f"- Score: {qa_result.score}",
+            ]
+        )
