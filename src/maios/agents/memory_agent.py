@@ -17,22 +17,12 @@ class MemoryAgent(Agent):
         mission = context["mission"]
         objective = mission.objective if isinstance(mission, Mission) else str(mission)
         self.memory_kernel.remember_short_term(objective)
-        memory_context = self._retrieve_memory_context(objective)
+        memory_context = self.memory_kernel.retrieve_context(objective)
+        if "retrieved_memory" in memory_context and "mission" not in memory_context:
+            memory_context["mission"] = memory_context["retrieved_memory"]
 
         return {
             **context,
             "memory_kernel": self.memory_kernel,
             "memory_context": memory_context,
-        }
-
-    def _retrieve_memory_context(self, objective: str) -> dict[str, str]:
-        documents = self.memory_kernel.retrieve(objective, top_k=3)
-        if not documents:
-            return {}
-
-        return {
-            "mission": "\n".join(
-                document.content if hasattr(document, "content") else str(document)
-                for document in documents
-            )
         }

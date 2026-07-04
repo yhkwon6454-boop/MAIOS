@@ -11,6 +11,7 @@ from maios.adapters.llm_provider import (
     create_llm_provider,
 )
 from maios.config import MAIOSConfig
+from maios.kernel.memory_kernel import MemoryKernel
 from maios.runtime.models import CognitivePacket
 
 
@@ -37,19 +38,22 @@ class GPTAdapter:
         client: LLMClient | None = None,
         config: MAIOSConfig | None = None,
         model: str | None = None,
+        memory_kernel: MemoryKernel | None = None,
     ) -> None:
         self.initialized = False
         self.client = client or self._default_client(config=config, model=model)
+        self.memory_kernel = memory_kernel
 
     def initialize(self):
         self.initialized = True
         return True
 
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str, memory_context: dict[str, str] | None = None) -> str:
         if not self.initialized:
             self.initialize()
 
-        return self.client.generate(prompt)
+        final_prompt = self._inject_memory(prompt, memory_context)
+        return self.client.generate(final_prompt)
 
     def validate(self, result):
         return isinstance(result, str) and bool(result.strip())
@@ -64,7 +68,20 @@ class GPTAdapter:
         memory_context: dict[str, str],
     ) -> str:
         prompt = self._build_prompt(packet, memory_context)
-        return self.generate(prompt)
+        return self.generate(prompt, memory_context=memory_context)
+
+    def _inject_memory(
+        self,
+        prompt: str,
+        memory_context: dict[str, str] | None = None,
+    ) -> str:
+        if self.memory_kernel is None:
+            return prompt
+
+        return self.memory_kernel.inject_context(
+            prompt,
+            memory_context=memory_context,
+        )
 
     def _default_client(
         self,

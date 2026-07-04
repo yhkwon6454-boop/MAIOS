@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from maios.kernel.base import BaseKernel
+from maios.kernel.memory_context import MemoryContextBuilder
 from maios.knowledge.store import KnowledgeStore
 from maios.retrieval import Document, Retriever
 
@@ -17,8 +18,10 @@ class MemoryKernel(BaseKernel):
     ) -> None:
         self.session_memory: list[Any] = []
         self.long_term_memory: list[Document] = []
+        self.conversation_history: list[dict[str, str]] = []
         self.retriever = retriever
         self.knowledge_store = knowledge_store
+        self.context_builder = MemoryContextBuilder()
 
     def initialize(self):
         return True
@@ -34,6 +37,11 @@ class MemoryKernel(BaseKernel):
     def remember_short_term(self, data):
         self.session_memory.append(data)
         return data
+
+    def remember_conversation(self, role: str, content: str) -> dict[str, str]:
+        message = {"role": role, "content": content}
+        self.conversation_history.append(message)
+        return message
 
     def remember_long_term(
         self,
@@ -77,6 +85,37 @@ class MemoryKernel(BaseKernel):
             if query_text in str(item).lower()
         ]
         return matches[:top_k]
+
+    def summarize(self) -> str:
+        return self.context_builder.summarize(
+            self.session_memory,
+            self.long_term_memory,
+            self.conversation_history,
+        )
+
+    def retrieve_context(self, query: str, top_k: int = 5) -> dict[str, str]:
+        retrieved_items = self.retrieve(query, top_k=top_k)
+        context = self.context_builder.build_context(
+            query,
+            retrieved_items,
+            self.conversation_history,
+        )
+        summary = self.summarize()
+        if summary:
+            context["memory_summary"] = summary
+
+        return context
+
+    def inject_context(
+        self,
+        prompt: str,
+        query: str | None = None,
+        top_k: int = 5,
+        memory_context: dict[str, str] | None = None,
+    ) -> str:
+        context = dict(memory_context or {})
+        context.update(self.retrieve_context(query or prompt, top_k=top_k))
+        return self.context_builder.inject_context(prompt, context)
 
     def validate(self, result):
         return (

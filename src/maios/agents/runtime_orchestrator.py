@@ -48,8 +48,19 @@ class RuntimeOrchestrator:
         context = self._execute_agent(self.planner_agent, context)
         context = self._execute_agent(self.memory_agent, context)
 
+        if (
+            getattr(self.gpt_adapter, "memory_kernel", None) is None
+            and hasattr(self.memory_agent, "memory_kernel")
+        ):
+            self.gpt_adapter.memory_kernel = self.memory_agent.memory_kernel
+
         prompt = self._build_prompt(context)
-        model_output = self.gpt_adapter.generate(prompt)
+        model_output = self.gpt_adapter.generate(
+            prompt,
+            memory_context=context.get("memory_context", {}),
+        )
+        if hasattr(self.memory_agent, "memory_kernel"):
+            self.memory_agent.memory_kernel.remember_conversation("assistant", model_output)
         context = {
             **context,
             "prompt": prompt,
