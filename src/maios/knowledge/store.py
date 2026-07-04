@@ -20,3 +20,29 @@ class KnowledgeStore:
 
     def count(self):
         return len(self._store)
+
+
+class InMemoryKnowledgeStore:
+    """Simple key-value memory store used by the runtime pipeline."""
+
+    def __init__(self):
+        self._store: Dict[str, str] = {}
+
+    def store(self, key: str, value: str):
+        self._store[key] = value
+
+    def retrieve(self, keys: list[str]):
+        return {
+            key: self._store[key]
+            for key in keys
+            if key in self._store
+        }
+
+    def get(self, key: str, default: str = ""):
+        return self._store.get(key, default)
+
+    def exists(self, key: str):
+        return key in self._store
+
+    def count(self):
+        return len(self._store)
