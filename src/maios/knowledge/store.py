@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict
 from uuid import uuid4
 
-from maios.retrieval import Document
+from maios.retrieval.document import Document
 from maios.runtime.packet import Packet
 
 
