@@ -8,6 +8,7 @@ from maios.agents.executor_agent import ExecutorAgent
 from maios.agents.memory_agent import MemoryAgent
 from maios.agents.planner_agent import PlannerAgent
 from maios.kernel.quality_kernel import QualityKernel
+from maios.planning import GoalManager
 from maios.runtime.models import Mission, QAResult, Status
 from maios.runtime.plan import Plan
 
@@ -22,6 +23,7 @@ class MultiAgentRuntimeResult:
     qa_result: QAResult
     final_output: str
     context: dict[str, Any]
+    task_outputs: list[str] | None = None
 
 
 class RuntimeOrchestrator:
@@ -34,12 +36,14 @@ class RuntimeOrchestrator:
         gpt_adapter: GPTAdapter | None = None,
         executor_agent: ExecutorAgent | None = None,
         quality_kernel: QualityKernel | None = None,
+        goal_manager: GoalManager | None = None,
     ) -> None:
         self.planner_agent = planner_agent or PlannerAgent()
         self.memory_agent = memory_agent or MemoryAgent()
         self.gpt_adapter = gpt_adapter or GPTAdapter()
         self.executor_agent = executor_agent or ExecutorAgent()
         self.quality_kernel = quality_kernel or QualityKernel()
+        self.goal_manager = goal_manager or GoalManager()
 
     def run(self, mission: Mission) -> MultiAgentRuntimeResult:
         mission.status = Status.RUNNING
@@ -54,17 +58,18 @@ class RuntimeOrchestrator:
         ):
             self.gpt_adapter.memory_kernel = self.memory_agent.memory_kernel
 
-        prompt = self._build_prompt(context)
-        model_output = self.gpt_adapter.generate(
-            prompt,
-            memory_context=context.get("memory_context", {}),
-        )
+        goal = self.goal_manager.create_goal(context["execution_plan"].objective)
+        context = {**context, "goal": goal, "task_queue": goal.tasks}
+
+        task_outputs = self._execute_task_queue(context)
+        model_output = task_outputs[-1] if task_outputs else ""
         if hasattr(self.memory_agent, "memory_kernel"):
             self.memory_agent.memory_kernel.remember_conversation("assistant", model_output)
         context = {
             **context,
-            "prompt": prompt,
+            "prompt": self._build_prompt(context),
             "model_output": model_output,
+            "task_outputs": task_outputs,
             "trace": [*context["trace"], "gpt_adapter"],
         }
 
@@ -89,6 +94,37 @@ class RuntimeOrchestrator:
             qa_result=qa_result,
             final_output=final_output,
             context=context,
+            task_outputs=task_outputs,
+        )
+
+    def _execute_task_queue(self, context: dict[str, Any]) -> list[str]:
+        goal = context["goal"]
+        outputs: list[str] = []
+
+        while True:
+            task = self.goal_manager.next_task(goal)
+            if task is None:
+                break
+
+            prompt = self._build_task_prompt(context, task)
+            output = self.gpt_adapter.generate(
+                prompt,
+                memory_context=context.get("memory_context", {}),
+            )
+            outputs.append(output)
+            feedback = "done" if output and output.strip() else "retry"
+            self.goal_manager.complete_task(goal, task, feedback=feedback)
+
+        return outputs
+
+    def _build_task_prompt(self, context: dict[str, Any], task) -> str:
+        return "\n".join(
+            [
+                self._build_prompt(context),
+                "",
+                f"Current task: {task.description}",
+                f"Task priority: {task.priority}",
+            ]
         )
 
     def _execute_agent(self, agent, context: dict[str, Any]) -> dict[str, Any]:
