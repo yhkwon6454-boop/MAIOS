@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from maios.adapters.gpt_adapter import GPTAdapter, OpenAIGPTClient
+from maios.adapters.gpt_adapter import GPTAdapter, MockGPTClient, OpenAIGPTClient
 from maios.config import MAIOSConfig
 from maios.runtime.models import CognitivePacket
 
@@ -48,6 +48,27 @@ def test_gpt_adapter_preserves_generate_client_api():
     assert "OODA, Risk Analysis" in prompt
     assert "- doctrine: Use mission command." in prompt
     assert "brief" in prompt
+
+
+def test_gpt_adapter_mock_lifecycle_runs_offline():
+    adapter = GPTAdapter()
+
+    assert isinstance(adapter.client, MockGPTClient)
+    assert adapter.initialize()
+    result = adapter.generate("offline prompt")
+
+    assert result == "Mock GPT response: offline prompt"
+    assert adapter.validate(result)
+    assert adapter.shutdown()
+    assert not adapter.initialized
+
+
+def test_gpt_adapter_validate_rejects_empty_results():
+    adapter = GPTAdapter()
+
+    assert not adapter.validate("")
+    assert not adapter.validate("   ")
+    assert not adapter.validate(None)
 
 
 def test_openai_gpt_client_uses_responses_api():

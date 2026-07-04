@@ -11,6 +11,13 @@ class LLMClient(Protocol):
         ...
 
 
+class MockGPTClient:
+    """Offline mock client used when no provider-specific client is injected."""
+
+    def generate(self, prompt: str) -> str:
+        return f"Mock GPT response: {prompt}"
+
+
 class OpenAIGPTClient:
     """OpenAI Responses API client used by GPTAdapter."""
 
@@ -75,7 +82,25 @@ class GPTAdapter:
         config: MAIOSConfig | None = None,
         model: str | None = None,
     ) -> None:
-        self.client = client or OpenAIGPTClient(config=config, model=model)
+        self.initialized = False
+        self.client = client or self._default_client(config=config, model=model)
+
+    def initialize(self):
+        self.initialized = True
+        return True
+
+    def generate(self, prompt: str) -> str:
+        if not self.initialized:
+            self.initialize()
+
+        return self.client.generate(prompt)
+
+    def validate(self, result):
+        return isinstance(result, str) and bool(result.strip())
+
+    def shutdown(self):
+        self.initialized = False
+        return True
 
     def execute(
         self,
@@ -83,7 +108,17 @@ class GPTAdapter:
         memory_context: dict[str, str],
     ) -> str:
         prompt = self._build_prompt(packet, memory_context)
-        return self.client.generate(prompt)
+        return self.generate(prompt)
+
+    def _default_client(
+        self,
+        config: MAIOSConfig | None = None,
+        model: str | None = None,
+    ) -> LLMClient:
+        if config is not None or model is not None:
+            return OpenAIGPTClient(config=config, model=model)
+
+        return MockGPTClient()
 
     def _build_prompt(
         self,
