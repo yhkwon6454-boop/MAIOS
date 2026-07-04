@@ -3,16 +3,22 @@ from __future__ import annotations
 from typing import Any
 
 from maios.kernel.base import BaseKernel
+from maios.knowledge.store import KnowledgeStore
 from maios.retrieval import Document, Retriever
 
 
 class MemoryKernel(BaseKernel):
     """Kernel for short-term memory and long-term retrieval."""
 
-    def __init__(self, retriever: Retriever | None = None) -> None:
+    def __init__(
+        self,
+        retriever: Retriever | None = None,
+        knowledge_store: KnowledgeStore | None = None,
+    ) -> None:
         self.session_memory: list[Any] = []
         self.long_term_memory: list[Document] = []
         self.retriever = retriever
+        self.knowledge_store = knowledge_store
 
     def initialize(self):
         return True
@@ -36,6 +42,9 @@ class MemoryKernel(BaseKernel):
     ) -> Document:
         document = Document(content=content, metadata=metadata or {})
         self.long_term_memory.append(document)
+
+        if self.knowledge_store is not None:
+            self.knowledge_store.add(document)
 
         if self.retriever is not None:
             self.retriever.add(document)
