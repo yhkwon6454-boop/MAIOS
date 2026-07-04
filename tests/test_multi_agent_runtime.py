@@ -91,13 +91,18 @@ def test_runtime_orchestrator_accepts_injected_agents():
     )
     mission = Mission(title="Injected Mission", objective="Use injected agents.")
     initial_context = {
-        "execution_plan": PlannerAgent()
-        .execute({"mission": mission, "trace": []})["execution_plan"],
+        "execution_plan": PlannerAgent().execute({"mission": mission, "trace": []})[
+            "execution_plan"
+        ],
         "memory_context": {},
         "execution_result": {"status": "EXECUTED"},
     }
 
-    orchestrator.planner_agent.execute = lambda context: {**context, **initial_context, "planned": True}
+    orchestrator.planner_agent.execute = lambda context: {
+        **context,
+        **initial_context,
+        "planned": True,
+    }
 
     result = orchestrator.run(mission)
 

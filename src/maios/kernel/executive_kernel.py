@@ -25,10 +25,7 @@ class ExecutiveKernel(BaseKernel):
         }
 
     def validate(self, result):
-        return (
-            result.get("status") == "EXECUTED"
-            and "cognitive_result" in result
-        )
+        return result.get("status") == "EXECUTED" and "cognitive_result" in result
 
     def shutdown(self):
         return True

@@ -60,9 +60,8 @@ class RuntimeOrchestrator:
         context = self._execute_agent(self.planner_agent, context)
         context = self._execute_agent(self.memory_agent, context)
 
-        if (
-            getattr(self.gpt_adapter, "memory_kernel", None) is None
-            and hasattr(self.memory_agent, "memory_kernel")
+        if getattr(self.gpt_adapter, "memory_kernel", None) is None and hasattr(
+            self.memory_agent, "memory_kernel"
         ):
             self.gpt_adapter.memory_kernel = self.memory_agent.memory_kernel
 
@@ -159,8 +158,7 @@ class RuntimeOrchestrator:
         mission = context["mission"]
         plan = context["execution_plan"]
         memory = "\n".join(
-            f"- {key}: {value}"
-            for key, value in context.get("memory_context", {}).items()
+            f"- {key}: {value}" for key, value in context.get("memory_context", {}).items()
         )
 
         return "\n".join(

@@ -25,10 +25,7 @@ class Retriever:
         return chunks
 
     def retrieve(self, query: str, top_k: int = 5) -> list[Document]:
-        return [
-            document
-            for document, _score in self.retrieve_with_score(query, top_k=top_k)
-        ]
+        return [document for document, _score in self.retrieve_with_score(query, top_k=top_k)]
 
     def retrieve_with_score(
         self,

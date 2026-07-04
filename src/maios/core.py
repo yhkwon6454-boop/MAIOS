@@ -41,16 +41,12 @@ class MAIOSCore:
         orchestrator: RuntimeOrchestrator | None = None,
     ) -> None:
         self.knowledge_store = knowledge_store or KnowledgeStore()
-        self.memory_kernel = memory_kernel or MemoryKernel(
-            knowledge_store=self.knowledge_store
-        )
+        self.memory_kernel = memory_kernel or MemoryKernel(knowledge_store=self.knowledge_store)
         self.gpt_adapter = gpt_adapter or GPTAdapter(memory_kernel=self.memory_kernel)
         if getattr(self.gpt_adapter, "memory_kernel", None) is None:
             self.gpt_adapter.memory_kernel = self.memory_kernel
 
-        self.reflection_engine = reflection_engine or ReflectionEngine(
-            self.knowledge_store
-        )
+        self.reflection_engine = reflection_engine or ReflectionEngine(self.knowledge_store)
         self.orchestrator = orchestrator or RuntimeOrchestrator(
             memory_agent=MemoryAgent(self.memory_kernel),
             gpt_adapter=self.gpt_adapter,
@@ -63,7 +59,7 @@ class MAIOSCore:
         cls,
         path: str | Path,
         client: LLMClient | None = None,
-    ) -> "MAIOSCore":
+    ) -> MAIOSCore:
         knowledge_store = KnowledgeStore(path)
         memory_kernel = MemoryKernel(knowledge_store=knowledge_store)
         return cls(

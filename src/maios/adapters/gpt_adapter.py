@@ -14,10 +14,19 @@ from maios.config import MAIOSConfig
 from maios.kernel.memory_kernel import MemoryKernel
 from maios.runtime.models import CognitivePacket
 
+__all__ = [
+    "ClaudeProvider",
+    "GPTAdapter",
+    "GeminiProvider",
+    "LLMClient",
+    "MockGPTClient",
+    "OpenAIGPTClient",
+    "OpenAIProvider",
+]
+
 
 class LLMClient(Protocol):
-    def generate(self, prompt: str) -> str:
-        ...
+    def generate(self, prompt: str) -> str: ...
 
 
 class OpenAIGPTClient(OpenAIProvider):
@@ -95,9 +104,7 @@ class GPTAdapter:
         packet: CognitivePacket,
         memory_context: dict[str, str],
     ) -> str:
-        memory = "\n".join(
-            f"- {key}: {value}" for key, value in memory_context.items()
-        )
+        memory = "\n".join(f"- {key}: {value}" for key, value in memory_context.items())
 
         return f"""
 [MAIOS Cognitive Packet]

@@ -10,8 +10,7 @@ from maios.core import MAIOSCore, MissionResult
 
 
 class Transport(Protocol):
-    def execute(self, node: "Node", goal: str) -> MissionResult:
-        ...
+    def execute(self, node: Node, goal: str) -> MissionResult: ...
 
 
 @dataclass
@@ -89,9 +88,7 @@ class NodeManager:
 
     def healthy_nodes(self) -> list[Node]:
         return [
-            node
-            for node in self.nodes.values()
-            if node.healthy and node.available_capacity() > 0
+            node for node in self.nodes.values() if node.healthy and node.available_capacity() > 0
         ]
 
     def select_node(self) -> Node | None:
@@ -235,7 +232,10 @@ class DistributedRuntime:
     def execute_mission(self, goal: str) -> DistributedMission:
         mission = self.submit_mission(goal)
         self.run_next()
-        return self.scheduler.get(mission.mission_id)
+        completed = self.scheduler.get(mission.mission_id)
+        if completed is None:
+            raise RuntimeError(f"Distributed mission not found: {mission.mission_id}")
+        return completed
 
     def run_next(self) -> DistributedMission | None:
         self.health_monitor.check()

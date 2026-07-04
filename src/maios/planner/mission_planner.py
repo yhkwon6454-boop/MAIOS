@@ -1,12 +1,11 @@
 from dataclasses import dataclass
-from typing import List
 
 
 @dataclass
 class MissionPlan:
     mission: str
     intent: str
-    tasks: List[str]
+    tasks: list[str]
     priority: str
     risk: str
 
@@ -40,7 +39,7 @@ class MissionPlanner:
     def _extract_intent(self, mission: str) -> str:
         return mission.strip()
 
-    def _build_tasks(self, intent: str) -> List[str]:
+    def _build_tasks(self, intent: str) -> list[str]:
         return [
             "정보 수집",
             "상황 분석",

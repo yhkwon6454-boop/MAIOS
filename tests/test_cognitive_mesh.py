@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from maios.core import MAIOSCore, MissionResult
+from maios.core import MissionResult
 from maios.kernel.memory_kernel import MemoryKernel
 from maios.knowledge.store import KnowledgeStore
 from maios.mesh import (

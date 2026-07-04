@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
 import json
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -40,9 +40,7 @@ class AuditEntry:
     event_type: str
     payload: dict[str, Any]
     entry_id: str = field(default_factory=lambda: f"AUD-{uuid4().hex[:8]}")
-    created_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -98,10 +96,7 @@ class PermissionModel:
 
     def __init__(self, grants: dict[str, set[str] | list[str]] | None = None) -> None:
         grants = grants or {"autonomous_controller": {"EXECUTE_MISSION"}}
-        self.grants = {
-            subject: set(actions)
-            for subject, actions in grants.items()
-        }
+        self.grants = {subject: set(actions) for subject, actions in grants.items()}
 
     def allow(self, subject: str, action: str) -> None:
         self.grants.setdefault(subject, set()).add(action)
@@ -132,8 +127,7 @@ class PolicyEngine:
             for item in (high_risk_keywords or ["deploy", "delete", "external", "production"])
         ]
         self.medium_risk_keywords = [
-            item.lower()
-            for item in (medium_risk_keywords or ["modify", "write", "commit"])
+            item.lower() for item in (medium_risk_keywords or ["modify", "write", "commit"])
         ]
         self.approval_required_risks = set(approval_required_risks or {"HIGH"})
 
@@ -166,8 +160,7 @@ class PolicyEngine:
         ]
         failed_checks = [check for check in checks if not check.passed]
         requires_human_approval = any(
-            check.name == "risk_approval_gate" and not check.passed
-            for check in checks
+            check.name == "risk_approval_gate" and not check.passed for check in checks
         )
         approved = not failed_checks
         reason = "Allowed by governance policy."
@@ -200,11 +193,7 @@ class PolicyEngine:
 
     def _blocked_keyword_check(self, goal: str) -> PolicyCheck:
         goal_text = goal.lower()
-        blocked = [
-            keyword
-            for keyword in self.blocked_keywords
-            if keyword in goal_text
-        ]
+        blocked = [keyword for keyword in self.blocked_keywords if keyword in goal_text]
         return PolicyCheck(
             name="blocked_keywords",
             passed=not blocked,

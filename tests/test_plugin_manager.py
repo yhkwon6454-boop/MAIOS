@@ -1,5 +1,5 @@
-from maios.agents import Agent
 from maios.adapters.llm_provider import BaseLLMProvider
+from maios.agents import Agent
 from maios.kernel.memory_kernel import MemoryKernel
 from maios.plugins import BasePlugin, PluginManager
 from maios.tools import BaseTool, ToolResult

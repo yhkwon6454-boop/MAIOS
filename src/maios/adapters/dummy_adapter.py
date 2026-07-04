@@ -10,7 +10,9 @@ class DummyModelAdapter:
     """
 
     def execute(self, packet: CognitivePacket, memory_context: dict[str, str]) -> str:
-        memory_summary = "; ".join(memory_context.values()) if memory_context else "관련 메모리 없음"
+        memory_summary = (
+            "; ".join(memory_context.values()) if memory_context else "관련 메모리 없음"
+        )
         strategy = ", ".join(packet.strategy)
 
         return (

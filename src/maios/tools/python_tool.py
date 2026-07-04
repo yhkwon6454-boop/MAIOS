@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from maios.tools.base import BaseTool, ToolResult
+from maios.tools.base import BaseTool, ToolResult, normalize_output
 
 
 class PythonTool(BaseTool):
@@ -39,7 +39,7 @@ class PythonTool(BaseTool):
         except subprocess.TimeoutExpired as exc:
             return ToolResult(
                 success=False,
-                output=exc.stdout or "",
+                output=normalize_output(exc.stdout),
                 error=f"Python execution timed out after {timeout} seconds.",
                 metadata={"returncode": None},
             )

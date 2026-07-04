@@ -91,7 +91,9 @@ class GoalManager:
         task.status = "RUNNING"
         return task
 
-    def complete_task(self, goal: Goal, task: AutonomousTask, feedback: str = "done") -> list[AutonomousTask]:
+    def complete_task(
+        self, goal: Goal, task: AutonomousTask, feedback: str = "done"
+    ) -> list[AutonomousTask]:
         task.status = "COMPLETED"
         task.feedback.append(feedback)
         return self.priority_engine.reprioritize(goal.tasks, {task.task_id: feedback})

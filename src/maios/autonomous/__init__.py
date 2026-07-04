@@ -8,6 +8,11 @@ from maios.autonomous.controller import (
     SafetyManager,
     SafetyPolicy,
 )
+from maios.autonomous.runtime import (
+    MAIOSAgent,
+    MissionRecord,
+    MissionScheduler,
+)
 from maios.governance import (
     AuditEntry,
     AuditLog,
@@ -16,11 +21,6 @@ from maios.governance import (
     PermissionModel,
     PolicyCheck,
     PolicyEngine,
-)
-from maios.autonomous.runtime import (
-    MAIOSAgent,
-    MissionRecord,
-    MissionScheduler,
 )
 
 __all__ = [

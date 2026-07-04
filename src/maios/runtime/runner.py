@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
 import json
+from pathlib import Path
 from typing import Any
 
 from maios.adapters.dummy_adapter import DummyModelAdapter
@@ -114,7 +114,9 @@ class RuntimeRunner:
 
         return context
 
-    def _compose_output(self, mission: Mission, tree_dict: dict, outputs: list[str], qa_result) -> str:
+    def _compose_output(
+        self, mission: Mission, tree_dict: dict, outputs: list[str], qa_result
+    ) -> str:
         return "\n".join(
             [
                 f"# MAIOS Runtime Output: {mission.title}",
@@ -137,7 +139,9 @@ class RuntimeRunner:
             ]
         )
 
-    def _save_outputs(self, mission: Mission, tree_dict: dict, final_output: str, output_dir: str | Path) -> None:
+    def _save_outputs(
+        self, mission: Mission, tree_dict: dict, final_output: str, output_dir: str | Path
+    ) -> None:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 

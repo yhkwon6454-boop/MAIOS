@@ -53,8 +53,7 @@ class MemoryContextBuilder:
 
         if retrieved_items:
             context["retrieved_memory"] = "\n".join(
-                self._document_text(item)
-                for item in retrieved_items
+                self._document_text(item) for item in retrieved_items
             )
 
         if conversation_history:
@@ -72,11 +71,7 @@ class MemoryContextBuilder:
         if not context:
             return prompt
 
-        memory = "\n".join(
-            f"- {key}: {value}"
-            for key, value in context.items()
-            if value
-        )
+        memory = "\n".join(f"- {key}: {value}" for key, value in context.items() if value)
         if not memory:
             return prompt
 

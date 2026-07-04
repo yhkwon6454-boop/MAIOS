@@ -28,10 +28,7 @@ class RetrievalEngine:
         )
 
     def retrieve(self, query: str, top_k: int = 5) -> list[Document]:
-        return [
-            document
-            for document, _score in self.retrieve_with_score(query, top_k=top_k)
-        ]
+        return [document for document, _score in self.retrieve_with_score(query, top_k=top_k)]
 
     def retrieve_with_score(
         self,
@@ -72,8 +69,4 @@ class RetrievalEngine:
         return matches / len(query_terms)
 
     def _tokenize(self, text: str) -> list[str]:
-        return [
-            token
-            for token in text.lower().split()
-            if token.strip()
-        ]
+        return [token for token in text.lower().split() if token.strip()]

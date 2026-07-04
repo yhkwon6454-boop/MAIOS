@@ -113,7 +113,9 @@ class ReflectionEngine:
 
         if goal is not None:
             for task in getattr(goal, "tasks", []):
-                if any("retry" in item.lower() or "blocked" in item.lower() for item in task.feedback):
+                if any(
+                    "retry" in item.lower() or "blocked" in item.lower() for item in task.feedback
+                ):
                     bottlenecks.append(f"Task required retry: {task.description}")
 
         return bottlenecks
@@ -137,7 +139,9 @@ class ReflectionEngine:
             improvement_points.append("Prioritize blocked or retried tasks earlier in the queue.")
 
         if not improvement_points:
-            improvement_points.append("Review bottlenecks and refine planning, memory, or execution prompts.")
+            improvement_points.append(
+                "Review bottlenecks and refine planning, memory, or execution prompts."
+            )
 
         return improvement_points
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
 import json
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 from uuid import uuid4
@@ -51,25 +51,19 @@ class Decision:
                 "final_output": self.result.final_output,
                 "qa_score": self.result.qa_result.score,
                 "reflection_report_id": (
-                    self.result.reflection_report.report_id
-                    if self.result.reflection_report
-                    else ""
+                    self.result.reflection_report.report_id if self.result.reflection_report else ""
                 ),
             }
         return data
 
 
 class SafetyPolicy(Protocol):
-    def evaluate(self, goal: str, context: dict[str, Any]) -> tuple[bool, str]:
-        ...
+    def evaluate(self, goal: str, context: dict[str, Any]) -> tuple[bool, str]: ...
 
 
 class BlockedKeywordPolicy:
     def __init__(self, blocked_keywords: list[str] | None = None) -> None:
-        self.blocked_keywords = [
-            keyword.lower()
-            for keyword in (blocked_keywords or [])
-        ]
+        self.blocked_keywords = [keyword.lower() for keyword in (blocked_keywords or [])]
 
     def evaluate(self, goal: str, context: dict[str, Any]) -> tuple[bool, str]:
         goal_text = goal.lower()
@@ -95,7 +89,7 @@ class SafetyManager:
         cls,
         blocked_keywords: list[str],
         require_human_approval: bool = False,
-    ) -> "SafetyManager":
+    ) -> SafetyManager:
         return cls(
             policies=[BlockedKeywordPolicy(blocked_keywords)],
             require_human_approval=require_human_approval,
@@ -184,17 +178,12 @@ class AutonomousController:
         self.mode = mode
 
     def observe(self, mission_context: dict[str, Any]) -> Observation:
-        signals = [
-            key
-            for key, value in mission_context.items()
-            if value not in (None, "", [], {})
-        ]
+        signals = [key for key, value in mission_context.items() if value not in (None, "", [], {})]
         return Observation(context=dict(mission_context), signals=signals)
 
     def orient(self, observation: Observation) -> Orientation:
         goals = [
-            self.goal_manager.create_goal(goal)
-            for goal in self.generate_goals(observation.context)
+            self.goal_manager.create_goal(goal) for goal in self.generate_goals(observation.context)
         ]
         risk = "HIGH" if observation.context.get("risk") == "HIGH" else "LOW"
         return Orientation(

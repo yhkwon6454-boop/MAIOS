@@ -59,7 +59,9 @@ def test_reflection_engine_detects_failure_bottlenecks():
     assert "QA issue: Output too short" in report.bottlenecks
     assert "Task output is empty: 0" in report.bottlenecks
     assert "Executor did not report EXECUTED status." in report.bottlenecks
-    assert "Improve output quality before marking the mission complete." in report.improvement_points
+    assert (
+        "Improve output quality before marking the mission complete." in report.improvement_points
+    )
     assert "Add validation before accepting empty model outputs." in report.improvement_points
 
 

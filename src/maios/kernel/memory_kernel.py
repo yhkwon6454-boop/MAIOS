@@ -83,11 +83,7 @@ class MemoryKernel(BaseKernel):
 
     def retrieve_short_term(self, query: str, top_k: int = 5):
         query_text = query.lower()
-        matches = [
-            item
-            for item in self.session_memory
-            if query_text in str(item).lower()
-        ]
+        matches = [item for item in self.session_memory if query_text in str(item).lower()]
         return matches[:top_k]
 
     def summarize(self) -> str:
@@ -122,10 +118,7 @@ class MemoryKernel(BaseKernel):
         return self.context_builder.inject_context(prompt, context)
 
     def validate(self, result):
-        return (
-            result.get("status") == "MEMORIZED"
-            and "memory" in result
-        )
+        return result.get("status") == "MEMORIZED" and "memory" in result
 
     def shutdown(self):
         return True

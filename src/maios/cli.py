@@ -19,7 +19,7 @@ def main() -> None:
     result = runner.run(mission)
 
     print(result.final_output)
-    print(f"\nSaved outputs under: outputs/")
+    print("\nSaved outputs under: outputs/")
 
 
 if __name__ == "__main__":

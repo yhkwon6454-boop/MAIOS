@@ -13,6 +13,14 @@ class ToolResult:
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
+def normalize_output(value: bytes | str | None) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode(errors="replace")
+    return value
+
+
 class BaseTool(ABC):
     name: str
     description: str = ""

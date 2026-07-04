@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, is_dataclass
-from typing import Any
+from typing import Any, cast
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, PlainTextResponse
@@ -49,10 +49,7 @@ def create_app(agent: MAIOSAgent | None = None) -> FastAPI:
 
     @app.get("/history")
     def history() -> list[dict[str, Any]]:
-        return [
-            serialize_mission_record(record)
-            for record in runtime_agent.history()
-        ]
+        return [serialize_mission_record(record) for record in runtime_agent.history()]
 
     @app.get("/dashboard", response_class=HTMLResponse)
     def dashboard() -> str:
@@ -68,22 +65,10 @@ def create_app(agent: MAIOSAgent | None = None) -> FastAPI:
 
     @app.get("/dashboard/state")
     def dashboard_state() -> dict[str, Any]:
-        history_items = [
-            serialize_mission_record(record)
-            for record in runtime_agent.history()
-        ]
-        completed = [
-            item for item in history_items
-            if item["status"] == "COMPLETED"
-        ]
-        running = [
-            item for item in history_items
-            if item["status"] == "RUNNING"
-        ]
-        queued = [
-            item for item in history_items
-            if item["status"] == "QUEUED"
-        ]
+        history_items = [serialize_mission_record(record) for record in runtime_agent.history()]
+        completed = [item for item in history_items if item["status"] == "COMPLETED"]
+        running = [item for item in history_items if item["status"] == "RUNNING"]
+        queued = [item for item in history_items if item["status"] == "QUEUED"]
         reflections = [
             item["result"]["reflection_report"]
             for item in completed
@@ -149,16 +134,10 @@ def _to_jsonable(value: Any) -> Any:
         return None
 
     if is_dataclass(value):
-        return {
-            key: _to_jsonable(item)
-            for key, item in asdict(value).items()
-        }
+        return {key: _to_jsonable(item) for key, item in asdict(cast(Any, value)).items()}
 
     if isinstance(value, dict):
-        return {
-            key: _to_jsonable(item)
-            for key, item in value.items()
-        }
+        return {key: _to_jsonable(item) for key, item in value.items()}
 
     if isinstance(value, list):
         return [_to_jsonable(item) for item in value]

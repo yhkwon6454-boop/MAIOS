@@ -50,6 +50,8 @@ class OpenAIProvider(BaseLLMProvider):
 
     def generate(self, prompt: str) -> str:
         self._ensure_client()
+        if self.client is None:
+            raise RuntimeError("OpenAI client is not initialized.")
         response = self.client.responses.create(
             model=self.model,
             input=prompt,
@@ -103,6 +105,8 @@ class ClaudeProvider(BaseLLMProvider):
 
     def generate(self, prompt: str) -> str:
         self._ensure_client()
+        if self.client is None:
+            raise RuntimeError("Claude client is not initialized.")
         response = self.client.messages.create(
             model=self.model,
             max_tokens=4096,
@@ -153,6 +157,8 @@ class GeminiProvider(BaseLLMProvider):
 
     def generate(self, prompt: str) -> str:
         self._ensure_client()
+        if self.client is None:
+            raise RuntimeError("Gemini client is not initialized.")
         response = self.client.models.generate_content(
             model=self.model,
             contents=prompt,

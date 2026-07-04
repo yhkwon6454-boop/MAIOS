@@ -20,7 +20,9 @@ class PluginManager:
         self.memory_modules: dict[str, Any] = {}
 
     def register_plugin(self, plugin: BasePlugin | ModuleType) -> None:
-        name = getattr(plugin, "name", None) or plugin.__name__
+        name = getattr(plugin, "name", None)
+        if not name:
+            name = plugin.__name__ if isinstance(plugin, ModuleType) else plugin.__class__.__name__
         if isinstance(plugin, BasePlugin):
             plugin.register(self)
         elif hasattr(plugin, "register"):
@@ -68,7 +70,7 @@ class PluginManager:
                 continue
             module = self._load_module(path)
             self.register_plugin(module)
-            loaded.append(getattr(module, "name", module.__name__))
+            loaded.append(getattr(module, "name", None) or module.__name__)
 
         return loaded
 

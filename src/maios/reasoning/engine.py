@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field, replace
 import json
+from dataclasses import dataclass, field, replace
 from typing import Any, Protocol
 
 from maios.runtime.models import CognitivePacket
@@ -13,8 +13,7 @@ class ModelAdapter(Protocol):
         self,
         packet: CognitivePacket,
         memory_context: dict[str, str],
-    ) -> str:
-        ...
+    ) -> str: ...
 
 
 @dataclass
@@ -67,9 +66,7 @@ class ReasoningEngine:
             command = self._parse_response(response)
 
             if command["type"] == "final":
-                steps.append(
-                    ReasoningStep(phase="final_answer", content=command["final_answer"])
-                )
+                steps.append(ReasoningStep(phase="final_answer", content=command["final_answer"]))
                 return ReasoningResult(
                     final_answer=command["final_answer"],
                     steps=steps,
@@ -78,7 +75,9 @@ class ReasoningEngine:
                 )
 
             steps.append(ReasoningStep(phase="reasoning", content=command["reasoning"]))
-            steps.append(ReasoningStep(phase="tool", tool_name=command["tool"], tool_input=command["input"]))
+            steps.append(
+                ReasoningStep(phase="tool", tool_name=command["tool"], tool_input=command["input"])
+            )
 
             observation = self.tool_registry.execute(command["tool"], command["input"])
             steps.append(ReasoningStep(phase="observation", observation=observation))
@@ -122,7 +121,8 @@ class ReasoningEngine:
         tools = ", ".join(self.tool_registry.names()) or "none"
         return "\n".join(
             [
-                "Use iterative reasoning: Plan -> Tool -> Observation -> Reasoning -> Final Answer.",
+                "Use iterative reasoning: "
+                "Plan -> Tool -> Observation -> Reasoning -> Final Answer.",
                 f"Available tools: {tools}",
                 "When a tool is needed, respond only with JSON:",
                 '{"type": "tool", "reasoning": "...", "tool": "tool_name", "input": {...}}',

@@ -4,9 +4,9 @@ from dataclasses import dataclass, field
 from typing import Any, Protocol
 from uuid import uuid4
 
+from maios.agents.planner_agent import PlannerAgent
 from maios.core import MAIOSCore, MissionResult
 from maios.distributed import DistributedRuntime, Node
-from maios.agents.planner_agent import PlannerAgent
 from maios.kernel.memory_kernel import MemoryKernel
 from maios.knowledge.store import KnowledgeStore
 from maios.retrieval import Document
@@ -44,20 +44,15 @@ class ConsensusResult:
 
 
 class MeshTransport(Protocol):
-    def register_node(self, node: MeshNode) -> None:
-        ...
+    def register_node(self, node: MeshNode) -> None: ...
 
-    def execute(self, node_id: str, goal: str) -> MissionResult:
-        ...
+    def execute(self, node_id: str, goal: str) -> MissionResult: ...
 
-    def propose_plan(self, node_id: str, goal: str) -> PlanningProposal:
-        ...
+    def propose_plan(self, node_id: str, goal: str) -> PlanningProposal: ...
 
-    def sync_memory(self, source_node_id: str, target_node_id: str) -> None:
-        ...
+    def sync_memory(self, source_node_id: str, target_node_id: str) -> None: ...
 
-    def sync_knowledge(self, source_node_id: str, target_node_id: str) -> None:
-        ...
+    def sync_knowledge(self, source_node_id: str, target_node_id: str) -> None: ...
 
 
 class KnowledgeSynchronizer:
@@ -68,10 +63,7 @@ class KnowledgeSynchronizer:
             if item not in target.session_memory:
                 target.session_memory.append(item)
 
-        existing_documents = {
-            document.document_id
-            for document in target.long_term_memory
-        }
+        existing_documents = {document.document_id for document in target.long_term_memory}
         for document in source.long_term_memory:
             if document.document_id not in existing_documents:
                 target.long_term_memory.append(document)
@@ -241,10 +233,7 @@ class CognitiveMesh:
         self.sync_knowledge(source_node_id)
 
     def collaborative_plan(self, goal: str) -> list[PlanningProposal]:
-        return [
-            self.transport.propose_plan(node_id, goal)
-            for node_id in self._healthy_node_ids()
-        ]
+        return [self.transport.propose_plan(node_id, goal) for node_id in self._healthy_node_ids()]
 
     def reach_consensus(self, goal: str) -> ConsensusResult:
         mission_id = f"CM-{uuid4().hex[:8]}"
@@ -265,10 +254,7 @@ class CognitiveMesh:
         return result
 
     def knowledge_status(self) -> dict[str, int]:
-        return {
-            node_id: node.core.knowledge_store.count()
-            for node_id, node in self.nodes.items()
-        }
+        return {node_id: node.core.knowledge_store.count() for node_id, node in self.nodes.items()}
 
     def memory_status(self) -> dict[str, int]:
         return {
@@ -278,11 +264,7 @@ class CognitiveMesh:
 
     def _healthy_node_ids(self) -> list[str]:
         health = self.distributed_runtime.health()
-        return [
-            node_id
-            for node_id in self.nodes
-            if health.get(node_id, False)
-        ]
+        return [node_id for node_id in self.nodes if health.get(node_id, False)]
 
     def _sync_pairs(self, source_node_id: str | None = None) -> list[tuple[str, str]]:
         node_ids = list(self.nodes)

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
 import json
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from queue import Empty, Queue
 from threading import Event, Lock, Thread
-from typing import Callable
+from typing import Any
 from uuid import uuid4
 
 from maios.core import MAIOSCore, MissionResult
@@ -19,8 +20,8 @@ class MissionRecord:
     result: MissionResult | None = None
     error: str = ""
 
-    def to_dict(self) -> dict:
-        data = {
+    def to_dict(self) -> dict[str, Any]:
+        data: dict[str, Any] = {
             "goal": self.goal,
             "mission_id": self.mission_id,
             "status": self.status,
@@ -35,9 +36,7 @@ class MissionRecord:
                 "final_output": self.result.final_output,
                 "qa_score": self.result.qa_result.score,
                 "reflection_report_id": (
-                    self.result.reflection_report.report_id
-                    if self.result.reflection_report
-                    else ""
+                    self.result.reflection_report.report_id if self.result.reflection_report else ""
                 ),
             }
 
@@ -125,12 +124,7 @@ class MissionScheduler:
         self.history_path.parent.mkdir(parents=True, exist_ok=True)
         self.history_path.write_text(
             json.dumps(
-                {
-                    "missions": [
-                        record.to_dict()
-                        for record in self._records.values()
-                    ]
-                },
+                {"missions": [record.to_dict() for record in self._records.values()]},
                 ensure_ascii=False,
                 indent=2,
             ),

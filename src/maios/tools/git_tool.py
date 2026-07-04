@@ -4,7 +4,7 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from maios.tools.base import BaseTool, ToolResult
+from maios.tools.base import BaseTool, ToolResult, normalize_output
 
 
 class GitTool(BaseTool):
@@ -38,7 +38,7 @@ class GitTool(BaseTool):
         except subprocess.TimeoutExpired as exc:
             return ToolResult(
                 success=False,
-                output=exc.stdout or "",
+                output=normalize_output(exc.stdout),
                 error=f"Git command timed out after {timeout} seconds.",
                 metadata={"returncode": None, "command": command},
             )

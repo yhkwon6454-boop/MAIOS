@@ -78,7 +78,7 @@ pytest
 At release preparation time, the local suite passes with:
 
 ```text
-145 passed, 4 warnings
+154 passed, 95.20% coverage
 ```
 
 ## Documentation
@@ -87,6 +87,7 @@ At release preparation time, the local suite passes with:
 - [Installation](docs/INSTALLATION.md)
 - [API](docs/API.md)
 - [Roadmap](docs/ROADMAP.md)
+- [Quality](docs/QUALITY.md)
 - [Changelog](CHANGELOG.md)
 
 ## Status

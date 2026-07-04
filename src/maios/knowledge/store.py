@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import asdict
 import json
+from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 from uuid import uuid4
 
 from maios.retrieval.document import Document
@@ -15,7 +15,7 @@ class KnowledgeStore:
 
     def __init__(self, path: str | Path | None = None):
         self.path = Path(path) if path else None
-        self._packets: Dict[str, Packet] = {}
+        self._packets: dict[str, Packet] = {}
         self._documents: dict[str, dict[str, Any]] = {}
 
         if self.path and self.path.exists():
@@ -63,7 +63,9 @@ class KnowledgeStore:
             self.get(document_id)
             for document_id, document in self._documents.items()
             if query_text in document.get("content", "").lower()
-            or any(query_text in str(value).lower() for value in document.get("metadata", {}).values())
+            or any(
+                query_text in str(value).lower() for value in document.get("metadata", {}).values()
+            )
         ]
         return [document for document in matches if document is not None][:top_k]
 
@@ -104,6 +106,9 @@ class KnowledgeStore:
         return len(self._packets) + len(self._documents)
 
     def _load(self) -> None:
+        if self.path is None:
+            return
+
         data = json.loads(self.path.read_text(encoding="utf-8"))
         documents = data.get("documents", {})
         self._documents = {
@@ -129,24 +134,20 @@ class KnowledgeStore:
 class InMemoryKnowledgeStore:
     """Simple key-value memory store used by the runtime pipeline."""
 
-    def __init__(self):
-        self._store: Dict[str, str] = {}
+    def __init__(self) -> None:
+        self._store: dict[str, str] = {}
 
-    def store(self, key: str, value: str):
+    def store(self, key: str, value: str) -> None:
         self._store[key] = value
 
-    def retrieve(self, keys: list[str]):
-        return {
-            key: self._store[key]
-            for key in keys
-            if key in self._store
-        }
+    def retrieve(self, keys: list[str]) -> dict[str, str]:
+        return {key: self._store[key] for key in keys if key in self._store}
 
-    def get(self, key: str, default: str = ""):
+    def get(self, key: str, default: str = "") -> str:
         return self._store.get(key, default)
 
-    def exists(self, key: str):
+    def exists(self, key: str) -> bool:
         return key in self._store
 
-    def count(self):
+    def count(self) -> int:
         return len(self._store)

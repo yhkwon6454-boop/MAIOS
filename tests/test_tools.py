@@ -61,9 +61,7 @@ def test_tool_registry_requires_tool_name():
 def test_file_tool_write_read_append_exists_and_list(tmp_path):
     tool = FileTool(root=tmp_path)
 
-    write_result = tool.execute(
-        {"action": "write", "path": "notes/task.txt", "content": "alpha"}
-    )
+    write_result = tool.execute({"action": "write", "path": "notes/task.txt", "content": "alpha"})
     append_result = tool.execute(
         {"action": "append", "path": "notes/task.txt", "content": "\nbeta"}
     )
