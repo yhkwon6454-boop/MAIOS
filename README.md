@@ -1,86 +1,96 @@
 # MAIOS
 
-MAIOS is an experimental AI operating-system runtime for mission-oriented work.
-The v0.1 Alpha codebase provides a small, test-covered Python foundation for
-planning missions, scheduling cognitive packets, routing model output through
-tools, using retrieval-backed memory, and producing runtime outputs.
+MAIOS is the MUSA AI Operating System: a Python runtime for mission-oriented AI
+workflows. The `v0.1.0-alpha` release is an offline-testable developer alpha
+that connects planning, memory, model adapters, tool routing, multi-agent
+execution, autonomous control, distributed coordination, and governance
+abstractions.
 
-This release is intentionally minimal. It implements local abstractions and
-offline-testable components; it does not provide a production autonomous agent
-or hosted service.
+MAIOS is not a hosted service. Components are local Python abstractions designed
+for extension and testing.
 
 ## Implemented Capabilities
 
-- Mission loading from simple YAML or JSON files.
-- Mission planning through `MissionPlanner`.
-- Cognitive process scheduling for writing, translation, military research, and
-  general missions.
-- Runtime execution through `RuntimeRunner`.
-- Model adapter abstraction with a dummy adapter and an OpenAI Responses API
-  client wrapper.
-- Reasoning loop support for model-directed tool calls.
-- Tool registry with shell, file, Python, and Git tools.
-- Short-term memory and provider-agnostic long-term retrieval interfaces.
-- Chunking, document, embedding-provider, vector-store, and retriever
-  abstractions.
-- Quality evaluation for runtime packet outputs.
-- Pytest test suite and GitHub Actions CI workflow.
+- `maios.run(goal)` and `MAIOSCore.run(goal)` public APIs.
+- Multi-agent runtime orchestration: planner, memory, LLM adapter, executor,
+  quality, reflection, and knowledge update.
+- Provider-based LLM adapter architecture with mock, OpenAI, Claude, and Gemini
+  provider classes.
+- JSON-backed `KnowledgeStore`, memory context injection, and keyword RAG.
+- Tool adapter layer with shell, file, Python, and Git tools.
+- Autonomous planning, autonomous runtime queue, and autonomous controller.
+- Safety and governance layer with permission checks, risk classification,
+  approval gates, and audit logging.
+- Plugin manager for agents, tools, providers, and memory modules.
+- Distributed runtime and cognitive mesh abstractions for multiple MAIOS nodes.
+- FastAPI REST service and simple web dashboard.
+- Local examples and a pytest suite covering implemented behavior.
 
 ## Installation
 
-MAIOS requires Python 3.12 according to the package metadata.
+MAIOS currently targets Python 3.12.
 
 ```bash
-python -m pip install --upgrade pip
-python -m pip install -e .
-python -m pip install pytest
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -e .[dev]
 ```
 
-The CI workflow also tests Python 3.11 for compatibility.
+On macOS or Linux, replace the Python executable path with
+`.venv/bin/python`.
 
-## Running Tests
+## Basic Usage
+
+```python
+import maios
+
+result = maios.run("Summarize the current MAIOS runtime status.")
+print(result.status)
+print(result.final_output)
+```
+
+Run the included example:
+
+```bash
+python examples/basic_usage.py
+```
+
+## REST API
+
+```bash
+uvicorn maios.service.api:app --reload
+```
+
+Implemented endpoints:
+
+- `GET /health`
+- `POST /run`
+- `GET /mission/{mission_id}`
+- `GET /history`
+- `GET /dashboard`
+
+## Tests
 
 ```bash
 pytest
 ```
 
-At the time this documentation was generated, the local suite passed with:
+At release preparation time, the local suite passes with:
 
 ```text
-46 passed, 2 warnings
+145 passed, 4 warnings
 ```
 
-## Running an Example Mission
+## Documentation
 
-```bash
-python -m maios.cli examples/writing_project.yaml
-```
-
-Or run the integration example:
-
-```bash
-python examples/runtime_integration.py
-```
-
-Runtime outputs are written under `outputs/` by default.
-
-## Repository Layout
-
-```text
-src/maios/adapters/    Model adapter implementations
-src/maios/kernel/      Cognitive, executive, memory, and quality kernels
-src/maios/planner/     Mission planning
-src/maios/reasoning/   Iterative reasoning engine
-src/maios/retrieval/   RAG interfaces and retrieval primitives
-src/maios/runtime/     Mission models, loading, tree, and runner
-src/maios/scheduler/   Mission-to-process scheduling
-src/maios/tools/       Tool interface, registry, and local tools
-tests/                 Unit and integration tests
-examples/              Example mission files and runtime example
-```
+- [Architecture](docs/ARCHITECTURE.md)
+- [Installation](docs/INSTALLATION.md)
+- [API](docs/API.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Changelog](CHANGELOG.md)
 
 ## Status
 
-MAIOS v0.1 Alpha is a developer-oriented foundation. Public interfaces are still
-small and may evolve, but existing tests are intended to protect current API
-behavior during incremental development.
+`v0.1.0-alpha` is a developer alpha. Public APIs are intentionally small and
+covered by tests, but the project is still early and should be treated as an
+experimental runtime foundation.
