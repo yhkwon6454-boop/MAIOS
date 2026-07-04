@@ -62,11 +62,15 @@ class MemoryKernel(BaseKernel):
     def retrieve(self, query: str, top_k: int = 5):
         short_term_matches = self.retrieve_short_term(query, top_k=top_k)
 
+        knowledge_matches = []
+        if self.knowledge_store is not None:
+            knowledge_matches = self.knowledge_store.search(query, top_k=top_k)
+
         if self.retriever is None:
-            return short_term_matches
+            return [*short_term_matches, *knowledge_matches][:top_k]
 
         long_term_matches = self.retriever.retrieve(query, top_k=top_k)
-        return [*short_term_matches, *long_term_matches][:top_k]
+        return [*short_term_matches, *knowledge_matches, *long_term_matches][:top_k]
 
     def retrieve_with_score(self, query: str, top_k: int = 5):
         if self.retriever is not None:

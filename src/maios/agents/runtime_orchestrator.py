@@ -8,7 +8,9 @@ from maios.agents.executor_agent import ExecutorAgent
 from maios.agents.memory_agent import MemoryAgent
 from maios.agents.planner_agent import PlannerAgent
 from maios.kernel.quality_kernel import QualityKernel
+from maios.knowledge.store import KnowledgeStore
 from maios.planning import GoalManager
+from maios.reflection import ImprovementReport, ReflectionEngine
 from maios.runtime.models import Mission, QAResult, Status
 from maios.runtime.plan import Plan
 
@@ -24,6 +26,7 @@ class MultiAgentRuntimeResult:
     final_output: str
     context: dict[str, Any]
     task_outputs: list[str] | None = None
+    reflection_report: ImprovementReport | None = None
 
 
 class RuntimeOrchestrator:
@@ -37,13 +40,18 @@ class RuntimeOrchestrator:
         executor_agent: ExecutorAgent | None = None,
         quality_kernel: QualityKernel | None = None,
         goal_manager: GoalManager | None = None,
+        reflection_engine: ReflectionEngine | None = None,
+        knowledge_store: KnowledgeStore | None = None,
     ) -> None:
+        self.knowledge_store = knowledge_store or KnowledgeStore()
         self.planner_agent = planner_agent or PlannerAgent()
         self.memory_agent = memory_agent or MemoryAgent()
         self.gpt_adapter = gpt_adapter or GPTAdapter()
         self.executor_agent = executor_agent or ExecutorAgent()
         self.quality_kernel = quality_kernel or QualityKernel()
         self.goal_manager = goal_manager or GoalManager()
+        self.reflection_engine = reflection_engine or ReflectionEngine(self.knowledge_store)
+        self._connect_memory_store()
 
     def run(self, mission: Mission) -> MultiAgentRuntimeResult:
         mission.status = Status.RUNNING
@@ -77,10 +85,18 @@ class RuntimeOrchestrator:
 
         qa_result = self.quality_kernel.evaluate([model_output])
         mission.status = qa_result.status
+        reflection_report = self.reflection_engine.analyze(
+            mission=mission,
+            qa_result=qa_result,
+            execution_result=context.get("execution_result", {}),
+            task_outputs=task_outputs,
+            goal=context.get("goal"),
+        )
         final_output = self._compose_output(context, qa_result)
         context = {
             **context,
             "qa_result": qa_result,
+            "reflection_report": reflection_report,
             "final_output": final_output,
             "trace": [*context["trace"], "quality"],
         }
@@ -95,7 +111,12 @@ class RuntimeOrchestrator:
             final_output=final_output,
             context=context,
             task_outputs=task_outputs,
+            reflection_report=reflection_report,
         )
+
+    def _connect_memory_store(self) -> None:
+        if hasattr(self.memory_agent, "memory_kernel"):
+            self.memory_agent.memory_kernel.knowledge_store = self.knowledge_store
 
     def _execute_task_queue(self, context: dict[str, Any]) -> list[str]:
         goal = context["goal"]
