@@ -7,6 +7,7 @@ from typing import Any, Protocol
 from uuid import uuid4
 
 from maios.agents.runtime_orchestrator import MultiAgentRuntimeResult, RuntimeOrchestrator
+from maios.governance import GovernanceManager
 from maios.planning import Goal, GoalManager
 from maios.reflection import ReflectionEngine
 from maios.runtime.models import Mission, MissionType, Priority
@@ -35,6 +36,8 @@ class Decision:
     approved: bool
     status: str = "PENDING"
     reason: str = ""
+    risk_level: str = "UNKNOWN"
+    policy_checks: list[dict[str, Any]] = field(default_factory=list)
     decision_id: str = field(default_factory=lambda: f"DEC-{uuid4().hex[:8]}")
     result: MultiAgentRuntimeResult | None = None
 
@@ -166,6 +169,7 @@ class AutonomousController:
         runtime_orchestrator: RuntimeOrchestrator | None = None,
         reflection_engine: ReflectionEngine | None = None,
         safety_manager: SafetyManager | None = None,
+        governance_manager: GovernanceManager | None = None,
         decision_history: DecisionHistoryStore | None = None,
         mode: str = "autonomous",
     ) -> None:
@@ -175,6 +179,7 @@ class AutonomousController:
         )
         self.reflection_engine = reflection_engine or self.runtime_orchestrator.reflection_engine
         self.safety_manager = safety_manager or SafetyManager()
+        self.governance_manager = governance_manager
         self.decision_history = decision_history or DecisionHistoryStore()
         self.mode = mode
 
@@ -213,10 +218,32 @@ class AutonomousController:
             return decision
 
         goal = orientation.goals[0].objective
-        approved, reason = self.safety_manager.evaluate(
-            goal,
-            {"orientation": orientation},
-        )
+        policy_checks: list[dict[str, Any]] = []
+        risk_level = orientation.risk
+        if self.governance_manager is not None:
+            governance_decision = self.governance_manager.evaluate(
+                goal=goal,
+                action="EXECUTE_MISSION",
+                subject="autonomous_controller",
+                context={"orientation": orientation, "risk": orientation.risk},
+            )
+            approved = governance_decision.approved
+            reason = governance_decision.reason
+            risk_level = governance_decision.risk_level
+            policy_checks = [
+                {
+                    "name": check.name,
+                    "passed": check.passed,
+                    "reason": check.reason,
+                    "metadata": check.metadata,
+                }
+                for check in governance_decision.policy_checks
+            ]
+        else:
+            approved, reason = self.safety_manager.evaluate(
+                goal,
+                {"orientation": orientation},
+            )
         if self.mode == "human_approval" and approved:
             approved = False
             reason = "Human approval required."
@@ -228,8 +255,12 @@ class AutonomousController:
             approved=approved,
             status="APPROVED" if approved else "PENDING_APPROVAL",
             reason=reason,
+            risk_level=risk_level,
+            policy_checks=policy_checks,
         )
         self.decision_history.add(decision)
+        if self.governance_manager is not None:
+            self.governance_manager.record_autonomous_decision(decision.to_dict())
         return decision
 
     def act(self, decision: Decision) -> Decision:
@@ -245,6 +276,8 @@ class AutonomousController:
         decision.status = "COMPLETED"
         decision.reason = "Mission executed."
         self.decision_history.add(decision)
+        if self.governance_manager is not None:
+            self.governance_manager.record_autonomous_decision(decision.to_dict())
         return decision
 
     def run_once(self, mission_context: dict[str, Any]) -> Decision:
@@ -273,6 +306,8 @@ class AutonomousController:
         decision.status = "APPROVED"
         decision.reason = "Approved by human operator."
         self.decision_history.add(decision)
+        if self.governance_manager is not None:
+            self.governance_manager.record_autonomous_decision(decision.to_dict())
         return self.act(decision)
 
     def generate_goals(self, mission_context: dict[str, Any]) -> list[str]:
