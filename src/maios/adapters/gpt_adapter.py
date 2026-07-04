@@ -1,8 +1,16 @@
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import Protocol
 
-from maios.config import MAIOSConfig, load_config
+from maios.adapters.llm_provider import (
+    BaseLLMProvider,
+    ClaudeProvider,
+    GeminiProvider,
+    MockGPTClient,
+    OpenAIProvider,
+    create_llm_provider,
+)
+from maios.config import MAIOSConfig
 from maios.runtime.models import CognitivePacket
 
 
@@ -11,70 +19,18 @@ class LLMClient(Protocol):
         ...
 
 
-class MockGPTClient:
-    """Offline mock client used when no provider-specific client is injected."""
-
-    def generate(self, prompt: str) -> str:
-        return f"Mock GPT response: {prompt}"
-
-
-class OpenAIGPTClient:
-    """OpenAI Responses API client used by GPTAdapter."""
-
+class OpenAIGPTClient(OpenAIProvider):
     def __init__(
         self,
         config: MAIOSConfig | None = None,
-        openai_client: Any | None = None,
+        openai_client=None,
         model: str | None = None,
     ) -> None:
-        self.config = config or load_config()
-        self.model = model or self.config.openai_model
-
-        if openai_client is not None:
-            self.openai_client = openai_client
-            return
-
-        try:
-            from openai import OpenAI
-        except ImportError as exc:
-            raise RuntimeError(
-                "OpenAI SDK is required for OpenAIGPTClient. "
-                "Install project dependencies before using the GPT adapter."
-            ) from exc
-
-        api_key = self.config.openai_api_key or None
-        self.openai_client = OpenAI(api_key=api_key)
-
-    def generate(self, prompt: str) -> str:
-        response = self.openai_client.responses.create(
-            model=self.model,
-            input=prompt,
-        )
-        return self._extract_text(response)
-
-    def _extract_text(self, response: Any) -> str:
-        output_text = self._get_value(response, "output_text")
-        if output_text:
-            return str(output_text)
-
-        output = self._get_value(response, "output") or []
-        for item in output:
-            content = self._get_value(item, "content") or []
-            for part in content:
-                text = self._get_value(part, "text")
-                if text:
-                    return str(text)
-
-        return str(response)
-
-    def _get_value(self, source: Any, key: str) -> Any:
-        if isinstance(source, dict):
-            return source.get(key)
-        return getattr(source, key, None)
+        super().__init__(config=config, client=openai_client, model=model)
 
 
 class GPTAdapter:
-    """Adapter that executes MAIOS cognitive packets through a GPT client."""
+    """Adapter that executes MAIOS cognitive packets through an LLM provider."""
 
     def __init__(
         self,
@@ -114,11 +70,8 @@ class GPTAdapter:
         self,
         config: MAIOSConfig | None = None,
         model: str | None = None,
-    ) -> LLMClient:
-        if config is not None or model is not None:
-            return OpenAIGPTClient(config=config, model=model)
-
-        return MockGPTClient()
+    ) -> BaseLLMProvider:
+        return create_llm_provider(config=config, model=model)
 
     def _build_prompt(
         self,

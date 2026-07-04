@@ -111,16 +111,17 @@ def test_gpt_adapter_builds_default_openai_client(monkeypatch):
     created = {}
 
     class FakeDefaultClient:
-        def __init__(self, config=None, model=None):
-            created["config"] = config
-            created["model"] = model
-
         def generate(self, prompt: str) -> str:
             return prompt
 
-    monkeypatch.setattr("maios.adapters.gpt_adapter.OpenAIGPTClient", FakeDefaultClient)
+    def fake_create_llm_provider(config=None, model=None):
+        created["config"] = config
+        created["model"] = model
+        return FakeDefaultClient()
 
-    config = MAIOSConfig(openai_model="gpt-test")
+    monkeypatch.setattr("maios.adapters.gpt_adapter.create_llm_provider", fake_create_llm_provider)
+
+    config = MAIOSConfig(model_provider="openai", openai_model="gpt-test")
     adapter = GPTAdapter(config=config, model="gpt-override")
 
     assert isinstance(adapter.client, FakeDefaultClient)
