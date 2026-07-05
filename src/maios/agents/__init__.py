@@ -13,6 +13,13 @@ from maios.agents.quality_agent import QualityAgent
 from maios.agents.registry import AgentCapability, AgentRegistry, RegisteredAgent
 from maios.agents.runtime_orchestrator import MultiAgentRuntimeResult, RuntimeOrchestrator
 from maios.agents.scheduler import RuntimeScheduler, RuntimeTask
+from maios.agents.shared_memory import (
+    MemoryPermission,
+    MemoryVersion,
+    SharedMemoryManager,
+    SharedMemoryPermissionError,
+    SharedWorkspace,
+)
 
 __all__ = [
     "Agent",
@@ -25,6 +32,8 @@ __all__ = [
     "ConsensusResult",
     "ExecutorAgent",
     "MemoryAgent",
+    "MemoryPermission",
+    "MemoryVersion",
     "MultiAgentRuntimeResult",
     "PlannerAgent",
     "QualityAgent",
@@ -32,4 +41,7 @@ __all__ = [
     "RuntimeOrchestrator",
     "RuntimeScheduler",
     "RuntimeTask",
+    "SharedMemoryManager",
+    "SharedMemoryPermissionError",
+    "SharedWorkspace",
 ]

@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from maios.agents.registry import AgentCapability, AgentRegistry, RegisteredAgent
 from maios.agents.scheduler import RuntimeScheduler, RuntimeTask
+from maios.agents.shared_memory import SharedMemoryManager
 
 
 @dataclass
@@ -51,11 +52,16 @@ class CollaborationManager:
         self,
         registry: AgentRegistry | None = None,
         scheduler: RuntimeScheduler | None = None,
+        shared_memory_manager: SharedMemoryManager | None = None,
+        mission_id: str = "default",
     ) -> None:
         self.registry = registry or AgentRegistry()
         self.scheduler = scheduler or RuntimeScheduler(self.registry)
+        self.shared_memory_manager = shared_memory_manager or SharedMemoryManager()
+        self.mission_id = mission_id
         self.shared_memory: dict[str, Any] = {}
         self.conflicts: list[Conflict] = []
+        self.shared_memory_manager.create_workspace(self.mission_id)
 
     def form_team(
         self,
@@ -77,9 +83,20 @@ class CollaborationManager:
 
     def remember(self, key: str, value: Any) -> None:
         self.shared_memory[key] = value
+        self.shared_memory_manager.write(
+            self.mission_id,
+            agent_id="collaboration",
+            key=key,
+            value=value,
+        )
 
     def recall(self, key: str, default: Any = None) -> Any:
-        return self.shared_memory.get(key, default)
+        return self.shared_memory_manager.read(
+            self.mission_id,
+            agent_id="collaboration",
+            key=key,
+            default=self.shared_memory.get(key, default),
+        )
 
     def delegate(
         self,
@@ -89,7 +106,12 @@ class CollaborationManager:
     ) -> CollaborationTask:
         merged_context = {
             **context,
-            "shared_memory": dict(self.shared_memory),
+            "shared_memory": self.shared_memory_manager.read_all(
+                self.mission_id,
+                agent_id="collaboration",
+            ),
+            "shared_memory_manager": self.shared_memory_manager,
+            "mission_id": self.mission_id,
         }
         runtime_task = self.scheduler.dispatch(
             capability,
@@ -150,6 +172,12 @@ class CollaborationManager:
             conflict.resolved_value = decision
             conflict.strategy = strategy
             self.shared_memory[conflict.key] = decision
+            self.shared_memory_manager.write(
+                self.mission_id,
+                agent_id="collaboration",
+                key=conflict.key,
+                value=decision,
+            )
         return resolved_conflicts
 
     def vote(
@@ -161,6 +189,12 @@ class CollaborationManager:
         if not votes:
             result = ConsensusResult(decision=None, votes={}, approved=False)
             self.shared_memory["last_consensus"] = result
+            self.shared_memory_manager.write(
+                self.mission_id,
+                agent_id="collaboration",
+                key="last_consensus",
+                value=result,
+            )
             return result
 
         quorum_size = quorum or ((len(votes) // 2) + 1)
@@ -174,6 +208,12 @@ class CollaborationManager:
             tie=tie,
         )
         self.shared_memory["last_consensus"] = result
+        self.shared_memory_manager.write(
+            self.mission_id,
+            agent_id="collaboration",
+            key="last_consensus",
+            value=result,
+        )
         return result
 
     def _collaboration_task(self, task: RuntimeTask) -> CollaborationTask:
@@ -195,8 +235,21 @@ class CollaborationManager:
         memory_update = task.result.get("shared_memory")
         if isinstance(memory_update, dict):
             self.shared_memory.update(memory_update)
+            for key, value in memory_update.items():
+                self.shared_memory_manager.write(
+                    self.mission_id,
+                    agent_id=task.agent_id or "collaboration",
+                    key=key,
+                    value=value,
+                )
         if "output" in task.result:
             self.shared_memory[task.capability] = task.result["output"]
+            self.shared_memory_manager.write(
+                self.mission_id,
+                agent_id=task.agent_id or "collaboration",
+                key=task.capability,
+                value=task.result["output"],
+            )
 
     def _majority_value(self, values: list[Any]) -> Any:
         ordered_counts: list[tuple[Any, int]] = []
