@@ -1,7 +1,7 @@
 from maios.autonomous import MAIOSAgent
 from maios.core import MAIOSCore, MissionResult, run
 
-__version__ = "1.0.0-rc1"
+__version__ = "1.0.0"
 
 __all__ = [
     "MAIOSCore",

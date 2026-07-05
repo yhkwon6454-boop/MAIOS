@@ -1,10 +1,9 @@
 # MAIOS
 
 MAIOS is the MUSA AI Operating System: a Python runtime for mission-oriented AI
-workflows. The `v0.1.0-alpha` release is an offline-testable developer alpha
-that connects planning, memory, model adapters, tool routing, multi-agent
-execution, autonomous control, distributed coordination, and governance
-abstractions.
+workflows. The `v1.0.0` release stabilizes the local developer runtime that
+connects planning, memory, model adapters, tool routing, multi-agent execution,
+autonomous control, distributed coordination, and governance abstractions.
 
 MAIOS is not a hosted service. Components are local Python abstractions designed
 for extension and testing.
@@ -28,7 +27,7 @@ for extension and testing.
 
 ## Installation
 
-MAIOS currently targets Python 3.12.
+MAIOS targets Python 3.11 and 3.12.
 
 ```bash
 python -m venv .venv
@@ -78,7 +77,7 @@ pytest
 At release preparation time, the local suite passes with:
 
 ```text
-154 passed, 95.20% coverage
+156 passed, 95.20% coverage
 ```
 
 ## Documentation
@@ -96,6 +95,6 @@ At release preparation time, the local suite passes with:
 
 ## Status
 
-`v0.1.0-alpha` is a developer alpha. Public APIs are intentionally small and
-covered by tests, but the project is still early and should be treated as an
-experimental runtime foundation.
+`v1.0.0` is the first stable MAIOS release. Public APIs remain intentionally
+small and are covered by tests, with extension points designed for providers,
+tools, plugins, governance policies, and distributed transports.

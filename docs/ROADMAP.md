@@ -1,9 +1,9 @@
 # MAIOS Roadmap
 
 This roadmap lists implemented status and near-term direction for MAIOS after
-`v0.1.0-alpha`.
+`v1.0.0`.
 
-## Current Alpha
+## Current Release
 
 - Core mission execution through `MAIOSCore`.
 - Multi-agent runtime orchestration.

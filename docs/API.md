@@ -1,6 +1,6 @@
 # API
 
-This document covers the implemented public interfaces in `v0.1.0-alpha`.
+This document covers the implemented public interfaces in `v1.0.0`.
 
 ## Python API
 

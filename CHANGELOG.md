@@ -7,6 +7,19 @@ and this project follows semantic versioning for release tags.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-05
+
+### Added
+
+- `RELEASE_NOTES.md` for the final v1.0.0 release.
+- GitHub release workflow for `v*` tags.
+- Final release tag instructions for `v1.0.0`.
+
+### Changed
+
+- Promoted package version from `1.0.0-rc1` to `1.0.0`.
+- Updated package, CLI, API metadata, README, and docs for the final release.
+
 ## [1.0.0-rc1] - 2026-07-05
 
 ### Added

@@ -19,17 +19,19 @@ MAIOS v1.0.0 includes the implemented local runtime foundation:
 
 ## Release Checklist
 
-- [ ] Confirm `pyproject.toml` version is set to `1.0.0`.
-- [ ] Confirm `src/maios/__init__.py` exposes `__version__ = "1.0.0"`.
-- [ ] Run `black --check src tests examples`.
-- [ ] Run `ruff check src tests examples`.
-- [ ] Run `mypy`.
-- [ ] Run `pytest`.
-- [ ] Confirm test coverage remains above 95%.
-- [ ] Review `README.md` and `docs/` for version accuracy.
+- [x] Confirm `pyproject.toml` version is set to `1.0.0`.
+- [x] Confirm `src/maios/__init__.py` exposes `__version__ = "1.0.0"`.
+- [x] Confirm `VERSION` contains `1.0.0`.
+- [x] Run `black --check src tests examples`.
+- [x] Run `ruff check src tests examples`.
+- [x] Run `mypy src`.
+- [x] Run `pytest`.
+- [x] Confirm test coverage remains above 95%.
+- [x] Review `README.md` and `docs/` for version accuracy.
 - [ ] Review `LICENSE` and copyright owner.
 - [ ] Confirm no secrets, generated private outputs, or local artifacts are staged.
-- [ ] Confirm GitHub issue templates and pull request template are present.
+- [x] Confirm GitHub issue templates and pull request template are present.
+- [x] Confirm GitHub release workflow is present.
 - [ ] Create and push the `v1.0.0` tag.
 - [ ] Create the GitHub release from the tag.
 
@@ -55,7 +57,8 @@ git push origin develop
 git push origin v1.0.0
 ```
 
-Then create a GitHub release for `v1.0.0` using the release notes below.
+Pushing the `v1.0.0` tag runs the GitHub release workflow. The workflow runs
+the quality gate and creates the GitHub release from `RELEASE_NOTES.md`.
 
 ## Release Notes Draft
 

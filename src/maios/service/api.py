@@ -20,7 +20,7 @@ def create_app(agent: MAIOSAgent | None = None) -> FastAPI:
     app = FastAPI(
         title="MAIOS API",
         description="REST API for the MUSA AI Operating System runtime.",
-        version="0.1.0-alpha",
+        version="1.0.0",
     )
     app.state.maios_agent = runtime_agent
 

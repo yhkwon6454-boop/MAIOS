@@ -63,6 +63,6 @@ Implemented persistence is JSON-backed:
 
 ## Constraints
 
-- The alpha runtime is synchronous unless using the autonomous background agent.
+- The v1.0 runtime is synchronous unless using the autonomous background agent.
 - Distributed and mesh transports are local abstractions in this release.
 - Tool execution is local and should be treated as trusted-code functionality.
