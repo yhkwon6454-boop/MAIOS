@@ -7,6 +7,8 @@ from maios.adapters.gpt_adapter import GPTAdapter
 from maios.agents.executor_agent import ExecutorAgent
 from maios.agents.memory_agent import MemoryAgent
 from maios.agents.planner_agent import PlannerAgent
+from maios.agents.quality_agent import QualityAgent
+from maios.events import EventBus
 from maios.kernel.quality_kernel import QualityKernel
 from maios.knowledge.store import KnowledgeStore
 from maios.planning import GoalManager
@@ -38,10 +40,12 @@ class RuntimeOrchestrator:
         memory_agent: MemoryAgent | None = None,
         gpt_adapter: GPTAdapter | None = None,
         executor_agent: ExecutorAgent | None = None,
+        quality_agent: QualityAgent | None = None,
         quality_kernel: QualityKernel | None = None,
         goal_manager: GoalManager | None = None,
         reflection_engine: ReflectionEngine | None = None,
         knowledge_store: KnowledgeStore | None = None,
+        event_bus: EventBus | None = None,
     ) -> None:
         self.knowledge_store = knowledge_store or KnowledgeStore()
         self.planner_agent = planner_agent or PlannerAgent()
@@ -49,13 +53,20 @@ class RuntimeOrchestrator:
         self.gpt_adapter = gpt_adapter or GPTAdapter()
         self.executor_agent = executor_agent or ExecutorAgent()
         self.quality_kernel = quality_kernel or QualityKernel()
+        self.quality_agent = quality_agent or QualityAgent(self.quality_kernel)
         self.goal_manager = goal_manager or GoalManager()
         self.reflection_engine = reflection_engine or ReflectionEngine(self.knowledge_store)
+        self.event_bus = event_bus or EventBus()
         self._connect_memory_store()
 
     def run(self, mission: Mission) -> MultiAgentRuntimeResult:
         mission.status = Status.RUNNING
         context: dict[str, Any] = {"mission": mission, "trace": []}
+        self._publish(
+            "mission.started",
+            "runtime",
+            {"mission_id": mission.mission_id, "objective": mission.objective},
+        )
 
         context = self._execute_agent(self.planner_agent, context)
         context = self._execute_agent(self.memory_agent, context)
@@ -82,7 +93,8 @@ class RuntimeOrchestrator:
 
         context = self._execute_agent(self.executor_agent, context)
 
-        qa_result = self.quality_kernel.evaluate([model_output])
+        context = self._execute_agent(self.quality_agent, context)
+        qa_result = context["qa_result"]
         mission.status = qa_result.status
         reflection_report = self.reflection_engine.analyze(
             mission=mission,
@@ -97,8 +109,16 @@ class RuntimeOrchestrator:
             "qa_result": qa_result,
             "reflection_report": reflection_report,
             "final_output": final_output,
-            "trace": [*context["trace"], "quality"],
         }
+        self._publish(
+            "mission.completed",
+            "runtime",
+            {
+                "mission_id": mission.mission_id,
+                "status": mission.status.value,
+                "qa_score": qa_result.score,
+            },
+        )
 
         return MultiAgentRuntimeResult(
             mission=mission,
@@ -127,9 +147,23 @@ class RuntimeOrchestrator:
                 break
 
             prompt = self._build_task_prompt(context, task)
+            self._publish(
+                "gpt.started",
+                "gpt_adapter",
+                {"task_id": task.task_id, "task": task.description},
+            )
             output = self.gpt_adapter.generate(
                 prompt,
                 memory_context=context.get("memory_context", {}),
+            )
+            self._publish(
+                "gpt.completed",
+                "gpt_adapter",
+                {
+                    "task_id": task.task_id,
+                    "task": task.description,
+                    "output": output,
+                },
             )
             outputs.append(output)
             feedback = "done" if output and output.strip() else "retry"
@@ -148,11 +182,22 @@ class RuntimeOrchestrator:
         )
 
     def _execute_agent(self, agent, context: dict[str, Any]) -> dict[str, Any]:
+        self._publish(
+            f"{agent.name}.started",
+            agent.name,
+            self._event_payload(context),
+        )
         next_context = agent.execute(context)
-        return {
+        next_context = {
             **next_context,
             "trace": [*next_context.get("trace", []), agent.name],
         }
+        self._publish(
+            f"{agent.name}.completed",
+            agent.name,
+            self._event_payload(next_context),
+        )
+        return next_context
 
     def _build_prompt(self, context: dict[str, Any]) -> str:
         mission = context["mission"]
@@ -188,3 +233,35 @@ class RuntimeOrchestrator:
                 f"- Score: {qa_result.score}",
             ]
         )
+
+    def _publish(self, event_type: str, source: str, payload: dict[str, Any]) -> None:
+        self.event_bus.publish(event_type, payload=payload, source=source)
+
+    def _event_payload(self, context: dict[str, Any]) -> dict[str, Any]:
+        mission = context.get("mission")
+        payload: dict[str, Any] = {
+            "trace": list(context.get("trace", [])),
+        }
+        if isinstance(mission, Mission):
+            payload.update(
+                {
+                    "mission_id": mission.mission_id,
+                    "objective": mission.objective,
+                    "status": mission.status.value,
+                }
+            )
+        if "execution_plan" in context:
+            payload["plan"] = context["execution_plan"].summary()
+        if "memory_context" in context:
+            payload["memory_context"] = dict(context["memory_context"])
+        if "model_output" in context:
+            payload["model_output"] = context["model_output"]
+        if "execution_result" in context:
+            payload["execution_result"] = context["execution_result"]
+        if "qa_result" in context:
+            payload["qa_result"] = {
+                "status": context["qa_result"].status.value,
+                "score": context["qa_result"].score,
+                "issues": list(context["qa_result"].issues),
+            }
+        return payload
