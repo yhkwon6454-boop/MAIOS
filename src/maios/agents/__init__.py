@@ -1,4 +1,11 @@
 from maios.agents.base import Agent
+from maios.agents.collaboration import (
+    CollaborationManager,
+    CollaborationResult,
+    CollaborationTask,
+    Conflict,
+    ConsensusResult,
+)
 from maios.agents.executor_agent import ExecutorAgent
 from maios.agents.memory_agent import MemoryAgent
 from maios.agents.planner_agent import PlannerAgent
@@ -11,6 +18,11 @@ __all__ = [
     "Agent",
     "AgentCapability",
     "AgentRegistry",
+    "CollaborationManager",
+    "CollaborationResult",
+    "CollaborationTask",
+    "Conflict",
+    "ConsensusResult",
     "ExecutorAgent",
     "MemoryAgent",
     "MultiAgentRuntimeResult",
