@@ -88,6 +88,10 @@ At release preparation time, the local suite passes with:
 - [API](docs/API.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Quality](docs/QUALITY.md)
+- [Security](docs/SECURITY.md)
+- [Contributing](docs/CONTRIBUTING.md)
+- [Governance](docs/GOVERNANCE.md)
+- [Release Plan](docs/RELEASE_PLAN.md)
 - [Changelog](CHANGELOG.md)
 
 ## Status
