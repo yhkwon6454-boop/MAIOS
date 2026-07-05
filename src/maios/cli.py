@@ -3,13 +3,19 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import maios
 from maios.runtime.loader import load_mission
 from maios.runtime.runner import RuntimeRunner
 
 
 def main() -> None:
+    if len(sys.argv) >= 2 and sys.argv[1] in {"--version", "-V"}:
+        print(maios.__version__)
+        return
+
     if len(sys.argv) < 2:
-        print("Usage: python -m maios.cli <mission.yaml>")
+        print("Usage: maios <mission.yaml>")
+        print("       maios --version")
         raise SystemExit(1)
 
     mission_path = Path(sys.argv[1])
