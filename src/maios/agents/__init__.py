@@ -14,8 +14,10 @@ from maios.agents.registry import AgentCapability, AgentRegistry, RegisteredAgen
 from maios.agents.runtime_orchestrator import MultiAgentRuntimeResult, RuntimeOrchestrator
 from maios.agents.scheduler import RuntimeScheduler, RuntimeTask
 from maios.agents.shared_memory import (
+    MemoryConflict,
     MemoryPermission,
     MemoryVersion,
+    SharedMemoryConflictError,
     SharedMemoryManager,
     SharedMemoryPermissionError,
     SharedWorkspace,
@@ -32,6 +34,7 @@ __all__ = [
     "ConsensusResult",
     "ExecutorAgent",
     "MemoryAgent",
+    "MemoryConflict",
     "MemoryPermission",
     "MemoryVersion",
     "MultiAgentRuntimeResult",
@@ -41,6 +44,7 @@ __all__ = [
     "RuntimeOrchestrator",
     "RuntimeScheduler",
     "RuntimeTask",
+    "SharedMemoryConflictError",
     "SharedMemoryManager",
     "SharedMemoryPermissionError",
     "SharedWorkspace",

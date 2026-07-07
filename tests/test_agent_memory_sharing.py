@@ -51,6 +51,12 @@ def test_collaboration_manager_uses_shared_memory_manager_workspace():
     assert executor.seen_context["shared_memory"]["plan"] == "plan ready"
     assert executor.seen_context["mission_id"] == "mission-1"
     assert executor.seen_context["shared_memory_manager"] is shared_memory
+    assert shared_memory.get_workspace("mission-1") is not None
+    workspace_memory = shared_memory.read_all("mission-1", "collaboration")
+    assert workspace_memory["goal"] == "ship"
+    assert workspace_memory["plan"] == "plan ready"
+    assert workspace_memory["execute"] == "done"
+    assert workspace_memory["execution"] == "done"
     assert shared_memory.read("mission-1", "collaboration", "execution") == "done"
 
 

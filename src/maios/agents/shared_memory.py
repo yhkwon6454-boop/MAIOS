@@ -9,6 +9,10 @@ class SharedMemoryPermissionError(PermissionError):
     """Raised when an agent is not allowed to access shared memory."""
 
 
+class SharedMemoryConflictError(RuntimeError):
+    """Raised when a memory write conflicts with the current version."""
+
+
 @dataclass(frozen=True)
 class MemoryPermission:
     agent_id: str
@@ -23,6 +27,17 @@ class MemoryVersion:
     version: int
     agent_id: str
     created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+
+
+@dataclass(frozen=True)
+class MemoryConflict:
+    key: str
+    base_version: int
+    versions: tuple[MemoryVersion, ...]
+
+    @property
+    def values(self) -> dict[str, Any]:
+        return {version.agent_id: version.value for version in self.versions}
 
 
 @dataclass
@@ -78,10 +93,17 @@ class SharedMemoryManager:
         agent_id: str,
         key: str,
         value: Any,
+        expected_version: int | None = None,
     ) -> MemoryVersion:
         workspace = self.create_workspace(mission_id)
         self._ensure_allowed(workspace, agent_id, "write")
-        next_version = len(workspace.history.get(key, [])) + 1
+        current_version = len(workspace.history.get(key, []))
+        if expected_version is not None and expected_version != current_version:
+            raise SharedMemoryConflictError(
+                f"Memory key '{key}' for mission '{mission_id}' is at version "
+                f"{current_version}, not expected version {expected_version}."
+            )
+        next_version = current_version + 1
         record = MemoryVersion(
             key=key,
             value=value,
@@ -111,13 +133,91 @@ class SharedMemoryManager:
         self._ensure_allowed(workspace, agent_id, "read")
         return workspace.snapshot()
 
-    def versions(self, mission_id: str, key: str) -> list[MemoryVersion]:
+    def versions(
+        self,
+        mission_id: str,
+        key: str,
+        agent_id: str | None = None,
+    ) -> list[MemoryVersion]:
         workspace = self.create_workspace(mission_id)
+        if agent_id is not None:
+            self._ensure_allowed(workspace, agent_id, "read")
         return list(workspace.history.get(key, []))
 
-    def latest(self, mission_id: str, key: str) -> MemoryVersion | None:
+    def latest(
+        self,
+        mission_id: str,
+        key: str,
+        agent_id: str | None = None,
+    ) -> MemoryVersion | None:
         workspace = self.create_workspace(mission_id)
+        if agent_id is not None:
+            self._ensure_allowed(workspace, agent_id, "read")
         return workspace.records.get(key)
+
+    def rollback(
+        self,
+        mission_id: str,
+        agent_id: str,
+        key: str,
+        version: int,
+    ) -> MemoryVersion:
+        workspace = self.create_workspace(mission_id)
+        self._ensure_allowed(workspace, agent_id, "write")
+        target = self._version_for_key(workspace, key, version)
+        if target is None:
+            raise ValueError(
+                f"Memory key '{key}' for mission '{mission_id}' has no version {version}."
+            )
+        return self.write(
+            mission_id,
+            agent_id,
+            key,
+            target.value,
+            expected_version=len(workspace.history.get(key, [])),
+        )
+
+    def detect_conflicts(
+        self,
+        mission_id: str,
+        key: str | None = None,
+        since_version: int = 0,
+        agent_id: str | None = None,
+    ) -> list[MemoryConflict]:
+        workspace = self.create_workspace(mission_id)
+        if agent_id is not None:
+            self._ensure_allowed(workspace, agent_id, "read")
+
+        keys = [key] if key is not None else list(workspace.history)
+        conflicts = []
+        for memory_key in keys:
+            versions = [
+                version
+                for version in workspace.history.get(memory_key, [])
+                if version.version > since_version
+            ]
+            unique_values = {repr(version.value) for version in versions}
+            unique_agents = {version.agent_id for version in versions}
+            if len(unique_values) > 1 and len(unique_agents) > 1:
+                conflicts.append(
+                    MemoryConflict(
+                        key=memory_key,
+                        base_version=since_version,
+                        versions=tuple(versions),
+                    )
+                )
+        return conflicts
+
+    def _version_for_key(
+        self,
+        workspace: SharedWorkspace,
+        key: str,
+        version: int,
+    ) -> MemoryVersion | None:
+        for record in workspace.history.get(key, []):
+            if record.version == version:
+                return record
+        return None
 
     def _ensure_allowed(
         self,
