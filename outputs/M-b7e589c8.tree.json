@@ -1,0 +1,79 @@
+{
+  "mission": {
+    "mission_id": "M-b7e589c8",
+    "title": "ChatGPT 50대 이상 사용법 1장 작성",
+    "objective": "50대 이상 독자가 쉽게 이해할 수 있는 ChatGPT 입문서 1장 초안을 작성한다.",
+    "mission_type": "WRITING",
+    "priority": "NORMAL",
+    "status": "COMPLETED"
+  },
+  "process_tree": [
+    {
+      "process_id": "P-7157c513",
+      "name": "Outline",
+      "type": "PLANNING",
+      "status": "READY",
+      "packets": [
+        {
+          "packet_id": "CP-a2abf010",
+          "instruction": "ChatGPT 50대 이상 사용법 1장 작성: 독자와 목적에 맞는 목차를 설계하라.",
+          "strategy": [
+            "Reader-Centered Structure"
+          ],
+          "required_memory": [
+            "project",
+            "style_guide"
+          ],
+          "output_format": "outline",
+          "status": "COMPLETED"
+        }
+      ],
+      "children": [
+        {
+          "process_id": "P-46bd6071",
+          "name": "Draft",
+          "type": "WRITING",
+          "status": "READY",
+          "packets": [
+            {
+              "packet_id": "CP-d793f1e3",
+              "instruction": "ChatGPT 50대 이상 사용법 1장 작성: 목차에 따라 본문 초안을 작성하라.",
+              "strategy": [
+                "Logical Flow"
+              ],
+              "required_memory": [
+                "project",
+                "style_guide"
+              ],
+              "output_format": "chapter_draft",
+              "status": "COMPLETED"
+            }
+          ],
+          "children": [
+            {
+              "process_id": "P-ae33227f",
+              "name": "Revision",
+              "type": "QA",
+              "status": "READY",
+              "packets": [
+                {
+                  "packet_id": "CP-6d1b78b5",
+                  "instruction": "ChatGPT 50대 이상 사용법 1장 작성: 가독성, 구조, 완성도를 검수하라.",
+                  "strategy": [
+                    "Quality Review"
+                  ],
+                  "required_memory": [
+                    "style_guide"
+                  ],
+                  "output_format": "revision_note",
+                  "status": "COMPLETED"
+                }
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
