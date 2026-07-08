@@ -6,6 +6,7 @@ from maios.distributed.runtime import (
     MissionScheduler,
     Node,
     NodeManager,
+    RuntimeNode,
     TaskDispatcher,
     Transport,
 )
@@ -18,6 +19,7 @@ __all__ = [
     "MissionScheduler",
     "Node",
     "NodeManager",
+    "RuntimeNode",
     "TaskDispatcher",
     "Transport",
 ]

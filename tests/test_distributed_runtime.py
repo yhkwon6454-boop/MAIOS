@@ -1,5 +1,8 @@
 from dataclasses import dataclass
+from time import sleep
+from typing import Any
 
+from maios.agents import Agent, AgentCapability, CollaborationManager, SharedMemoryManager
 from maios.core import MissionResult
 from maios.distributed import (
     DistributedRuntime,
@@ -9,6 +12,8 @@ from maios.distributed import (
     NodeManager,
     TaskDispatcher,
 )
+from maios.events import EventBus
+from maios.protocol import AgentProtocol
 from maios.reflection import ImprovementReport
 from maios.runtime.models import Mission, QAResult, Status
 from maios.runtime.plan import Plan
@@ -41,6 +46,25 @@ class FakeCore:
             status=Status.COMPLETED,
             knowledge_count=1,
         )
+
+
+class RecordingAgent(Agent):
+    def __init__(self, name: str, calls: list[str], delay: float = 0.0) -> None:
+        self.name = name
+        self.calls = calls
+        self.delay = delay
+        self.seen_context: dict[str, Any] = {}
+
+    def execute(self, context: dict[str, Any]) -> dict[str, Any]:
+        self.seen_context = context
+        if self.delay:
+            sleep(self.delay)
+        task = str(context.get("task", ""))
+        self.calls.append(f"{self.name}:{task}")
+        return {
+            "output": f"{self.name}:{task}",
+            "shared_memory": {self.name: task},
+        }
 
 
 def test_node_manager_registers_heartbeat_and_selects_least_loaded_node():
@@ -153,3 +177,104 @@ def test_distributed_runtime_runs_pending_missions():
     ]
     assert all(mission.status == "COMPLETED" for mission in missions)
     assert calls == ["node-a:one", "node-a:two"]
+
+
+def test_distributed_runtime_registers_and_unregisters_agents_on_nodes():
+    runtime = DistributedRuntime()
+    calls: list[str] = []
+
+    registration = runtime.register_agent(
+        RecordingAgent("planner", calls),
+        [AgentCapability("plan")],
+        agent_id="planner-1",
+        node_id="node-a",
+    )
+
+    assert registration.metadata["node_id"] == "node-a"
+    assert runtime.node_manager.get("node-a").agent_ids == ["planner-1"]
+    assert runtime.agent_registry.get("planner-1") is registration
+    assert runtime.unregister_agent("planner-1")
+    assert runtime.agent_registry.get("planner-1") is None
+    assert runtime.node_manager.get("node-a").agent_ids == []
+
+
+def test_distributed_runtime_executes_agent_with_shared_memory_and_events():
+    bus = EventBus(protocol=AgentProtocol())
+    shared_memory = SharedMemoryManager()
+    runtime = DistributedRuntime(
+        event_bus=bus,
+        shared_memory_manager=shared_memory,
+        mission_id="mission-1",
+    )
+    calls: list[str] = []
+    agent = RecordingAgent("planner", calls)
+    runtime.register_agent(
+        agent,
+        [AgentCapability("plan")],
+        agent_id="planner-1",
+        node_id="node-a",
+    )
+    shared_memory.write("mission-1", "seed", "goal", "ship")
+
+    task = runtime.execute_agent("plan", {"task": "draft"})
+
+    assert task.status == "COMPLETED"
+    assert task.agent_id == "planner-1"
+    assert agent.seen_context["mission_id"] == "mission-1"
+    assert agent.seen_context["shared_memory"]["goal"] == "ship"
+    assert shared_memory.read("mission-1", "distributed_runtime", "planner") == "draft"
+    assert shared_memory.read("mission-1", "distributed_runtime", "plan") == "planner:draft"
+    assert [message.event_type for message in bus.history] == [
+        "distributed.node.registered",
+        "distributed.agent.registered",
+        "PLAN_REQUEST",
+        "distributed.agent.completed",
+    ]
+
+
+def test_distributed_runtime_runs_agent_tasks_concurrently_across_agents():
+    runtime = DistributedRuntime()
+    calls: list[str] = []
+    runtime.register_agent(
+        RecordingAgent("planner-a", calls, delay=0.01),
+        [AgentCapability("plan")],
+        agent_id="planner-a",
+        agent_type="planner",
+        node_id="node-a",
+    )
+    runtime.register_agent(
+        RecordingAgent("planner-b", calls, delay=0.01),
+        [AgentCapability("plan")],
+        agent_id="planner-b",
+        agent_type="planner",
+        node_id="node-b",
+    )
+
+    tasks = runtime.execute_agent_tasks(
+        [
+            ("plan", {"task": "one"}),
+            ("plan", {"task": "two"}),
+        ],
+        max_workers=2,
+    )
+
+    assert [task.status for task in tasks] == ["COMPLETED", "COMPLETED"]
+    assert {task.agent_id for task in tasks} == {"planner-a", "planner-b"}
+    assert sorted(calls) == ["planner-a:one", "planner-b:two"]
+
+
+def test_distributed_runtime_uses_collaboration_manager_workspace():
+    shared_memory = SharedMemoryManager()
+    runtime = DistributedRuntime(shared_memory_manager=shared_memory, mission_id="mission-1")
+    calls: list[str] = []
+    runtime.register_agent(
+        RecordingAgent("planner", calls),
+        [AgentCapability("plan")],
+        agent_id="planner-1",
+    )
+
+    result = runtime.collaborate([("plan", {"task": "draft"})])
+
+    assert isinstance(runtime.collaboration_manager, CollaborationManager)
+    assert result.tasks[0].status == "COMPLETED"
+    assert shared_memory.read("mission-1", "distributed_runtime", "planner") == "draft"

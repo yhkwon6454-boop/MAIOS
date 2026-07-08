@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from threading import Lock
 from typing import Any
 from uuid import uuid4
 
@@ -24,6 +25,7 @@ class RuntimeScheduler:
     def __init__(self, registry: AgentRegistry | None = None) -> None:
         self.registry = registry or AgentRegistry()
         self.history: list[RuntimeTask] = []
+        self._lock = Lock()
 
     def dispatch(
         self,
@@ -35,10 +37,11 @@ class RuntimeScheduler:
             capability=capability.name if isinstance(capability, AgentCapability) else capability,
             context=context,
         )
-        registration = self.select_agent(task.capability, agent_type=agent_type)
-        task.agent_id = registration.agent_id
-        task.status = "RUNNING"
-        registration.active_tasks += 1
+        with self._lock:
+            registration = self.select_agent(task.capability, agent_type=agent_type)
+            task.agent_id = registration.agent_id
+            task.status = "RUNNING"
+            registration.active_tasks += 1
         try:
             task.result = registration.agent.execute(context)
         except Exception as exc:
@@ -47,8 +50,9 @@ class RuntimeScheduler:
         else:
             task.status = "COMPLETED"
         finally:
-            registration.active_tasks -= 1
-            self.history.append(task)
+            with self._lock:
+                registration.active_tasks -= 1
+                self.history.append(task)
 
         return task
 
