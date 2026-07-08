@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 from uuid import uuid4
 
+from maios.knowledge.graph import KnowledgeGraph
 from maios.knowledge.store import KnowledgeStore
 from maios.runtime.models import Mission, QAResult, Status
 
@@ -25,8 +26,13 @@ class ImprovementReport:
 class ReflectionEngine:
     """Analyzes completed mission execution and produces improvement guidance."""
 
-    def __init__(self, knowledge_store: KnowledgeStore | None = None) -> None:
+    def __init__(
+        self,
+        knowledge_store: KnowledgeStore | None = None,
+        knowledge_graph: KnowledgeGraph | None = None,
+    ) -> None:
         self.knowledge_store = knowledge_store or KnowledgeStore()
+        self.knowledge_graph = knowledge_graph
 
     def analyze(
         self,
@@ -62,7 +68,7 @@ class ReflectionEngine:
         return report
 
     def store(self, report: ImprovementReport) -> str:
-        return self.knowledge_store.add(
+        document_id = self.knowledge_store.add(
             self.format_report(report),
             metadata={
                 "memory_type": "reflection",
@@ -73,6 +79,20 @@ class ReflectionEngine:
             },
             document_id=report.report_id,
         )
+        if self.knowledge_graph is not None:
+            self.knowledge_graph.add_node(
+                title=f"Reflection Report: {report.mission_id}",
+                content=self.format_report(report),
+                node_type="reflection",
+                metadata={
+                    "mission_id": report.mission_id,
+                    "report_id": report.report_id,
+                    "success": report.success,
+                    "score": report.score,
+                },
+                node_id=report.report_id,
+            )
+        return document_id
 
     def format_report(self, report: ImprovementReport) -> str:
         return "\n".join(

@@ -6,6 +6,7 @@ from typing import Any
 from uuid import uuid4
 
 from maios.kernel.memory_kernel import MemoryKernel
+from maios.knowledge.graph import KnowledgeGraph
 from maios.knowledge.store import KnowledgeStore
 from maios.reflection.engine import ImprovementReport, ReflectionEngine
 
@@ -68,10 +69,15 @@ class SelfImprovementEngine:
         memory_kernel: MemoryKernel | None = None,
         swarm_manager: Any | None = None,
         distributed_runtime: Any | None = None,
+        knowledge_graph: KnowledgeGraph | None = None,
     ) -> None:
         self.knowledge_store = knowledge_store or KnowledgeStore()
         self.memory_kernel = memory_kernel or MemoryKernel(knowledge_store=self.knowledge_store)
-        self.reflection_engine = reflection_engine or ReflectionEngine(self.knowledge_store)
+        self.knowledge_graph = knowledge_graph
+        self.reflection_engine = reflection_engine or ReflectionEngine(
+            self.knowledge_store,
+            knowledge_graph=self.knowledge_graph,
+        )
         self.research_engine = research_engine
         self.swarm_manager = swarm_manager
         self.distributed_runtime = distributed_runtime
@@ -289,6 +295,18 @@ class SelfImprovementEngine:
             metadata={"memory_type": "reflection_record", "source_type": record.source_type},
             document_id=record.record_id,
         )
+        if self.knowledge_graph is not None:
+            self.knowledge_graph.add_node(
+                title=f"Reflection Record: {record.subject_id}",
+                content=str(record.to_dict()),
+                node_type="reflection_record",
+                metadata={
+                    "record_id": record.record_id,
+                    "source_type": record.source_type,
+                    "status": record.status,
+                },
+                node_id=record.record_id,
+            )
 
     def _store_plan(self, plan: ImprovementPlan) -> None:
         self.plans.append(plan)
@@ -300,6 +318,25 @@ class SelfImprovementEngine:
             metadata={"memory_type": "improvement_plan", "priority": plan.priority},
             document_id=plan.plan_id,
         )
+        if self.knowledge_graph is not None:
+            plan_node = self.knowledge_graph.add_node(
+                title=f"Improvement Plan: {plan.target}",
+                content=plan.to_markdown(),
+                node_type="improvement_plan",
+                metadata={
+                    "plan_id": plan.plan_id,
+                    "priority": plan.priority,
+                    "source_record_ids": list(plan.source_record_ids),
+                },
+                node_id=plan.plan_id,
+            )
+            for record_id in plan.source_record_ids:
+                if self.knowledge_graph.get_node(record_id) is not None:
+                    self.knowledge_graph.add_edge(
+                        plan_node.node_id,
+                        record_id,
+                        "derived_from",
+                    )
         report = ImprovementReport(
             mission_id=plan.plan_id,
             success=True,

@@ -10,6 +10,7 @@ from maios.agents.registry import AgentCapability, AgentRegistry, RegisteredAgen
 from maios.agents.roles import AgentRole, AgentRoleManager
 from maios.agents.shared_memory import SharedMemoryManager
 from maios.events import EventBus
+from maios.knowledge.graph import KnowledgeGraph
 from maios.protocol import AgentProtocolError
 
 
@@ -58,6 +59,7 @@ class SwarmManager:
         negotiation_manager: NegotiationManager | None = None,
         shared_memory_manager: SharedMemoryManager | None = None,
         event_bus: EventBus | None = None,
+        knowledge_graph: KnowledgeGraph | None = None,
         mission_id: str = "default",
     ) -> None:
         self.registry = registry or AgentRegistry()
@@ -65,6 +67,7 @@ class SwarmManager:
         self.negotiation_manager = negotiation_manager
         self.shared_memory_manager = shared_memory_manager or SharedMemoryManager()
         self.event_bus = event_bus or EventBus()
+        self.knowledge_graph = knowledge_graph
         self.mission_id = mission_id
         self._swarms: dict[str, Swarm] = {}
         self.shared_memory_manager.create_workspace(self.mission_id)
@@ -86,6 +89,7 @@ class SwarmManager:
         self._swarms[swarm.swarm_id] = swarm
         self.elect_leader(swarm.swarm_id)
         self._record_swarm(swarm)
+        self._record_swarm_knowledge(swarm)
         self._publish(
             "swarm.formed",
             {
@@ -133,10 +137,12 @@ class SwarmManager:
             task.status = "FAILED"
             task.error = f"No swarm agent can handle capability: {capability_name}"
             self._record_swarm(swarm)
+            self._record_task_experience(swarm, task)
             return task
 
         self._execute_task(swarm, task, registration)
         self._record_swarm(swarm)
+        self._record_task_experience(swarm, task)
         return task
 
     def distribute_tasks(
@@ -417,6 +423,42 @@ class SwarmManager:
                 "failed_agents": sorted(swarm.failed_agents),
                 "status": swarm.status,
                 "capabilities": list(swarm.capabilities),
+            },
+        )
+
+    def _record_swarm_knowledge(self, swarm: Swarm) -> None:
+        if self.knowledge_graph is None:
+            return
+        self.knowledge_graph.add_node(
+            title=f"Swarm: {swarm.name}",
+            content=(
+                f"Swarm {swarm.swarm_id} formed with leader {swarm.leader_id} "
+                f"and capabilities {', '.join(swarm.capabilities)}."
+            ),
+            node_type="swarm",
+            metadata={
+                "swarm_id": swarm.swarm_id,
+                "leader_id": swarm.leader_id,
+                "members": list(swarm.members),
+                "capabilities": list(swarm.capabilities),
+            },
+            node_id=swarm.swarm_id,
+        )
+
+    def _record_task_experience(self, swarm: Swarm, task: SwarmTask) -> None:
+        if self.knowledge_graph is None:
+            return
+        self.knowledge_graph.learn_experience(
+            description=(
+                f"Swarm {swarm.name} handled {task.capability} task "
+                f"{task.task_id} with status {task.status}."
+            ),
+            outcome="success" if task.status == "COMPLETED" else "failure",
+            metadata={
+                "swarm_id": swarm.swarm_id,
+                "task_id": task.task_id,
+                "capability": task.capability,
+                "assigned_agent_id": task.assigned_agent_id,
             },
         )
 

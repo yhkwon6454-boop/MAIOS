@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from maios.agents import AgentRole, AgentRoleManager, NegotiationManager, SwarmManager
 from maios.kernel.memory_kernel import MemoryKernel
+from maios.knowledge.graph import KnowledgeGraph
 from maios.knowledge.store import KnowledgeStore
 from maios.reflection.engine import ImprovementReport, ReflectionEngine
 
@@ -122,11 +123,16 @@ class ResearchEngine:
         swarm_manager: SwarmManager | None = None,
         role_manager: AgentRoleManager | None = None,
         negotiation_manager: NegotiationManager | None = None,
+        knowledge_graph: KnowledgeGraph | None = None,
     ) -> None:
         self.source_collector = source_collector or InMemorySourceCollector()
         self.knowledge_store = knowledge_store or KnowledgeStore()
         self.memory_kernel = memory_kernel or MemoryKernel(knowledge_store=self.knowledge_store)
-        self.reflection_engine = reflection_engine or ReflectionEngine(self.knowledge_store)
+        self.knowledge_graph = knowledge_graph
+        self.reflection_engine = reflection_engine or ReflectionEngine(
+            self.knowledge_store,
+            knowledge_graph=self.knowledge_graph,
+        )
         self.swarm_manager = swarm_manager
         self.role_manager = role_manager
         self.negotiation_manager = negotiation_manager
@@ -183,6 +189,19 @@ class ResearchEngine:
                     },
                     document_id=source.source_id,
                 )
+                if self.knowledge_graph is not None:
+                    self.knowledge_graph.add_node(
+                        title=source.title,
+                        content=source.content,
+                        node_type="research_source",
+                        metadata={
+                            "source_id": source.source_id,
+                            "url": source.url,
+                            "question": task.question,
+                            **source.metadata,
+                        },
+                        node_id=source.source_id,
+                    )
         task.mark("SOURCES_COLLECTED")
         return task.sources
 
@@ -230,6 +249,21 @@ class ResearchEngine:
             report.to_markdown(),
             metadata={"memory_type": "research_report", "report_id": report.report_id},
         )
+        if self.knowledge_graph is not None:
+            report_node = self.knowledge_graph.add_node(
+                title=f"Research Report: {report.question}",
+                content=report.to_markdown(),
+                node_type="research_report",
+                metadata={"report_id": report.report_id, "question": report.question},
+                node_id=report.report_id,
+            )
+            for source in report.sources:
+                if self.knowledge_graph.get_node(source.source_id) is not None:
+                    self.knowledge_graph.add_edge(
+                        report_node.node_id,
+                        source.source_id,
+                        "derived_from",
+                    )
         self._reflect(task, report)
         return report
 
