@@ -11,6 +11,7 @@ from maios.agents.memory_agent import MemoryAgent
 from maios.agents.planner_agent import PlannerAgent
 from maios.agents.quality_agent import QualityAgent
 from maios.agents.registry import AgentCapability, AgentRegistry, RegisteredAgent
+from maios.agents.roles import AgentProfile, AgentRole, AgentRoleManager
 from maios.agents.runtime_orchestrator import MultiAgentRuntimeResult, RuntimeOrchestrator
 from maios.agents.scheduler import RuntimeScheduler, RuntimeTask
 from maios.agents.shared_memory import (
@@ -26,7 +27,10 @@ from maios.agents.shared_memory import (
 __all__ = [
     "Agent",
     "AgentCapability",
+    "AgentProfile",
     "AgentRegistry",
+    "AgentRole",
+    "AgentRoleManager",
     "CollaborationManager",
     "CollaborationResult",
     "CollaborationTask",

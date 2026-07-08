@@ -5,6 +5,7 @@ from typing import Any
 from uuid import uuid4
 
 from maios.agents.registry import AgentCapability, AgentRegistry, RegisteredAgent
+from maios.agents.roles import AgentRole, AgentRoleManager
 from maios.agents.scheduler import RuntimeScheduler, RuntimeTask
 from maios.agents.shared_memory import SharedMemoryManager
 
@@ -53,11 +54,13 @@ class CollaborationManager:
         registry: AgentRegistry | None = None,
         scheduler: RuntimeScheduler | None = None,
         shared_memory_manager: SharedMemoryManager | None = None,
+        role_manager: AgentRoleManager | None = None,
         mission_id: str = "default",
     ) -> None:
         self.registry = registry or AgentRegistry()
         self.scheduler = scheduler or RuntimeScheduler(self.registry)
         self.shared_memory_manager = shared_memory_manager or SharedMemoryManager()
+        self.role_manager = role_manager
         self.mission_id = mission_id
         self.shared_memory: dict[str, Any] = {}
         self.conflicts: list[Conflict] = []
@@ -67,12 +70,20 @@ class CollaborationManager:
         self,
         capabilities: list[str | AgentCapability],
         include_all_instances: bool = False,
+        role: AgentRole | str | None = None,
     ) -> list[RegisteredAgent]:
         team: list[RegisteredAgent] = []
         seen: set[str] = set()
 
         for capability in capabilities:
-            matches = self.registry.discover(capability=capability)
+            if self.role_manager is not None:
+                matches = self.role_manager.select_agents(
+                    [capability],
+                    role=role,
+                    limit=None if include_all_instances else 1,
+                )
+            else:
+                matches = self.registry.discover(capability=capability)
             selected = matches if include_all_instances else matches[:1]
             for registration in selected:
                 if registration.agent_id not in seen:
@@ -103,7 +114,12 @@ class CollaborationManager:
         capability: str | AgentCapability,
         context: dict[str, Any],
         agent_type: str | None = None,
+        role: AgentRole | str | None = None,
     ) -> CollaborationTask:
+        if role is not None and self.role_manager is not None:
+            selected = self.role_manager.select_best(capability, role=role)
+            if selected is not None:
+                agent_type = selected.agent_type
         merged_context = {
             **context,
             "shared_memory": self.shared_memory_manager.read_all(

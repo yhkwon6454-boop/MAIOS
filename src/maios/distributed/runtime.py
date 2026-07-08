@@ -11,6 +11,8 @@ from maios.agents import (
     Agent,
     AgentCapability,
     AgentRegistry,
+    AgentRole,
+    AgentRoleManager,
     CollaborationManager,
     RegisteredAgent,
     RuntimeScheduler,
@@ -231,6 +233,7 @@ class DistributedRuntime:
         agent_protocol: AgentProtocol | None = None,
         shared_memory_manager: SharedMemoryManager | None = None,
         collaboration_manager: CollaborationManager | None = None,
+        role_manager: AgentRoleManager | None = None,
         mission_id: str = "default",
     ) -> None:
         self.node_manager = node_manager or NodeManager()
@@ -245,10 +248,16 @@ class DistributedRuntime:
         self.shared_memory_manager = shared_memory_manager or SharedMemoryManager()
         self.mission_id = mission_id
         self.shared_memory_manager.create_workspace(self.mission_id)
+        self.role_manager = role_manager or AgentRoleManager(
+            registry=self.agent_registry,
+            shared_memory_manager=self.shared_memory_manager,
+            mission_id=self.mission_id,
+        )
         self.collaboration_manager = collaboration_manager or CollaborationManager(
             registry=self.agent_registry,
             scheduler=self.runtime_scheduler,
             shared_memory_manager=self.shared_memory_manager,
+            role_manager=self.role_manager,
             mission_id=self.mission_id,
         )
 
@@ -281,6 +290,7 @@ class DistributedRuntime:
 
         for agent_id in list(node.agent_ids):
             self.agent_registry.unregister(agent_id)
+            self.role_manager.unregister(agent_id)
         self.node_manager.remove_node(node_id)
         self._publish_runtime_event(
             "distributed.node.unregistered",
@@ -299,6 +309,8 @@ class DistributedRuntime:
         agent_type: str | None = None,
         node_id: str = "local",
         metadata: dict[str, Any] | None = None,
+        primary_role: AgentRole | str | None = None,
+        secondary_roles: list[AgentRole | str] | tuple[AgentRole | str, ...] | None = None,
     ) -> RegisteredAgent:
         node = self.node_manager.get(node_id)
         if node is None:
@@ -312,6 +324,13 @@ class DistributedRuntime:
             metadata={**(metadata or {}), "node_id": node.node_id},
         )
         node.agent_ids.append(registration.agent_id)
+        if primary_role is not None:
+            self.role_manager.assign_role(
+                registration.agent_id,
+                primary_role=primary_role,
+                capabilities=registration.capabilities,
+                secondary_roles=secondary_roles,
+            )
         self._publish_runtime_event(
             "distributed.agent.registered",
             {
@@ -327,6 +346,7 @@ class DistributedRuntime:
         removed = self.agent_registry.unregister(agent_id)
         if not removed:
             return False
+        self.role_manager.unregister(agent_id)
 
         for node in self.node_manager.nodes.values():
             if agent_id in node.agent_ids:
@@ -343,11 +363,16 @@ class DistributedRuntime:
         context: dict[str, Any],
         agent_type: str | None = None,
         mission_id: str | None = None,
+        role: AgentRole | str | None = None,
     ) -> RuntimeTask:
         active_mission_id = mission_id or self.mission_id
         capability_name = capability.name if isinstance(capability, AgentCapability) else capability
         self.shared_memory_manager.create_workspace(active_mission_id)
         self._publish_protocol_request(capability_name, context)
+        if role is not None:
+            selected = self.role_manager.select_best(capability, role=role)
+            if selected is not None:
+                agent_type = selected.agent_type
 
         merged_context = {
             **context,
@@ -390,6 +415,34 @@ class DistributedRuntime:
                 for capability, context in tasks
             ]
             return [future.result() for future in futures]
+
+    def assign_role(
+        self,
+        agent_id: str,
+        primary_role: AgentRole | str,
+        secondary_roles: list[AgentRole | str] | tuple[AgentRole | str, ...] | None = None,
+    ):
+        registration = self.agent_registry.get(agent_id)
+        if registration is None:
+            raise KeyError(f"Unknown agent: {agent_id}")
+        return self.role_manager.assign_role(
+            agent_id,
+            primary_role=primary_role,
+            capabilities=registration.capabilities,
+            secondary_roles=secondary_roles,
+        )
+
+    def reassign_role(
+        self,
+        agent_id: str,
+        primary_role: AgentRole | str,
+        secondary_roles: list[AgentRole | str] | tuple[AgentRole | str, ...] | None = None,
+    ):
+        return self.role_manager.reassign_role(
+            agent_id,
+            primary_role=primary_role,
+            secondary_roles=secondary_roles,
+        )
 
     def collaborate(
         self,
