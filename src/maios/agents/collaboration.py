@@ -57,6 +57,7 @@ class CollaborationManager:
         shared_memory_manager: SharedMemoryManager | None = None,
         role_manager: AgentRoleManager | None = None,
         negotiation_manager: NegotiationManager | None = None,
+        swarm_manager: Any | None = None,
         mission_id: str = "default",
     ) -> None:
         self.registry = registry or AgentRegistry()
@@ -64,6 +65,7 @@ class CollaborationManager:
         self.shared_memory_manager = shared_memory_manager or SharedMemoryManager()
         self.role_manager = role_manager
         self.negotiation_manager = negotiation_manager
+        self.swarm_manager = swarm_manager
         self.mission_id = mission_id
         self.shared_memory: dict[str, Any] = {}
         self.conflicts: list[Conflict] = []
@@ -257,6 +259,22 @@ class CollaborationManager:
             content=proposal,
         )
         return session
+
+    def form_swarm(
+        self,
+        name: str,
+        capabilities: list[str | AgentCapability],
+        role: AgentRole | str | None = None,
+        size: int | None = None,
+    ) -> Any:
+        if self.swarm_manager is None:
+            raise RuntimeError("No swarm manager configured.")
+        return self.swarm_manager.form_swarm(
+            name=name,
+            capabilities=capabilities,
+            role=role,
+            size=size,
+        )
 
     def _collaboration_task(self, task: RuntimeTask) -> CollaborationTask:
         return CollaborationTask(

@@ -20,6 +20,9 @@ from maios.agents import (
     RuntimeScheduler,
     RuntimeTask,
     SharedMemoryManager,
+    Swarm,
+    SwarmManager,
+    SwarmTask,
 )
 from maios.core import MAIOSCore, MissionResult
 from maios.events import EventBus
@@ -237,6 +240,7 @@ class DistributedRuntime:
         collaboration_manager: CollaborationManager | None = None,
         role_manager: AgentRoleManager | None = None,
         negotiation_manager: NegotiationManager | None = None,
+        swarm_manager: SwarmManager | None = None,
         mission_id: str = "default",
     ) -> None:
         self.node_manager = node_manager or NodeManager()
@@ -260,12 +264,21 @@ class DistributedRuntime:
             role_manager=self.role_manager,
             event_bus=self.event_bus,
         )
+        self.swarm_manager = swarm_manager or SwarmManager(
+            registry=self.agent_registry,
+            role_manager=self.role_manager,
+            negotiation_manager=self.negotiation_manager,
+            shared_memory_manager=self.shared_memory_manager,
+            event_bus=self.event_bus,
+            mission_id=self.mission_id,
+        )
         self.collaboration_manager = collaboration_manager or CollaborationManager(
             registry=self.agent_registry,
             scheduler=self.runtime_scheduler,
             shared_memory_manager=self.shared_memory_manager,
             role_manager=self.role_manager,
             negotiation_manager=self.negotiation_manager,
+            swarm_manager=self.swarm_manager,
             mission_id=self.mission_id,
         )
 
@@ -481,6 +494,28 @@ class DistributedRuntime:
             content=proposal,
         )
         return session
+
+    def form_swarm(
+        self,
+        name: str,
+        capabilities: list[str | AgentCapability],
+        role: AgentRole | str | None = None,
+        size: int | None = None,
+    ) -> Swarm:
+        return self.swarm_manager.form_swarm(
+            name=name,
+            capabilities=capabilities,
+            role=role,
+            size=size,
+        )
+
+    def allocate_swarm_task(
+        self,
+        swarm_id: str,
+        capability: str | AgentCapability,
+        context: dict[str, Any],
+    ) -> SwarmTask:
+        return self.swarm_manager.allocate_task(swarm_id, capability, context)
 
     def submit_mission(self, goal: str) -> DistributedMission:
         return self.scheduler.submit(goal)

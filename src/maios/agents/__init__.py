@@ -24,6 +24,7 @@ from maios.agents.shared_memory import (
     SharedMemoryPermissionError,
     SharedWorkspace,
 )
+from maios.agents.swarm import Swarm, SwarmHealth, SwarmManager, SwarmTask
 
 __all__ = [
     "Agent",
@@ -56,5 +57,9 @@ __all__ = [
     "SharedMemoryManager",
     "SharedMemoryPermissionError",
     "SharedWorkspace",
+    "Swarm",
+    "SwarmHealth",
+    "SwarmManager",
+    "SwarmTask",
     "Vote",
 ]
