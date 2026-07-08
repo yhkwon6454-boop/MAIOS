@@ -27,6 +27,7 @@ from maios.agents import (
 from maios.core import MAIOSCore, MissionResult
 from maios.events import EventBus
 from maios.protocol import AgentProtocol, AgentProtocolError, MessageType
+from maios.reflection import SelfImprovementEngine
 
 
 class Transport(Protocol):
@@ -241,6 +242,7 @@ class DistributedRuntime:
         role_manager: AgentRoleManager | None = None,
         negotiation_manager: NegotiationManager | None = None,
         swarm_manager: SwarmManager | None = None,
+        self_improvement_engine: SelfImprovementEngine | None = None,
         mission_id: str = "default",
     ) -> None:
         self.node_manager = node_manager or NodeManager()
@@ -271,6 +273,10 @@ class DistributedRuntime:
             shared_memory_manager=self.shared_memory_manager,
             event_bus=self.event_bus,
             mission_id=self.mission_id,
+        )
+        self.self_improvement_engine = self_improvement_engine or SelfImprovementEngine(
+            swarm_manager=self.swarm_manager,
+            distributed_runtime=self,
         )
         self.collaboration_manager = collaboration_manager or CollaborationManager(
             registry=self.agent_registry,
@@ -516,6 +522,9 @@ class DistributedRuntime:
         context: dict[str, Any],
     ) -> SwarmTask:
         return self.swarm_manager.allocate_task(swarm_id, capability, context)
+
+    def improve_runtime(self):
+        return self.self_improvement_engine.improve_from_runtime()
 
     def submit_mission(self, goal: str) -> DistributedMission:
         return self.scheduler.submit(goal)
