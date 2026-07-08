@@ -8,6 +8,7 @@ from maios.agents.collaboration import (
 )
 from maios.agents.executor_agent import ExecutorAgent
 from maios.agents.memory_agent import MemoryAgent
+from maios.agents.negotiation import NegotiationManager, NegotiationSession, Proposal, Vote
 from maios.agents.planner_agent import PlannerAgent
 from maios.agents.quality_agent import QualityAgent
 from maios.agents.registry import AgentCapability, AgentRegistry, RegisteredAgent
@@ -42,7 +43,10 @@ __all__ = [
     "MemoryPermission",
     "MemoryVersion",
     "MultiAgentRuntimeResult",
+    "NegotiationManager",
+    "NegotiationSession",
     "PlannerAgent",
+    "Proposal",
     "QualityAgent",
     "RegisteredAgent",
     "RuntimeOrchestrator",
@@ -52,4 +56,5 @@ __all__ = [
     "SharedMemoryManager",
     "SharedMemoryPermissionError",
     "SharedWorkspace",
+    "Vote",
 ]

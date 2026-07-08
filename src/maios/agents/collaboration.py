@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any
 from uuid import uuid4
 
+from maios.agents.negotiation import NegotiationManager, NegotiationSession
 from maios.agents.registry import AgentCapability, AgentRegistry, RegisteredAgent
 from maios.agents.roles import AgentRole, AgentRoleManager
 from maios.agents.scheduler import RuntimeScheduler, RuntimeTask
@@ -55,12 +56,14 @@ class CollaborationManager:
         scheduler: RuntimeScheduler | None = None,
         shared_memory_manager: SharedMemoryManager | None = None,
         role_manager: AgentRoleManager | None = None,
+        negotiation_manager: NegotiationManager | None = None,
         mission_id: str = "default",
     ) -> None:
         self.registry = registry or AgentRegistry()
         self.scheduler = scheduler or RuntimeScheduler(self.registry)
         self.shared_memory_manager = shared_memory_manager or SharedMemoryManager()
         self.role_manager = role_manager
+        self.negotiation_manager = negotiation_manager
         self.mission_id = mission_id
         self.shared_memory: dict[str, Any] = {}
         self.conflicts: list[Conflict] = []
@@ -231,6 +234,29 @@ class CollaborationManager:
             value=result,
         )
         return result
+
+    def negotiate(
+        self,
+        topic: str,
+        proposal: Any,
+        participants: list[str] | None = None,
+        consensus_threshold: float | None = None,
+    ) -> NegotiationSession:
+        if self.negotiation_manager is None:
+            self.negotiation_manager = NegotiationManager(role_manager=self.role_manager)
+        selected_participants = participants or [agent.agent_id for agent in self.registry.all()]
+        session = self.negotiation_manager.create_session(
+            topic,
+            participants=selected_participants,
+            consensus_threshold=consensus_threshold,
+        )
+        proposer_id = selected_participants[0] if selected_participants else "collaboration"
+        self.negotiation_manager.generate_proposal(
+            session.session_id,
+            proposer_id=proposer_id,
+            content=proposal,
+        )
+        return session
 
     def _collaboration_task(self, task: RuntimeTask) -> CollaborationTask:
         return CollaborationTask(

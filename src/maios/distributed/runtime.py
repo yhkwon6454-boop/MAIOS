@@ -14,6 +14,8 @@ from maios.agents import (
     AgentRole,
     AgentRoleManager,
     CollaborationManager,
+    NegotiationManager,
+    NegotiationSession,
     RegisteredAgent,
     RuntimeScheduler,
     RuntimeTask,
@@ -234,6 +236,7 @@ class DistributedRuntime:
         shared_memory_manager: SharedMemoryManager | None = None,
         collaboration_manager: CollaborationManager | None = None,
         role_manager: AgentRoleManager | None = None,
+        negotiation_manager: NegotiationManager | None = None,
         mission_id: str = "default",
     ) -> None:
         self.node_manager = node_manager or NodeManager()
@@ -253,11 +256,16 @@ class DistributedRuntime:
             shared_memory_manager=self.shared_memory_manager,
             mission_id=self.mission_id,
         )
+        self.negotiation_manager = negotiation_manager or NegotiationManager(
+            role_manager=self.role_manager,
+            event_bus=self.event_bus,
+        )
         self.collaboration_manager = collaboration_manager or CollaborationManager(
             registry=self.agent_registry,
             scheduler=self.runtime_scheduler,
             shared_memory_manager=self.shared_memory_manager,
             role_manager=self.role_manager,
+            negotiation_manager=self.negotiation_manager,
             mission_id=self.mission_id,
         )
 
@@ -449,6 +457,30 @@ class DistributedRuntime:
         steps: list[tuple[str | AgentCapability, dict[str, Any]]],
     ):
         return self.collaboration_manager.execute_pipeline(steps)
+
+    def negotiate(
+        self,
+        topic: str,
+        proposal: Any,
+        role: AgentRole | str | None = None,
+        capability: str | None = None,
+        consensus_threshold: float | None = None,
+        timeout_seconds: float | None = None,
+    ) -> NegotiationSession:
+        session = self.negotiation_manager.create_session(
+            topic,
+            role=role,
+            capability=capability,
+            consensus_threshold=consensus_threshold,
+            timeout_seconds=timeout_seconds,
+        )
+        proposer_id = session.participants[0] if session.participants else "distributed_runtime"
+        self.negotiation_manager.generate_proposal(
+            session.session_id,
+            proposer_id=proposer_id,
+            content=proposal,
+        )
+        return session
 
     def submit_mission(self, goal: str) -> DistributedMission:
         return self.scheduler.submit(goal)
