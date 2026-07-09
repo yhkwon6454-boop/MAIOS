@@ -110,7 +110,7 @@ def test_term_frequency_breaks_ties_between_matching_documents():
     )
     graph.add_node(
         title="집중 분석",
-        content="드론 방어를 다룬다. 드론 탐지, 드론 요격, 드론 전파방해까지 드론 중심으로 서술한다.",
+        content="드론 방어를 다룬다. 드론 탐지, 드론 요격, 드론 전파방해까지 드론 중심 서술.",
         node_type="document",
         auto_link=False,
         merge_duplicates=False,

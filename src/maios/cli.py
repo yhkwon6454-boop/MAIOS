@@ -190,7 +190,7 @@ def run_project(args: list[str]) -> None:
     print(f"[subgoals] {len(project.subgoals)}")
     pursuits = {pursuit.pursuit_id: pursuit for pursuit in agi.pursuits}
     for index, (subgoal, pursuit_id) in enumerate(
-        zip(project.subgoals, project.pursuit_ids), start=1
+        zip(project.subgoals, project.pursuit_ids, strict=False), start=1
     ):
         status = pursuits[pursuit_id].status if pursuit_id in pursuits else "?"
         print(f"  {index}. [{status}] {subgoal}")
