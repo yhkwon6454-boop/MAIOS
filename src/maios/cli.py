@@ -23,6 +23,7 @@ def _print_usage() -> None:
         "       maios project <objective> [--max-subgoals N] [--approve]"
         " [--llm PROVIDER] [--workspace DIR]"
     )
+    print("       maios research <question> [--llm PROVIDER] [--workspace DIR]")
     print("       maios introspect [--llm PROVIDER] [--workspace DIR]")
     print("       maios shell [--llm PROVIDER] [--workspace DIR]")
     print("       maios --version")
@@ -226,6 +227,10 @@ def main() -> None:
 
     if argv[0] == "project":
         run_project(argv[1:])
+        return
+
+    if argv[0] == "research":
+        run_pursue([*argv[1:], "--capability", "research"])
         return
 
     if argv[0] == "introspect":

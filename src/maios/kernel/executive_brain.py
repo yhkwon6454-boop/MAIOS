@@ -318,11 +318,16 @@ class ExecutiveBrain:
             }
         if planner == PlannerType.RESEARCH and self.research_engine is not None:
             report = self.research_engine.run(context.objective)
-            return {
+            output = report.to_markdown() if hasattr(report, "to_markdown") else ""
+            outcome = {
                 "status": "COMPLETED",
                 "planner": planner.value,
                 "report": report.to_dict() if hasattr(report, "to_dict") else report,
             }
+            if output:
+                outcome["output"] = output
+                outcome["generated"] = True
+            return outcome
         if planner == PlannerType.SWARM and self.swarm_manager is not None:
             capabilities = list(context.requested_capabilities or ("plan",))
             swarm = self.swarm_manager.form_swarm(

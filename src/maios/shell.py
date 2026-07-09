@@ -10,6 +10,7 @@ BANNER = "MAIOS shell - every line becomes a goal. /help for commands, /exit to 
 HELP_TEXT = """Commands:
   <objective>          pursue the objective through the cognitive loop
   /project <objective> decompose a large objective and pursue the sub-goals
+  /research <question> research the question against accumulated knowledge
   /approve             re-run the last objective with human approval
   /history             show recent pursuits
   /introspect          show the self-model and readiness
@@ -73,11 +74,27 @@ class MAIOSShell:
         if text == "/project" or text.startswith("/project "):
             self._project(text[len("/project") :].strip())
             return True
+        if text == "/research" or text.startswith("/research "):
+            question = text[len("/research") :].strip()
+            if not question:
+                self.output_fn("usage: /research <question>")
+                return True
+            self._pursue(question, capabilities=("research",))
+            return True
         self._pursue(text)
         return True
 
-    def _pursue(self, objective: str, human_approved: bool = False) -> None:
-        pursuit = self.foundation.pursue(objective, human_approved=human_approved)
+    def _pursue(
+        self,
+        objective: str,
+        human_approved: bool = False,
+        capabilities: tuple[str, ...] = (),
+    ) -> None:
+        pursuit = self.foundation.pursue(
+            objective,
+            human_approved=human_approved,
+            capabilities=capabilities,
+        )
         self.workspace.save(self.foundation)
         self.last_objective = objective
         self._print_pursuit(pursuit)

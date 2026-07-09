@@ -1,5 +1,6 @@
 from maios.research.engine import (
     InMemorySourceCollector,
+    KnowledgeGraphSourceCollector,
     ResearchEngine,
     ResearchReport,
     ResearchSource,
@@ -9,6 +10,7 @@ from maios.research.engine import (
 
 __all__ = [
     "InMemorySourceCollector",
+    "KnowledgeGraphSourceCollector",
     "ResearchEngine",
     "ResearchReport",
     "ResearchSource",

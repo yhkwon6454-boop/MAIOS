@@ -159,6 +159,15 @@ class AGIFoundation:
         self.decomposer = GoalDecomposer(llm_provider or self.cognitive_loop.interpreter.provider)
         self.knowledge_graph = knowledge_graph or self.cognitive_loop.knowledge_graph
         self.memory_kernel = memory_kernel or self.cognitive_loop.memory_kernel
+        brain = self.cognitive_loop.executive_brain
+        if brain.research_engine is None and self.knowledge_graph is not None:
+            from maios.research import KnowledgeGraphSourceCollector, ResearchEngine
+
+            brain.research_engine = ResearchEngine(
+                source_collector=KnowledgeGraphSourceCollector(self.knowledge_graph),
+                memory_kernel=self.memory_kernel,
+                knowledge_graph=self.knowledge_graph,
+            )
         self.governance = governance
         self.identity = identity
         self.version = version
