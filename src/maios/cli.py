@@ -20,6 +20,7 @@ def _print_usage() -> None:
         " [--approve] [--llm PROVIDER] [--workspace DIR]"
     )
     print("       maios introspect [--llm PROVIDER] [--workspace DIR]")
+    print("       maios shell [--llm PROVIDER] [--workspace DIR]")
     print("       maios --version")
 
 
@@ -134,6 +135,15 @@ def run_introspect(args: list[str] | None = None) -> None:
     print(f"[memory] nodes={stats['nodes']} pursuits={stats['pursuits']} workspace={space.root}")
 
 
+def run_shell(args: list[str]) -> None:
+    from maios.shell import MAIOSShell
+
+    llm = args[args.index("--llm") + 1] if "--llm" in args else None
+    workspace = args[args.index("--workspace") + 1] if "--workspace" in args else None
+    agi, space = build_foundation(llm=llm, workspace=workspace)
+    MAIOSShell(agi, space).run()
+
+
 def main() -> None:
     argv = sys.argv[1:]
     if argv and argv[0] in {"--version", "-V"}:
@@ -150,6 +160,10 @@ def main() -> None:
 
     if argv[0] == "introspect":
         run_introspect(argv[1:])
+        return
+
+    if argv[0] == "shell":
+        run_shell(argv[1:])
         return
 
     mission_path = Path(argv[0])
