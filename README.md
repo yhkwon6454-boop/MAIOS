@@ -134,6 +134,8 @@ At release preparation time, the local suite passes with:
 
 ## Documentation
 
+- [User Manual (Korean)](docs/MANUAL.ko.md)
+- [Research Paper Draft (Korean)](docs/PAPER.ko.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Installation](docs/INSTALLATION.md)
 - [API](docs/API.md)

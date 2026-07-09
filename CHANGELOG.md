@@ -16,6 +16,10 @@ and this project follows semantic versioning for release tags.
   cognitive stack against a real LLM provider (provider connectivity,
   pursuit deliverable, ingestion + recall, research, project decomposition).
 - Architecture docs now describe the cognitive layer (v1.1+).
+- Korean user manual (`docs/MANUAL.ko.md`) covering every command,
+  workspace structure, governance, workflows, and troubleshooting.
+- Research paper draft (`docs/PAPER.ko.md`) documenting the design
+  principles, architecture, and the real-corpus case study.
 
 ## [1.3.0] - 2026-07-10
 
