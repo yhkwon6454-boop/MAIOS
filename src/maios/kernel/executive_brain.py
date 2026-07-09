@@ -6,6 +6,7 @@ from enum import StrEnum
 from typing import Any
 from uuid import uuid4
 
+from maios.kernel.world_model import WorldContext, WorldModel
 from maios.knowledge.graph import KnowledgeGraph
 from maios.planning import GoalHorizon, MetaGoal, MetaPlanner
 from maios.reflection import ImprovementReport, ReflectionEngine
@@ -163,6 +164,8 @@ class ExecutiveBrain:
         reflection_engine: ReflectionEngine | None = None,
         self_improvement_engine: Any | None = None,
         knowledge_graph: KnowledgeGraph | None = None,
+        memory_kernel: Any | None = None,
+        world_model: WorldModel | None = None,
         priority_engine: ExecutivePriorityEngine | None = None,
         failure_threshold: int = 2,
         mission_id: str = "executive",
@@ -176,6 +179,10 @@ class ExecutiveBrain:
         )
         self.swarm_manager = swarm_manager or getattr(distributed_runtime, "swarm_manager", None)
         self.knowledge_graph = knowledge_graph
+        self.world_model = world_model or WorldModel(
+            knowledge_graph=knowledge_graph,
+            memory_kernel=memory_kernel,
+        )
         self.reflection_engine = reflection_engine or ReflectionEngine(
             knowledge_graph=knowledge_graph
         )
@@ -194,6 +201,16 @@ class ExecutiveBrain:
         )
         self.decisions: list[ExecutiveDecision] = []
 
+    def build_world_context(self, context: DecisionContext) -> WorldContext:
+        world_context = self.world_model.build_context(context)
+        context.metadata["world_context"] = world_context.to_dict()
+        context.metadata["world_predictions"] = {
+            prediction.target: prediction.outcome for prediction in world_context.predictions
+        }
+        if world_context.environment.risk_level in {"HIGH", "CRITICAL"}:
+            context.risk_level = world_context.environment.risk_level
+        return world_context
+
     def prioritize_goals(self, context: DecisionContext) -> list[MetaGoal]:
         if not context.goals:
             context.add_goal(
@@ -206,8 +223,17 @@ class ExecutiveBrain:
 
     def select_planner(self, context: DecisionContext) -> PlannerType:
         capabilities = set(context.requested_capabilities)
+        world_predictions = context.metadata.get("world_predictions", {})
+        predicted_planner = str(world_predictions.get("planner", ""))
         if len(context.goals) > 1 or "meta" in capabilities or "plan" in capabilities:
             return PlannerType.META
+        if predicted_planner == PlannerType.RESEARCH.value and self.research_engine is not None:
+            return PlannerType.RESEARCH
+        if (
+            predicted_planner == PlannerType.DISTRIBUTED.value
+            and self.distributed_runtime is not None
+        ):
+            return PlannerType.DISTRIBUTED
         if capabilities & {"research", "investigate"} and self.research_engine is not None:
             return PlannerType.RESEARCH
         if capabilities and self.swarm_manager is not None:
@@ -217,6 +243,7 @@ class ExecutiveBrain:
         return PlannerType.DIRECT
 
     def decide(self, context: DecisionContext) -> ExecutiveDecision:
+        self.build_world_context(context)
         ordered_goals = self.prioritize_goals(context)
         planner = self.select_planner(context)
         rationale = self._rationale(planner, context)
@@ -251,6 +278,7 @@ class ExecutiveBrain:
         )
         self.decisions[-1] = final_decision
         self._record_outcome(final_decision, context)
+        self._transition_world(context, outcome)
         self._trigger_learning_if_needed(context)
         return final_decision
 
@@ -261,6 +289,7 @@ class ExecutiveBrain:
     ) -> ImprovementReport | None:
         context.record_outcome(outcome)
         self._persist_execution_outcome(context, outcome)
+        self._transition_world(context, outcome)
         return self._trigger_learning_if_needed(context)
 
     def _execute_decision(
@@ -396,6 +425,19 @@ class ExecutiveBrain:
         for goal in context.goals:
             if self.knowledge_graph.get_node(goal.goal_id) is not None:
                 self.knowledge_graph.add_edge(node.node_id, goal.goal_id, "derived_from")
+
+    def _transition_world(self, context: DecisionContext, outcome: dict[str, Any]) -> None:
+        self.world_model.transition(
+            "executive_outcome",
+            {
+                "environment": {
+                    "signals": {"last_objective": context.objective},
+                    "risk_level": context.risk_level,
+                },
+                "user": {"intent": context.objective},
+                "system": {"outcome": outcome},
+            },
+        )
 
     def _negotiate_decision(self, decision: ExecutiveDecision) -> None:
         if self.negotiation_manager is None:
