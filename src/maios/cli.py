@@ -10,23 +10,31 @@ from maios.runtime.runner import RuntimeRunner
 
 if TYPE_CHECKING:
     from maios.kernel.agi_foundation import AGIFoundation, GoalPursuit
+    from maios.kernel.workspace import Workspace
 
 
 def _print_usage() -> None:
     print("Usage: maios <mission.yaml>")
     print(
         "       maios pursue <objective> [--capability NAME ...] [--max-cycles N]"
-        " [--approve] [--llm PROVIDER]"
+        " [--approve] [--llm PROVIDER] [--workspace DIR]"
     )
-    print("       maios introspect [--llm PROVIDER]")
+    print(
+        "       maios project <objective> [--max-subgoals N] [--approve]"
+        " [--llm PROVIDER] [--workspace DIR]"
+    )
+    print("       maios research <question> [--llm PROVIDER] [--workspace DIR]")
+    print("       maios introspect [--llm PROVIDER] [--workspace DIR]")
+    print("       maios shell [--llm PROVIDER] [--workspace DIR]")
     print("       maios --version")
 
 
-def build_foundation(llm: str | None = None) -> AGIFoundation:
+def build_foundation(
+    llm: str | None = None,
+    workspace: str | None = None,
+) -> tuple[AGIFoundation, Workspace]:
     from maios.governance import GovernanceManager
-    from maios.kernel.agi_foundation import AGIFoundation
-    from maios.kernel.memory_kernel import MemoryKernel
-    from maios.knowledge.graph import KnowledgeGraph
+    from maios.kernel.workspace import DEFAULT_WORKSPACE, Workspace
 
     llm_provider = None
     if llm is not None:
@@ -36,12 +44,12 @@ def build_foundation(llm: str | None = None) -> AGIFoundation:
         config = load_config()
         config.model_provider = llm
         llm_provider = create_llm_provider(config)
-    return AGIFoundation(
-        knowledge_graph=KnowledgeGraph(),
-        memory_kernel=MemoryKernel(),
+    space = Workspace(workspace or DEFAULT_WORKSPACE)
+    foundation = space.build_foundation(
         governance=GovernanceManager(),
         llm_provider=llm_provider,
     )
+    return foundation, space
 
 
 def _print_pursuit(agi: AGIFoundation, pursuit: GoalPursuit) -> None:
@@ -57,12 +65,19 @@ def _print_pursuit(agi: AGIFoundation, pursuit: GoalPursuit) -> None:
     for index, cycle in enumerate(cycles, start=1):
         print(f"  cycle {index}: {cycle.status} ({' -> '.join(cycle.phase_order())})")
         for record in cycle.phases:
-            if record.phase == "understand" and "interpretation" in record.data:
+            if record.phase != "understand":
+                continue
+            for entry in record.data.get("recalled", []):
+                print(f"  [recall] {entry}")
+            if "interpretation" in record.data:
                 print(f"  [understanding] {record.data['interpretation']}")
     if pursuit.lessons:
         print("[lessons]")
         for lesson in pursuit.lessons:
             print(f"  - {lesson}")
+    if pursuit.output:
+        preview = pursuit.output if len(pursuit.output) <= 500 else pursuit.output[:500] + "..."
+        print(f"[output]\n{preview}")
     print(f"[status] {pursuit.status}")
 
 
@@ -72,6 +87,7 @@ def run_pursue(args: list[str]) -> None:
     max_cycles = 3
     approve = False
     llm: str | None = None
+    workspace: str | None = None
     index = 0
     while index < len(args):
         arg = args[index]
@@ -84,6 +100,9 @@ def run_pursue(args: list[str]) -> None:
         elif arg == "--llm":
             index += 1
             llm = args[index]
+        elif arg == "--workspace":
+            index += 1
+            workspace = args[index]
         elif arg == "--approve":
             approve = True
         else:
@@ -94,20 +113,26 @@ def run_pursue(args: list[str]) -> None:
         _print_usage()
         raise SystemExit(1)
 
-    agi = build_foundation(llm=llm)
+    agi, space = build_foundation(llm=llm, workspace=workspace)
     pursuit = agi.pursue(
         objective,
         capabilities=tuple(capabilities),
         max_cycles=max_cycles,
         human_approved=approve,
     )
+    space.save(agi)
     _print_pursuit(agi, pursuit)
+    if pursuit.output:
+        print(f"[artifact] {space.artifact_path(pursuit)}")
+    stats = space.stats()
+    print(f"[memory] nodes={stats['nodes']} pursuits={stats['pursuits']} workspace={space.root}")
 
 
 def run_introspect(args: list[str] | None = None) -> None:
     args = args or []
     llm = args[args.index("--llm") + 1] if "--llm" in args else None
-    agi = build_foundation(llm=llm)
+    workspace = args[args.index("--workspace") + 1] if "--workspace" in args else None
+    agi, space = build_foundation(llm=llm, workspace=workspace)
     model = agi.introspect()
     print(
         f"[MAIOS] identity={model.identity} version={model.version} "
@@ -115,6 +140,75 @@ def run_introspect(args: list[str] | None = None) -> None:
     )
     print(f"[available] {', '.join(model.available())}")
     print(f"[missing] {', '.join(model.missing()) or '(none)'}")
+    stats = space.stats()
+    print(f"[memory] nodes={stats['nodes']} pursuits={stats['pursuits']} workspace={space.root}")
+
+
+def run_project(args: list[str]) -> None:
+    objective_parts: list[str] = []
+    max_subgoals = 5
+    approve = False
+    llm: str | None = None
+    workspace: str | None = None
+    index = 0
+    while index < len(args):
+        arg = args[index]
+        if arg == "--max-subgoals":
+            index += 1
+            max_subgoals = int(args[index])
+        elif arg == "--llm":
+            index += 1
+            llm = args[index]
+        elif arg == "--workspace":
+            index += 1
+            workspace = args[index]
+        elif arg == "--approve":
+            approve = True
+        else:
+            objective_parts.append(arg)
+        index += 1
+    objective = " ".join(objective_parts).strip()
+    if not objective:
+        _print_usage()
+        raise SystemExit(1)
+
+    agi, space = build_foundation(llm=llm, workspace=workspace)
+    project = agi.pursue_project(
+        objective,
+        max_subgoals=max_subgoals,
+        human_approved=approve,
+    )
+    space.save(agi)
+    print(f"[MAIOS] project: {project.objective}")
+    if project.governance is not None:
+        print(
+            f"[governance] risk={project.governance['risk_level']} "
+            f"approved={project.governance['approved']} "
+            f"reason={project.governance['reason']}"
+        )
+    print(f"[subgoals] {len(project.subgoals)}")
+    pursuits = {pursuit.pursuit_id: pursuit for pursuit in agi.pursuits}
+    for index, (subgoal, pursuit_id) in enumerate(
+        zip(project.subgoals, project.pursuit_ids), start=1
+    ):
+        status = pursuits[pursuit_id].status if pursuit_id in pursuits else "?"
+        print(f"  {index}. [{status}] {subgoal}")
+    if project.output:
+        preview = project.output if len(project.output) <= 500 else project.output[:500] + "..."
+        print(f"[output]\n{preview}")
+        print(f"[artifact] {space.project_artifact_path(project)}")
+    print(f"[status] {project.status}")
+    stats = space.stats()
+    print(f"[memory] nodes={stats['nodes']} pursuits={stats['pursuits']} workspace={space.root}")
+
+
+def run_shell(args: list[str]) -> None:
+    from maios.shell import MAIOSShell
+
+    llm = args[args.index("--llm") + 1] if "--llm" in args else None
+    workspace = args[args.index("--workspace") + 1] if "--workspace" in args else None
+    agi, space = build_foundation(llm=llm, workspace=workspace)
+    MAIOSShell(agi, space).run()
 
 
 def main() -> None:
@@ -131,8 +225,20 @@ def main() -> None:
         run_pursue(argv[1:])
         return
 
+    if argv[0] == "project":
+        run_project(argv[1:])
+        return
+
+    if argv[0] == "research":
+        run_pursue([*argv[1:], "--capability", "research"])
+        return
+
     if argv[0] == "introspect":
         run_introspect(argv[1:])
+        return
+
+    if argv[0] == "shell":
+        run_shell(argv[1:])
         return
 
     mission_path = Path(argv[0])

@@ -4,13 +4,19 @@ from typing import Any
 
 __all__ = [
     "AGIFoundation",
+    "GoalDecomposer",
     "GoalPursuit",
+    "ProjectPursuit",
     "SelfModel",
+    "TaskExecutor",
+    "Workspace",
     "CognitiveCycleResult",
     "CognitiveInterpreter",
     "CognitiveLoop",
     "CognitivePhase",
     "PhaseRecord",
+    "MemoryRecall",
+    "RecallResult",
     "DecisionContext",
     "ExecutiveBrain",
     "ExecutiveDecision",
@@ -30,14 +36,36 @@ __all__ = [
 
 
 def __getattr__(name: str) -> Any:
-    if name in {"AGIFoundation", "GoalPursuit", "SelfModel"}:
-        from maios.kernel.agi_foundation import AGIFoundation, GoalPursuit, SelfModel
+    if name in {"AGIFoundation", "GoalPursuit", "ProjectPursuit", "SelfModel"}:
+        from maios.kernel.agi_foundation import (
+            AGIFoundation,
+            GoalPursuit,
+            ProjectPursuit,
+            SelfModel,
+        )
 
         return {
             "AGIFoundation": AGIFoundation,
             "GoalPursuit": GoalPursuit,
+            "ProjectPursuit": ProjectPursuit,
             "SelfModel": SelfModel,
         }[name]
+    if name == "GoalDecomposer":
+        from maios.kernel.goal_decomposer import GoalDecomposer
+
+        return GoalDecomposer
+    if name == "Workspace":
+        from maios.kernel.workspace import Workspace
+
+        return Workspace
+    if name == "TaskExecutor":
+        from maios.kernel.task_executor import TaskExecutor
+
+        return TaskExecutor
+    if name in {"MemoryRecall", "RecallResult"}:
+        from maios.kernel.memory_recall import MemoryRecall, RecallResult
+
+        return {"MemoryRecall": MemoryRecall, "RecallResult": RecallResult}[name]
     if name == "CognitiveInterpreter":
         from maios.kernel.cognitive_interpreter import CognitiveInterpreter
 

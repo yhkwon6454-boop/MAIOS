@@ -7,6 +7,37 @@ and this project follows semantic versioning for release tags.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-07-09
+
+### Added
+
+- Persistent workspace (`.maios/` by default): knowledge graph, long-term
+  memory store, goal-pursuit journal, and project journal survive across
+  runs and are restored on startup. CLI gains `--workspace`.
+- LLM task executor: the Act phase performs the objective (summary, draft,
+  translation) instead of echoing it; deliverables are recorded on the
+  pursuit and written to `artifacts/<id>.md`, with echo fallback.
+- Interactive shell: `maios shell` runs a persistent session where every
+  line becomes a goal, with `/project`, `/research`, `/approve`,
+  `/history`, `/introspect`, and `/evolve` commands.
+- Memory recall: the Understand phase searches the knowledge graph for
+  relevant experiences, reflections, concepts, and evidence; recalled
+  entries and lessons from previous pursuits flow into the understanding
+  and execution prompts.
+- Goal decomposition: `maios project` breaks a large objective into
+  sequential sub-goals, chains each sub-goal's output into the next, and
+  synthesizes one final deliverable.
+- Research integration: workspace foundations wire a `ResearchEngine`
+  backed by a `KnowledgeGraphSourceCollector`, so `maios research` and
+  research-capability goals investigate accumulated knowledge and emit
+  report artifacts.
+
+### Fixed
+
+- `load_config` now actually loads `.env` files (python-dotenv was declared
+  but never called), and `.env.example` is a real environment template.
+  The original Korean vision statement moved to `docs/VISION.ko.md`.
+
 ## [1.1.0] - 2026-07-09
 
 ### Added

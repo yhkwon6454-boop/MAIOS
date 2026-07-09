@@ -6,6 +6,7 @@ from enum import StrEnum
 from typing import Any
 from uuid import uuid4
 
+from maios.kernel.task_executor import TaskExecutor
 from maios.kernel.world_model import WorldContext, WorldModel
 from maios.knowledge.graph import KnowledgeGraph
 from maios.planning import GoalHorizon, MetaGoal, MetaPlanner
@@ -167,9 +168,11 @@ class ExecutiveBrain:
         memory_kernel: Any | None = None,
         world_model: WorldModel | None = None,
         priority_engine: ExecutivePriorityEngine | None = None,
+        task_executor: TaskExecutor | None = None,
         failure_threshold: int = 2,
         mission_id: str = "executive",
     ) -> None:
+        self.task_executor = task_executor or TaskExecutor()
         self.distributed_runtime = distributed_runtime
         self.research_engine = research_engine
         self.negotiation_manager = negotiation_manager or getattr(
@@ -315,11 +318,16 @@ class ExecutiveBrain:
             }
         if planner == PlannerType.RESEARCH and self.research_engine is not None:
             report = self.research_engine.run(context.objective)
-            return {
+            output = report.to_markdown() if hasattr(report, "to_markdown") else ""
+            outcome = {
                 "status": "COMPLETED",
                 "planner": planner.value,
                 "report": report.to_dict() if hasattr(report, "to_dict") else report,
             }
+            if output:
+                outcome["output"] = output
+                outcome["generated"] = True
+            return outcome
         if planner == PlannerType.SWARM and self.swarm_manager is not None:
             capabilities = list(context.requested_capabilities or ("plan",))
             swarm = self.swarm_manager.form_swarm(
@@ -346,6 +354,16 @@ class ExecutiveBrain:
                 "assigned_node": mission.assigned_node,
                 "error": mission.error,
             }
+        result = self.task_executor.execute(
+            context.objective,
+            interpretation=context.metadata.get("situation_interpretation"),
+            capabilities=context.requested_capabilities,
+            recalled=tuple(context.metadata.get("recalled_knowledge", ())),
+            lessons=tuple(context.metadata.get("prior_lessons", ())),
+            notes=tuple(context.metadata.get("project_notes", ())),
+        )
+        if result is not None:
+            return result
         return {
             "status": "COMPLETED",
             "planner": PlannerType.DIRECT.value,

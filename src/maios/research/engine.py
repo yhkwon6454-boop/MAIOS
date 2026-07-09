@@ -111,6 +111,28 @@ class InMemorySourceCollector:
         return (matches or self.sources)[:limit]
 
 
+class KnowledgeGraphSourceCollector:
+    """Collects research sources from the long-term knowledge graph."""
+
+    NODE_TYPES = {"concept", "evidence", "experience", "reflection", "research_report"}
+
+    def __init__(self, knowledge_graph: KnowledgeGraph) -> None:
+        self.knowledge_graph = knowledge_graph
+
+    def collect(self, question: str, limit: int = 3) -> list[ResearchSource]:
+        candidates = self.knowledge_graph.semantic_search(question, top_k=max(1, limit) * 4)
+        sources = [
+            ResearchSource(
+                title=node.title,
+                content=node.content,
+                metadata={"node_id": node.node_id, "node_type": node.node_type},
+            )
+            for node in candidates
+            if node.node_type in self.NODE_TYPES
+        ]
+        return sources[:limit]
+
+
 class ResearchEngine:
     """Runs an autonomous, offline-testable research workflow."""
 

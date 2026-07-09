@@ -9,6 +9,7 @@ from maios.adapters.llm_provider import BaseLLMProvider
 from maios.governance import GovernanceManager
 from maios.kernel.cognitive_interpreter import CognitiveInterpreter
 from maios.kernel.cognitive_loop import CognitiveLoop
+from maios.kernel.goal_decomposer import GoalDecomposer
 from maios.kernel.memory_kernel import MemoryKernel
 from maios.knowledge.graph import KnowledgeGraph
 from maios.planning import GoalHorizon, MetaGoal
@@ -54,6 +55,7 @@ class GoalPursuit:
     status: str
     cycle_ids: tuple[str, ...] = ()
     lessons: tuple[str, ...] = ()
+    output: str = ""
     governance: dict[str, Any] | None = None
     pursuit_id: str = field(default_factory=lambda: f"GP-{uuid4().hex[:8]}")
     created_at: str = field(default_factory=_now)
@@ -61,6 +63,20 @@ class GoalPursuit:
     @property
     def success(self) -> bool:
         return self.status in {"COMPLETED", "SUCCESS"}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> GoalPursuit:
+        return cls(
+            objective=str(data["objective"]),
+            goal_id=str(data.get("goal_id", "")),
+            status=str(data.get("status", "")),
+            cycle_ids=tuple(data.get("cycle_ids", ())),
+            lessons=tuple(data.get("lessons", ())),
+            output=str(data.get("output", "")),
+            governance=data.get("governance"),
+            pursuit_id=str(data.get("pursuit_id", "")) or f"GP-{uuid4().hex[:8]}",
+            created_at=str(data.get("created_at", "")) or _now(),
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -70,6 +86,48 @@ class GoalPursuit:
             "status": self.status,
             "cycle_ids": list(self.cycle_ids),
             "lessons": list(self.lessons),
+            "output": self.output,
+            "governance": dict(self.governance) if self.governance else None,
+            "created_at": self.created_at,
+        }
+
+
+@dataclass(frozen=True)
+class ProjectPursuit:
+    objective: str
+    status: str
+    subgoals: tuple[str, ...] = ()
+    pursuit_ids: tuple[str, ...] = ()
+    output: str = ""
+    governance: dict[str, Any] | None = None
+    project_id: str = field(default_factory=lambda: f"PJ-{uuid4().hex[:8]}")
+    created_at: str = field(default_factory=_now)
+
+    @property
+    def success(self) -> bool:
+        return self.status in {"COMPLETED", "SUCCESS"}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> ProjectPursuit:
+        return cls(
+            objective=str(data["objective"]),
+            status=str(data.get("status", "")),
+            subgoals=tuple(data.get("subgoals", ())),
+            pursuit_ids=tuple(data.get("pursuit_ids", ())),
+            output=str(data.get("output", "")),
+            governance=data.get("governance"),
+            project_id=str(data.get("project_id", "")) or f"PJ-{uuid4().hex[:8]}",
+            created_at=str(data.get("created_at", "")) or _now(),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "project_id": self.project_id,
+            "objective": self.objective,
+            "status": self.status,
+            "subgoals": list(self.subgoals),
+            "pursuit_ids": list(self.pursuit_ids),
+            "output": self.output,
             "governance": dict(self.governance) if self.governance else None,
             "created_at": self.created_at,
         }
@@ -87,7 +145,7 @@ class AGIFoundation:
         runtime: Any | None = None,
         llm_provider: BaseLLMProvider | None = None,
         identity: str = "maios",
-        version: str = "1.1.0",
+        version: str = "1.2.0",
         max_cycles: int = 3,
     ) -> None:
         self.cognitive_loop = cognitive_loop or CognitiveLoop(
@@ -98,14 +156,25 @@ class AGIFoundation:
         )
         if llm_provider is not None and not self.cognitive_loop.interpreter.available:
             self.cognitive_loop.interpreter = CognitiveInterpreter(llm_provider)
+        self.decomposer = GoalDecomposer(llm_provider or self.cognitive_loop.interpreter.provider)
         self.knowledge_graph = knowledge_graph or self.cognitive_loop.knowledge_graph
         self.memory_kernel = memory_kernel or self.cognitive_loop.memory_kernel
+        brain = self.cognitive_loop.executive_brain
+        if brain.research_engine is None and self.knowledge_graph is not None:
+            from maios.research import KnowledgeGraphSourceCollector, ResearchEngine
+
+            brain.research_engine = ResearchEngine(
+                source_collector=KnowledgeGraphSourceCollector(self.knowledge_graph),
+                memory_kernel=self.memory_kernel,
+                knowledge_graph=self.knowledge_graph,
+            )
         self.governance = governance
         self.identity = identity
         self.version = version
         self.max_cycles = max(1, max_cycles)
         self.goals: dict[str, MetaGoal] = {}
         self.pursuits: list[GoalPursuit] = []
+        self.projects: list[ProjectPursuit] = []
         self.self_model: SelfModel | None = None
         if self.governance is not None:
             self.governance.policy_engine.permission_model.allow(self.identity, "PURSUE_GOAL")
@@ -135,6 +204,8 @@ class AGIFoundation:
             "memory": self.memory_kernel is not None,
             "governance": self.governance is not None,
             "llm": self.cognitive_loop.interpreter.available,
+            "task_execution": self.executive_brain.task_executor.available,
+            "goal_decomposition": self.decomposer.available,
         }
         readiness = sum(capabilities.values()) / len(capabilities)
         self.self_model = SelfModel(
@@ -153,6 +224,7 @@ class AGIFoundation:
         capabilities: tuple[str, ...] | list[str] = (),
         max_cycles: int | None = None,
         human_approved: bool = False,
+        notes: tuple[str, ...] | list[str] = (),
     ) -> GoalPursuit:
         governance_data: dict[str, Any] | None = None
         if self.governance is not None:
@@ -181,10 +253,14 @@ class AGIFoundation:
             required_capabilities=tuple(capabilities),
         )
         self.goals[goal.goal_id] = goal
+        metadata: dict[str, Any] = {"prior_lessons": self._prior_lessons()}
+        if notes:
+            metadata["project_notes"] = list(notes)
         cycles = self.cognitive_loop.run(
             objective,
             capabilities=tuple(capabilities),
             max_cycles=max_cycles or self.max_cycles,
+            metadata=metadata,
         )
         last_cycle = cycles[-1]
         if last_cycle.success:
@@ -202,11 +278,102 @@ class AGIFoundation:
             status=last_cycle.status,
             cycle_ids=tuple(cycle.cycle_id for cycle in cycles),
             lessons=tuple(lessons),
+            output=(
+                str(last_cycle.outcome.get("output", ""))
+                if last_cycle.outcome.get("generated")
+                else ""
+            ),
             governance=governance_data,
         )
         self.pursuits.append(pursuit)
         self._persist_pursuit(pursuit)
         return pursuit
+
+    def pursue_project(
+        self,
+        objective: str,
+        *,
+        capabilities: tuple[str, ...] | list[str] = (),
+        max_subgoals: int = 5,
+        human_approved: bool = False,
+    ) -> ProjectPursuit:
+        governance_data: dict[str, Any] | None = None
+        if self.governance is not None:
+            decision = self.governance.evaluate(
+                objective,
+                action="PURSUE_GOAL",
+                subject=self.identity,
+            )
+            if decision.requires_human_approval and human_approved:
+                decision = self.governance.approve(decision)
+            governance_data = decision.to_dict()
+            if not decision.approved:
+                status = "PENDING_APPROVAL" if decision.requires_human_approval else "BLOCKED"
+                project = ProjectPursuit(
+                    objective=objective,
+                    status=status,
+                    governance=governance_data,
+                )
+                self.projects.append(project)
+                self._persist_project(project)
+                return project
+        subgoals = self.decomposer.decompose(objective, max_subgoals) or (objective,)
+        notes: list[str] = []
+        pursuits: list[GoalPursuit] = []
+        for subgoal in subgoals:
+            pursuit = self.pursue(
+                subgoal,
+                capabilities=capabilities,
+                human_approved=human_approved,
+                notes=tuple(notes),
+            )
+            pursuits.append(pursuit)
+            if pursuit.output:
+                notes.append(f"{subgoal}: {pursuit.output[:400]}")
+            if not pursuit.success:
+                break
+        completed = len(pursuits) == len(subgoals) and all(p.success for p in pursuits)
+        results = [(p.objective, p.output) for p in pursuits]
+        output = self.decomposer.synthesize(objective, results) or self._join_results(results)
+        project = ProjectPursuit(
+            objective=objective,
+            status="COMPLETED" if completed else pursuits[-1].status,
+            subgoals=tuple(subgoals),
+            pursuit_ids=tuple(p.pursuit_id for p in pursuits),
+            output=output,
+            governance=governance_data,
+        )
+        self.projects.append(project)
+        self._persist_project(project)
+        return project
+
+    @staticmethod
+    def _join_results(results: list[tuple[str, str]]) -> str:
+        sections = [f"## {subgoal}\n\n{output}" for subgoal, output in results if output]
+        return "\n\n".join(sections)
+
+    def _persist_project(self, project: ProjectPursuit) -> None:
+        data = project.to_dict()
+        if self.memory_kernel is not None:
+            self.memory_kernel.remember_short_term({"project_pursuit": data})
+        if self.knowledge_graph is not None:
+            self.knowledge_graph.add_node(
+                title=f"Project: {project.objective}",
+                content=str(data),
+                node_type="project_pursuit",
+                metadata={"project_id": project.project_id, "status": project.status},
+                node_id=project.project_id,
+            )
+
+    def _prior_lessons(self, limit: int = 5) -> list[str]:
+        lessons: list[str] = []
+        for pursuit in reversed(self.pursuits):
+            for lesson in pursuit.lessons:
+                if lesson not in lessons:
+                    lessons.append(lesson)
+                if len(lessons) >= limit:
+                    return lessons
+        return lessons
 
     def evolve(self) -> dict[str, Any]:
         executed = [pursuit for pursuit in self.pursuits if pursuit.cycle_ids]

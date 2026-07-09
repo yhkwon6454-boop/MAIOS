@@ -1,5 +1,8 @@
 import os
 from dataclasses import dataclass, field
+from pathlib import Path
+
+from dotenv import find_dotenv, load_dotenv
 
 
 @dataclass
@@ -22,5 +25,15 @@ class MAIOSConfig:
     gemini_model: str = field(default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-2.5-pro"))
 
 
-def load_config() -> MAIOSConfig:
+def load_config(env_file: str | Path | None = None) -> MAIOSConfig:
+    """Build the runtime config, loading a `.env` file first when present.
+
+    Values already set in the process environment always win over `.env`.
+    """
+    if env_file is not None:
+        load_dotenv(env_file, override=False)
+    else:
+        found = find_dotenv(usecwd=True)
+        if found:
+            load_dotenv(found, override=False)
     return MAIOSConfig()

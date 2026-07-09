@@ -20,13 +20,23 @@ class CognitiveInterpreter:
     def available(self) -> bool:
         return self.provider is not None
 
-    def interpret_situation(self, objective: str, world_context: WorldContext) -> str | None:
+    def interpret_situation(
+        self,
+        objective: str,
+        world_context: WorldContext,
+        recalled: tuple[str, ...] | list[str] = (),
+    ) -> str | None:
         provider = self.provider
         if provider is None:
             return None
         predictions = ", ".join(
             f"{prediction.target}={prediction.outcome}" for prediction in world_context.predictions
         )
+        memory_block = ""
+        if recalled:
+            memory_block = (
+                "Relevant memories:\n" + "\n".join(f"- {entry}" for entry in recalled) + "\n"
+            )
         prompt = (
             "You are the situational-understanding layer of an AI operating system.\n"
             f"Objective: {objective}\n"
@@ -35,7 +45,9 @@ class CognitiveInterpreter:
             f"active_agents={world_context.system.active_agents}, "
             f"failure_rate={world_context.system.failure_rate}\n"
             f"Predictions: {predictions or 'none'}\n"
-            "In at most two sentences, assess the situation and name the main risk."
+            + memory_block
+            + "In at most two sentences, assess the situation and name the main risk, "
+            "using the memories when they are relevant."
         )
         return self._generate(provider, prompt)
 

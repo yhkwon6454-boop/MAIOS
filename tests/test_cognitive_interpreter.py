@@ -88,10 +88,11 @@ def test_reflect_on_outcome_without_summary_returns_none():
     assert interpreter.reflect_on_outcome("Goal", {"status": "COMPLETED"}, True) is None
 
 
-def test_cognitive_loop_uses_llm_for_understand_and_reflect():
+def test_cognitive_loop_uses_llm_for_understand_act_and_reflect():
     provider = ScriptedProvider(
         [
             "System healthy; no meaningful risk.",
+            "The weekly report shows steady progress.",
             "Cycle went well.\n- Reuse this pattern.",
         ]
     )
@@ -102,6 +103,8 @@ def test_cognitive_loop_uses_llm_for_understand_and_reflect():
     understand = cycle.phases[1]
     assert understand.summary == "System healthy; no meaningful risk."
     assert understand.data["interpretation"] == "System healthy; no meaningful risk."
+    assert cycle.outcome["output"] == "The weekly report shows steady progress."
+    assert cycle.outcome["generated"] is True
     assert cycle.report is not None
     assert cycle.report.summary == "Cycle went well."
     assert cycle.report.improvement_points == ["Reuse this pattern."]
@@ -132,9 +135,10 @@ def test_agi_foundation_reports_llm_capability():
     assert injected.introspect().capabilities["llm"] is True
 
 
-def test_cli_pursue_with_mock_llm_prints_understanding(monkeypatch, capsys):
+def test_cli_pursue_with_mock_llm_prints_understanding(tmp_path, monkeypatch, capsys):
     from maios import cli
 
+    monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(
         "sys.argv",
         ["maios", "pursue", "Review", "the", "logs", "--llm", "mock"],
@@ -146,9 +150,10 @@ def test_cli_pursue_with_mock_llm_prints_understanding(monkeypatch, capsys):
     assert "[status] COMPLETED" in out
 
 
-def test_cli_introspect_with_mock_llm_reports_llm_available(monkeypatch, capsys):
+def test_cli_introspect_with_mock_llm_reports_llm_available(tmp_path, monkeypatch, capsys):
     from maios import cli
 
+    monkeypatch.chdir(tmp_path)
     monkeypatch.setattr("sys.argv", ["maios", "introspect", "--llm", "mock"])
     cli.main()
 
