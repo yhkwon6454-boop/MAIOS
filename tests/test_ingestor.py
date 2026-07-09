@@ -122,6 +122,31 @@ def test_ingest_falls_back_on_undecodable_bytes(tmp_path):
     assert "drone data" in graph.get_node(node_ids[0]).content
 
 
+def test_ingest_uses_bulk_mode_without_auto_link_edges(tmp_path):
+    for index in range(5):
+        _write(tmp_path / f"doc{index}.md", f"# Drone {index}\nDrone defense note {index}.")
+    graph_path = tmp_path / "graph.json"
+    graph = KnowledgeGraph(path=graph_path)
+
+    report = DocumentIngestor(graph).ingest(tmp_path)
+
+    assert report.chunks == 5
+    assert graph.edges == {}
+    assert graph_path.exists()
+
+
+def test_bulk_context_persists_once_at_exit(tmp_path):
+    graph_path = tmp_path / "graph.json"
+    graph = KnowledgeGraph(path=graph_path)
+
+    with graph.bulk():
+        graph.add_node(title="A", content="Alpha", auto_link=False)
+        assert not graph_path.exists()
+
+    assert graph_path.exists()
+    assert graph.path == graph_path
+
+
 def test_recall_and_research_use_ingested_documents(tmp_path):
     space = Workspace(tmp_path / "space")
     doc = tmp_path / "doctrine.md"

@@ -123,21 +123,34 @@ class KnowledgeGraphSourceCollector:
         "research_report",
     }
 
+    # Substantive knowledge outranks the system's own activity records, which
+    # would otherwise win every repeat query by containing the question text.
+    TYPE_PRIORITY = {
+        "document": 0,
+        "concept": 0,
+        "evidence": 0,
+        "research_report": 1,
+        "reflection": 2,
+        "experience": 2,
+    }
+
     def __init__(self, knowledge_graph: KnowledgeGraph) -> None:
         self.knowledge_graph = knowledge_graph
 
     def collect(self, question: str, limit: int = 3) -> list[ResearchSource]:
         candidates = self.knowledge_graph.semantic_search(question, top_k=max(1, limit) * 4)
-        sources = [
+        ordered = sorted(
+            (node for node in candidates if node.node_type in self.NODE_TYPES),
+            key=lambda node: self.TYPE_PRIORITY[node.node_type],
+        )
+        return [
             ResearchSource(
                 title=node.title,
                 content=node.content,
                 metadata={"node_id": node.node_id, "node_type": node.node_type},
             )
-            for node in candidates
-            if node.node_type in self.NODE_TYPES
+            for node in ordered[:limit]
         ]
-        return sources[:limit]
 
 
 class ResearchEngine:

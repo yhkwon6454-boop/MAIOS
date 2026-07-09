@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -78,18 +80,31 @@ class KnowledgeGraph:
         memory_kernel: MemoryKernel | None = None,
         auto_link_threshold: float = 0.2,
         duplicate_threshold: float = 0.86,
+        max_content_chars: int = 8000,
     ) -> None:
         self.path = Path(path) if path else None
         self.knowledge_store = knowledge_store
         self.memory_kernel = memory_kernel
         self.auto_link_threshold = auto_link_threshold
         self.duplicate_threshold = duplicate_threshold
+        self.max_content_chars = max(1000, max_content_chars)
         self.nodes: dict[str, KnowledgeNode] = {}
         self.edges: dict[str, KnowledgeEdge] = {}
         self.clusters: dict[str, KnowledgeCluster] = {}
 
         if self.path and self.path.exists():
             self._load()
+
+    @contextmanager
+    def bulk(self) -> Iterator[KnowledgeGraph]:
+        """Suspend per-write persistence during mass inserts, persist once at exit."""
+        path = self.path
+        self.path = None
+        try:
+            yield self
+        finally:
+            self.path = path
+            self._persist()
 
     def add_node(
         self,
@@ -99,10 +114,11 @@ class KnowledgeGraph:
         metadata: dict[str, Any] | None = None,
         node_id: str | None = None,
         merge_duplicates: bool = True,
+        auto_link: bool = True,
     ) -> KnowledgeNode:
         node = KnowledgeNode(
             title=title.strip(),
-            content=content.strip(),
+            content=content.strip()[: self.max_content_chars],
             node_type=node_type,
             node_id=node_id or f"KN-{uuid4().hex[:8]}",
             metadata=dict(metadata or {}),
@@ -122,7 +138,8 @@ class KnowledgeGraph:
 
         self.nodes[node.node_id] = node
         self._persist_integrations(node)
-        self.link_related_concepts(node.node_id)
+        if auto_link:
+            self.link_related_concepts(node.node_id)
         self._link_metadata_relationships(node)
         self._persist()
         return node
@@ -295,9 +312,9 @@ class KnowledgeGraph:
 
     def semantic_search(self, query: str, top_k: int = 5) -> list[KnowledgeNode]:
         scored = [
-            (self._semantic_score(query, node), node)
+            (score, node)
             for node in self.nodes.values()
-            if self._semantic_score(query, node) > 0
+            if (score := self._semantic_score(query, node)) > 0
         ]
         return [
             node

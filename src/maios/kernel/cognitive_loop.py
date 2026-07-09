@@ -254,19 +254,20 @@ class CognitiveLoop:
         outcome: dict[str, Any],
         report: ImprovementReport,
     ) -> PhaseRecord:
+        compact = ExecutiveBrain.compact_outcome(outcome)
         transition = self.world_model.transition(
             "cognitive_cycle",
             {
                 "environment": {
                     "signals": {"last_cycle_status": str(outcome.get("status", ""))},
                 },
-                "system": {"outcome": outcome},
+                "system": {"outcome": compact},
             },
         )
         escalation = self.executive_brain.learn(context)
         if self.knowledge_graph is not None:
             self.knowledge_graph.learn_experience(
-                description=f"Cognitive cycle for {context.objective}: {outcome}",
+                description=f"Cognitive cycle for {context.objective}: {compact}",
                 outcome="success" if report.success else "failure",
                 metadata={"mission_id": context.mission_id},
             )
@@ -344,7 +345,7 @@ class CognitiveLoop:
         if self.memory_kernel is not None:
             self.memory_kernel.remember_short_term({"cognitive_cycle": data})
             self.memory_kernel.remember_long_term(
-                str(data),
+                str(data)[:8000],
                 metadata={"memory_type": "cognitive_cycle", "cycle_id": cycle.cycle_id},
             )
         if self.knowledge_graph is not None:

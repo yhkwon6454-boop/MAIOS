@@ -59,12 +59,13 @@ class DocumentIngestor:
         ingested: list[str] = []
         skipped: list[str] = []
         node_ids: list[str] = []
-        for file in files:
-            if not file.exists() or file.suffix.lower() not in SUPPORTED_SUFFIXES:
-                skipped.append(str(file))
-                continue
-            node_ids.extend(self.ingest_file(file))
-            ingested.append(str(file))
+        with self.knowledge_graph.bulk():
+            for file in files:
+                if not file.exists() or file.suffix.lower() not in SUPPORTED_SUFFIXES:
+                    skipped.append(str(file))
+                    continue
+                node_ids.extend(self._ingest_file_nodes(file))
+                ingested.append(str(file))
         return IngestReport(
             files=tuple(ingested),
             skipped=tuple(skipped),
@@ -73,7 +74,10 @@ class DocumentIngestor:
         )
 
     def ingest_file(self, path: str | Path) -> list[str]:
-        file = Path(path)
+        with self.knowledge_graph.bulk():
+            return self._ingest_file_nodes(Path(path))
+
+    def _ingest_file_nodes(self, file: Path) -> list[str]:
         text = self._read_text(file)
         if file.suffix.lower() in {".html", ".htm"}:
             text = self._strip_html(text)
@@ -91,6 +95,7 @@ class DocumentIngestor:
                 },
                 node_id=f"DOC-{digest}",
                 merge_duplicates=False,
+                auto_link=False,
             )
             node_ids.append(node.node_id)
         return node_ids
