@@ -4,9 +4,12 @@ MAIOS is the MUSA AI Operating System: a Python runtime for mission-oriented AI
 workflows. The `v1.0.0` release stabilized the local developer runtime that
 connects planning, memory, model adapters, tool routing, multi-agent execution,
 autonomous control, distributed coordination, and governance abstractions.
-`v1.1.0` adds a cognitive decision layer: an executive brain, a world model,
+`v1.1.0` added a cognitive decision layer: an executive brain, a world model,
 a phased cognitive loop, and a unified autonomous core with governance gating
-and optional LLM-backed understanding and reflection.
+and optional LLM-backed understanding and reflection. `v1.2.0` makes that
+layer a working tool: a persistent workspace with memory recall, real
+LLM-backed task execution with artifacts, an interactive shell, project
+decomposition, and research over accumulated knowledge.
 
 MAIOS is not a hosted service. Components are local Python abstractions designed
 for extension and testing.
@@ -33,6 +36,11 @@ for extension and testing.
   name describes the module's role in the architecture; it is an
   orchestration layer, not artificial general intelligence.
 - Optional LLM-backed understanding and reflection with heuristic fallback.
+- Persistent workspace (`.maios/`) with a goal-pursuit journal, project
+  journal, artifacts, and memory recall feeding new goals.
+- LLM task execution producing real deliverables, goal decomposition for
+  multi-step projects, and research over the workspace's own knowledge.
+- Interactive `maios shell` session.
 - Local examples and a pytest suite covering implemented behavior.
 
 ## Installation
@@ -66,25 +74,31 @@ python examples/basic_usage.py
 
 ## Goal Pursuit CLI
 
-Run the full cognitive stack (governance gate, cognitive loop, lessons) from
-one command:
+Run the full cognitive stack (governance gate, memory recall, cognitive
+loop, artifacts) from one command:
 
 ```bash
-maios pursue "Summarize the weekly report"
-maios pursue "Deploy the new build" --approve
-maios pursue "Review the logs" --llm mock
+maios pursue "Summarize the weekly report" --llm mock
+maios project "Draft a three-part defense brief" --llm mock
+maios research "What did we learn about drone swarms?"
 maios introspect
+maios shell
 ```
 
 - `--capability NAME` requests capabilities (repeatable).
-- `--max-cycles N` bounds retry cycles (default 3).
+- `--max-cycles N` bounds retry cycles; `--max-subgoals N` bounds project
+  decomposition.
 - `--approve` grants human approval for high-risk goals.
-- `--llm PROVIDER` enables LLM-backed understanding and reflection
-  (`mock`, `openai`, `claude`, `gemini`; real providers need API keys).
+- `--llm PROVIDER` enables LLM-backed understanding, execution, reflection,
+  decomposition, and synthesis (`mock`, `openai`, `claude`, `gemini`; real
+  providers need API keys, e.g. in a `.env` file).
+- `--workspace DIR` selects the persistent workspace (default `.maios/`).
 
-`maios introspect` prints the self-model: which layers are available and the
-resulting readiness score. See `examples/agi_foundation_demo.py` for the same
-flow as a script.
+Every command prints `[memory]` stats; goals with generated output write
+`artifacts/<id>.md` in the workspace. `maios shell` keeps one session with
+`/project`, `/research`, `/approve`, `/history`, `/introspect`, and
+`/evolve`. See `examples/agi_foundation_demo.py` for the same flow as a
+script.
 
 ## REST API
 
@@ -109,7 +123,7 @@ pytest
 At release preparation time, the local suite passes with:
 
 ```text
-392 passed, 95.71% coverage
+450 passed, 95.92% coverage
 ```
 
 ## Documentation
@@ -127,7 +141,8 @@ At release preparation time, the local suite passes with:
 
 ## Status
 
-`v1.1.0` adds the cognitive decision layer on top of the stable `v1.0.0`
-runtime. Public APIs remain intentionally small and are covered by tests,
-with extension points designed for providers, tools, plugins, governance
+`v1.2.0` turns the `v1.1.0` cognitive layer into a working tool with
+persistent memory, recall, real execution, and an interactive shell.
+Public APIs remain intentionally small and are covered by tests, with
+extension points designed for providers, tools, plugins, governance
 policies, and distributed transports.

@@ -1,34 +1,36 @@
-# MAIOS v1.1.0
+# MAIOS v1.2.0
 
-MAIOS v1.1.0 adds a cognitive decision layer on top of the v1.0.0 local
-runtime: executive decision making, a world model, a phased cognitive loop,
-and a unified autonomous core with governance gating and optional LLM-backed
-understanding and reflection.
+MAIOS v1.2.0 turns the v1.1.0 cognitive layer into a working tool: memory
+that persists and is actually recalled, an Act phase that produces real
+deliverables, an interactive shell, project decomposition, and research
+over accumulated knowledge.
 
 ## Highlights
 
-- Executive Brain: goal prioritization, planner selection, runtime control,
-  and failure-driven learning escalation.
-- World Model: environment, user, and system state with transitions,
-  predictions, and world-context building for decisions.
-- Cognitive Loop: Observe -> Understand -> Plan -> Act -> Reflect -> Learn
-  as one repeatable cycle across the executive and learning layers.
-- `AGIFoundation`: single entry point for goal pursuit, self-introspection,
-  and evolution reports. Despite the class name, this is an orchestration
-  layer for autonomous workflows, not artificial general intelligence.
-- Governance gating on goal pursuit: blocked keywords and risk-based human
-  approval before any cycle executes.
-- Cognitive Interpreter: optional LLM-backed Understand and Reflect phases
-  via the existing mock, OpenAI, Claude, and Gemini providers, with heuristic
-  fallback when no provider is available.
-- New CLI commands:
+- Persistent workspace (`.maios/`): knowledge graph, long-term memory,
+  pursuit and project journals, and artifacts survive across runs.
+- Memory recall: each new goal retrieves relevant experiences, reflections,
+  concepts, and evidence from earlier work and feeds them into the
+  understanding and execution prompts, together with accumulated lessons.
+- Real execution: with an LLM provider, the Act phase performs the
+  objective and writes the deliverable to `artifacts/<id>.md`.
+- Interactive shell:
 
 ```bash
-maios pursue "Summarize the weekly report" [--capability NAME] [--max-cycles N] [--approve] [--llm PROVIDER]
-maios introspect [--llm PROVIDER]
+maios shell
+maios> Summarize the weekly report
+maios> /project Draft a three-part defense brief
+maios> /research What did we learn about drone swarms?
+maios> /evolve
 ```
 
-- End-to-end demo: `examples/agi_foundation_demo.py`.
+- Goal decomposition: `maios project <objective>` splits a large objective
+  into sequential sub-goals, chains their outputs, and synthesizes one
+  final deliverable.
+- Research over memory: `maios research <question>` runs the research
+  engine against the workspace's own knowledge graph and emits a report
+  artifact that becomes a source for future research.
+- `.env` files now load correctly, and `.env.example` is a real template.
 
 ## Quality
 
@@ -55,7 +57,7 @@ maios --version
 Expected output:
 
 ```text
-1.1.0
+1.2.0
 ```
 
 ## Security Notes
@@ -63,8 +65,9 @@ Expected output:
 MAIOS includes local tools that can execute shell commands, Python code, Git
 commands, and file operations. Enable tools, plugins, autonomous execution,
 and goal pursuit only in trusted environments with appropriate governance
-policies.
+policies. Workspace directories store everything the system reads and
+produces in plain files - treat them accordingly.
 
 ## Tag
 
-Release tag: `v1.1.0`
+Release tag: `v1.2.0`
