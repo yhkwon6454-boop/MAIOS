@@ -355,6 +355,7 @@ class ExecutiveBrain:
             capabilities=context.requested_capabilities,
             recalled=tuple(context.metadata.get("recalled_knowledge", ())),
             lessons=tuple(context.metadata.get("prior_lessons", ())),
+            notes=tuple(context.metadata.get("project_notes", ())),
         )
         if result is not None:
             return result

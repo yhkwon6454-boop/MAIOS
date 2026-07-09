@@ -28,10 +28,18 @@ class TaskExecutor:
         capabilities: tuple[str, ...] | list[str] = (),
         recalled: tuple[str, ...] | list[str] = (),
         lessons: tuple[str, ...] | list[str] = (),
+        notes: tuple[str, ...] | list[str] = (),
     ) -> dict[str, Any] | None:
         provider = self.provider
         if provider is None:
             return None
+        notes_block = ""
+        if notes:
+            notes_block = (
+                "Earlier results in this project:\n"
+                + "\n".join(f"- {note}" for note in notes)
+                + "\n"
+            )
         memory_block = ""
         if recalled:
             memory_block = (
@@ -53,6 +61,7 @@ class TaskExecutor:
             f"Objective: {objective}\n"
             + (f"Requested capabilities: {', '.join(capabilities)}\n" if capabilities else "")
             + (f"Situation assessment: {interpretation}\n" if interpretation else "")
+            + notes_block
             + memory_block
             + lessons_block
         )

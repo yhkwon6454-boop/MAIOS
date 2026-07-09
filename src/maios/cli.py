@@ -19,6 +19,10 @@ def _print_usage() -> None:
         "       maios pursue <objective> [--capability NAME ...] [--max-cycles N]"
         " [--approve] [--llm PROVIDER] [--workspace DIR]"
     )
+    print(
+        "       maios project <objective> [--max-subgoals N] [--approve]"
+        " [--llm PROVIDER] [--workspace DIR]"
+    )
     print("       maios introspect [--llm PROVIDER] [--workspace DIR]")
     print("       maios shell [--llm PROVIDER] [--workspace DIR]")
     print("       maios --version")
@@ -139,6 +143,64 @@ def run_introspect(args: list[str] | None = None) -> None:
     print(f"[memory] nodes={stats['nodes']} pursuits={stats['pursuits']} workspace={space.root}")
 
 
+def run_project(args: list[str]) -> None:
+    objective_parts: list[str] = []
+    max_subgoals = 5
+    approve = False
+    llm: str | None = None
+    workspace: str | None = None
+    index = 0
+    while index < len(args):
+        arg = args[index]
+        if arg == "--max-subgoals":
+            index += 1
+            max_subgoals = int(args[index])
+        elif arg == "--llm":
+            index += 1
+            llm = args[index]
+        elif arg == "--workspace":
+            index += 1
+            workspace = args[index]
+        elif arg == "--approve":
+            approve = True
+        else:
+            objective_parts.append(arg)
+        index += 1
+    objective = " ".join(objective_parts).strip()
+    if not objective:
+        _print_usage()
+        raise SystemExit(1)
+
+    agi, space = build_foundation(llm=llm, workspace=workspace)
+    project = agi.pursue_project(
+        objective,
+        max_subgoals=max_subgoals,
+        human_approved=approve,
+    )
+    space.save(agi)
+    print(f"[MAIOS] project: {project.objective}")
+    if project.governance is not None:
+        print(
+            f"[governance] risk={project.governance['risk_level']} "
+            f"approved={project.governance['approved']} "
+            f"reason={project.governance['reason']}"
+        )
+    print(f"[subgoals] {len(project.subgoals)}")
+    pursuits = {pursuit.pursuit_id: pursuit for pursuit in agi.pursuits}
+    for index, (subgoal, pursuit_id) in enumerate(
+        zip(project.subgoals, project.pursuit_ids), start=1
+    ):
+        status = pursuits[pursuit_id].status if pursuit_id in pursuits else "?"
+        print(f"  {index}. [{status}] {subgoal}")
+    if project.output:
+        preview = project.output if len(project.output) <= 500 else project.output[:500] + "..."
+        print(f"[output]\n{preview}")
+        print(f"[artifact] {space.project_artifact_path(project)}")
+    print(f"[status] {project.status}")
+    stats = space.stats()
+    print(f"[memory] nodes={stats['nodes']} pursuits={stats['pursuits']} workspace={space.root}")
+
+
 def run_shell(args: list[str]) -> None:
     from maios.shell import MAIOSShell
 
@@ -160,6 +222,10 @@ def main() -> None:
 
     if argv[0] == "pursue":
         run_pursue(argv[1:])
+        return
+
+    if argv[0] == "project":
+        run_project(argv[1:])
         return
 
     if argv[0] == "introspect":

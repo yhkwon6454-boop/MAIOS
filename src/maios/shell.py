@@ -8,13 +8,14 @@ from maios.kernel.workspace import Workspace
 BANNER = "MAIOS shell - every line becomes a goal. /help for commands, /exit to leave."
 
 HELP_TEXT = """Commands:
-  <objective>   pursue the objective through the cognitive loop
-  /approve      re-run the last objective with human approval
-  /history      show recent pursuits
-  /introspect   show the self-model and readiness
-  /evolve       show the accumulated evolution report
-  /help         show this help
-  /exit         leave the shell (also /quit, exit, quit)"""
+  <objective>          pursue the objective through the cognitive loop
+  /project <objective> decompose a large objective and pursue the sub-goals
+  /approve             re-run the last objective with human approval
+  /history             show recent pursuits
+  /introspect          show the self-model and readiness
+  /evolve              show the accumulated evolution report
+  /help                show this help
+  /exit                leave the shell (also /quit, exit, quit)"""
 
 EXIT_COMMANDS = {"/exit", "/quit", "exit", "quit"}
 
@@ -69,6 +70,9 @@ class MAIOSShell:
         if text == "/approve":
             self._approve()
             return True
+        if text == "/project" or text.startswith("/project "):
+            self._project(text[len("/project") :].strip())
+            return True
         self._pursue(text)
         return True
 
@@ -77,6 +81,25 @@ class MAIOSShell:
         self.workspace.save(self.foundation)
         self.last_objective = objective
         self._print_pursuit(pursuit)
+        self._print_memory()
+
+    def _project(self, objective: str) -> None:
+        if not objective:
+            self.output_fn("usage: /project <objective>")
+            return
+        project = self.foundation.pursue_project(objective)
+        self.workspace.save(self.foundation)
+        self.output_fn(f"[{project.status}] project: {project.objective}")
+        pursuits = {pursuit.pursuit_id: pursuit for pursuit in self.foundation.pursuits}
+        for index, (subgoal, pursuit_id) in enumerate(
+            zip(project.subgoals, project.pursuit_ids), start=1
+        ):
+            status = pursuits[pursuit_id].status if pursuit_id in pursuits else "?"
+            self.output_fn(f"  {index}. [{status}] {subgoal}")
+        if project.output:
+            preview = project.output if len(project.output) <= 300 else project.output[:300] + "..."
+            self.output_fn(preview)
+            self.output_fn(f"  artifact: {self.workspace.project_artifact_path(project)}")
         self._print_memory()
 
     def _approve(self) -> None:
