@@ -14,21 +14,33 @@ if TYPE_CHECKING:
 
 def _print_usage() -> None:
     print("Usage: maios <mission.yaml>")
-    print("       maios pursue <objective> [--capability NAME ...] [--max-cycles N] [--approve]")
-    print("       maios introspect")
+    print(
+        "       maios pursue <objective> [--capability NAME ...] [--max-cycles N]"
+        " [--approve] [--llm PROVIDER]"
+    )
+    print("       maios introspect [--llm PROVIDER]")
     print("       maios --version")
 
 
-def build_foundation() -> AGIFoundation:
+def build_foundation(llm: str | None = None) -> AGIFoundation:
     from maios.governance import GovernanceManager
     from maios.kernel.agi_foundation import AGIFoundation
     from maios.kernel.memory_kernel import MemoryKernel
     from maios.knowledge.graph import KnowledgeGraph
 
+    llm_provider = None
+    if llm is not None:
+        from maios.adapters.llm_provider import create_llm_provider
+        from maios.config import load_config
+
+        config = load_config()
+        config.model_provider = llm
+        llm_provider = create_llm_provider(config)
     return AGIFoundation(
         knowledge_graph=KnowledgeGraph(),
         memory_kernel=MemoryKernel(),
         governance=GovernanceManager(),
+        llm_provider=llm_provider,
     )
 
 
@@ -44,6 +56,9 @@ def _print_pursuit(agi: AGIFoundation, pursuit: GoalPursuit) -> None:
     print(f"[cycles] {len(cycles)} executed")
     for index, cycle in enumerate(cycles, start=1):
         print(f"  cycle {index}: {cycle.status} ({' -> '.join(cycle.phase_order())})")
+        for record in cycle.phases:
+            if record.phase == "understand" and "interpretation" in record.data:
+                print(f"  [understanding] {record.data['interpretation']}")
     if pursuit.lessons:
         print("[lessons]")
         for lesson in pursuit.lessons:
@@ -56,6 +71,7 @@ def run_pursue(args: list[str]) -> None:
     capabilities: list[str] = []
     max_cycles = 3
     approve = False
+    llm: str | None = None
     index = 0
     while index < len(args):
         arg = args[index]
@@ -65,6 +81,9 @@ def run_pursue(args: list[str]) -> None:
         elif arg == "--max-cycles":
             index += 1
             max_cycles = int(args[index])
+        elif arg == "--llm":
+            index += 1
+            llm = args[index]
         elif arg == "--approve":
             approve = True
         else:
@@ -75,7 +94,7 @@ def run_pursue(args: list[str]) -> None:
         _print_usage()
         raise SystemExit(1)
 
-    agi = build_foundation()
+    agi = build_foundation(llm=llm)
     pursuit = agi.pursue(
         objective,
         capabilities=tuple(capabilities),
@@ -85,8 +104,10 @@ def run_pursue(args: list[str]) -> None:
     _print_pursuit(agi, pursuit)
 
 
-def run_introspect() -> None:
-    agi = build_foundation()
+def run_introspect(args: list[str] | None = None) -> None:
+    args = args or []
+    llm = args[args.index("--llm") + 1] if "--llm" in args else None
+    agi = build_foundation(llm=llm)
     model = agi.introspect()
     print(
         f"[MAIOS] identity={model.identity} version={model.version} "
@@ -111,7 +132,7 @@ def main() -> None:
         return
 
     if argv[0] == "introspect":
-        run_introspect()
+        run_introspect(argv[1:])
         return
 
     mission_path = Path(argv[0])

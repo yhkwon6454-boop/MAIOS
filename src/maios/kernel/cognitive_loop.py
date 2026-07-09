@@ -6,6 +6,8 @@ from enum import StrEnum
 from typing import Any
 from uuid import uuid4
 
+from maios.adapters.llm_provider import BaseLLMProvider
+from maios.kernel.cognitive_interpreter import CognitiveInterpreter
 from maios.kernel.executive_brain import (
     DecisionContext,
     ExecutiveBrain,
@@ -102,9 +104,12 @@ class CognitiveLoop:
         memory_kernel: MemoryKernel | None = None,
         runtime: Any | None = None,
         success_statuses: tuple[str, ...] = ("COMPLETED", "SUCCESS"),
+        interpreter: CognitiveInterpreter | None = None,
+        llm_provider: BaseLLMProvider | None = None,
     ) -> None:
         self.knowledge_graph = knowledge_graph
         self.memory_kernel = memory_kernel
+        self.interpreter = interpreter or CognitiveInterpreter(llm_provider)
         self.executive_brain = executive_brain or ExecutiveBrain(
             distributed_runtime=runtime,
             knowledge_graph=knowledge_graph,
@@ -133,17 +138,23 @@ class CognitiveLoop:
 
     def understand(self, context: DecisionContext) -> PhaseRecord:
         world_context = self.executive_brain.build_world_context(context)
+        data: dict[str, Any] = {
+            "context_id": world_context.context_id,
+            "risk_level": world_context.environment.risk_level,
+            "predictions": {
+                prediction.target: prediction.outcome for prediction in world_context.predictions
+            },
+        }
+        summary = f"Built world context {world_context.context_id}."
+        interpretation = self.interpreter.interpret_situation(context.objective, world_context)
+        if interpretation is not None:
+            data["interpretation"] = interpretation
+            context.metadata["situation_interpretation"] = interpretation
+            summary = interpretation
         return PhaseRecord(
             phase=CognitivePhase.UNDERSTAND,
-            summary=f"Built world context {world_context.context_id}.",
-            data={
-                "context_id": world_context.context_id,
-                "risk_level": world_context.environment.risk_level,
-                "predictions": {
-                    prediction.target: prediction.outcome
-                    for prediction in world_context.predictions
-                },
-            },
+            summary=summary,
+            data=data,
         )
 
     def plan(self, context: DecisionContext) -> tuple[ExecutiveDecision, PhaseRecord]:
@@ -192,14 +203,25 @@ class CognitiveLoop:
             if success
             else ["Adjust planner selection or capabilities before the next cycle."]
         )
+        summary = (
+            f"Cognitive cycle for '{context.objective}' "
+            f"{'succeeded' if success else 'needs improvement'}."
+        )
+        llm_reflection = self.interpreter.reflect_on_outcome(
+            context.objective,
+            outcome,
+            success,
+            interpretation=context.metadata.get("situation_interpretation"),
+        )
+        if llm_reflection is not None:
+            summary, lessons = llm_reflection
+            if lessons:
+                improvement_points = list(lessons)
         report = ImprovementReport(
             mission_id=context.mission_id,
             success=success,
             score=90 if success else 40,
-            summary=(
-                f"Cognitive cycle for '{context.objective}' "
-                f"{'succeeded' if success else 'needs improvement'}."
-            ),
+            summary=summary,
             bottlenecks=bottlenecks,
             improvement_points=improvement_points,
         )

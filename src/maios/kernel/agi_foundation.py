@@ -5,7 +5,9 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
+from maios.adapters.llm_provider import BaseLLMProvider
 from maios.governance import GovernanceManager
+from maios.kernel.cognitive_interpreter import CognitiveInterpreter
 from maios.kernel.cognitive_loop import CognitiveLoop
 from maios.kernel.memory_kernel import MemoryKernel
 from maios.knowledge.graph import KnowledgeGraph
@@ -83,6 +85,7 @@ class AGIFoundation:
         knowledge_graph: KnowledgeGraph | None = None,
         memory_kernel: MemoryKernel | None = None,
         runtime: Any | None = None,
+        llm_provider: BaseLLMProvider | None = None,
         identity: str = "maios",
         version: str = "1.0.0",
         max_cycles: int = 3,
@@ -91,7 +94,10 @@ class AGIFoundation:
             knowledge_graph=knowledge_graph,
             memory_kernel=memory_kernel,
             runtime=runtime,
+            llm_provider=llm_provider,
         )
+        if llm_provider is not None and not self.cognitive_loop.interpreter.available:
+            self.cognitive_loop.interpreter = CognitiveInterpreter(llm_provider)
         self.knowledge_graph = knowledge_graph or self.cognitive_loop.knowledge_graph
         self.memory_kernel = memory_kernel or self.cognitive_loop.memory_kernel
         self.governance = governance
@@ -128,6 +134,7 @@ class AGIFoundation:
             "knowledge_graph": self.knowledge_graph is not None,
             "memory": self.memory_kernel is not None,
             "governance": self.governance is not None,
+            "llm": self.cognitive_loop.interpreter.available,
         }
         readiness = sum(capabilities.values()) / len(capabilities)
         self.self_model = SelfModel(

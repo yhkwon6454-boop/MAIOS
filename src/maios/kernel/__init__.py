@@ -7,6 +7,7 @@ __all__ = [
     "GoalPursuit",
     "SelfModel",
     "CognitiveCycleResult",
+    "CognitiveInterpreter",
     "CognitiveLoop",
     "CognitivePhase",
     "PhaseRecord",
@@ -37,6 +38,10 @@ def __getattr__(name: str) -> Any:
             "GoalPursuit": GoalPursuit,
             "SelfModel": SelfModel,
         }[name]
+    if name == "CognitiveInterpreter":
+        from maios.kernel.cognitive_interpreter import CognitiveInterpreter
+
+        return CognitiveInterpreter
     if name in {
         "CognitiveCycleResult",
         "CognitiveLoop",
