@@ -1,36 +1,27 @@
-# MAIOS v1.2.0
+# MAIOS v1.3.0
 
-MAIOS v1.2.0 turns the v1.1.0 cognitive layer into a working tool: memory
-that persists and is actually recalled, an Act phase that produces real
-deliverables, an interactive shell, project decomposition, and research
-over accumulated knowledge.
+MAIOS v1.3.0 connects the cognitive layer to real knowledge assets:
+local documents become part of the knowledge graph, Korean text is now a
+first-class citizen in search, and the whole pipeline was validated and
+hardened against a real book corpus.
 
 ## Highlights
 
-- Persistent workspace (`.maios/`): knowledge graph, long-term memory,
-  pursuit and project journals, and artifacts survive across runs.
-- Memory recall: each new goal retrieves relevant experiences, reflections,
-  concepts, and evidence from earlier work and feeds them into the
-  understanding and execution prompts, together with accumulated lessons.
-- Real execution: with an LLM provider, the Act phase performs the
-  objective and writes the deliverable to `artifacts/<id>.md`.
-- Interactive shell:
+- Document ingestion: `maios ingest <path>` (and `/ingest` in the shell)
+  reads markdown, text, and HTML files - including Korean cp949 files -
+  into the knowledge graph. Ingested documents feed memory recall and are
+  cited as research sources.
+- Korean-aware search: Hangul bigram tokenization with IDF weighting.
+  Previously Korean text was invisible to search.
+- Real-corpus hardening: a 33-file book corpus ingests in under a second;
+  repeat research queries stay stable instead of snowballing; stored
+  records are compacted and capped.
 
 ```bash
+maios ingest ~/books
+maios research "드론 전쟁과 우크라이나 교훈"
 maios shell
-maios> Summarize the weekly report
-maios> /project Draft a three-part defense brief
-maios> /research What did we learn about drone swarms?
-maios> /evolve
 ```
-
-- Goal decomposition: `maios project <objective>` splits a large objective
-  into sequential sub-goals, chains their outputs, and synthesizes one
-  final deliverable.
-- Research over memory: `maios research <question>` runs the research
-  engine against the workspace's own knowledge graph and emits a report
-  artifact that becomes a source for future research.
-- `.env` files now load correctly, and `.env.example` is a real template.
 
 ## Quality
 
@@ -57,7 +48,7 @@ maios --version
 Expected output:
 
 ```text
-1.2.0
+1.3.0
 ```
 
 ## Security Notes
@@ -65,9 +56,9 @@ Expected output:
 MAIOS includes local tools that can execute shell commands, Python code, Git
 commands, and file operations. Enable tools, plugins, autonomous execution,
 and goal pursuit only in trusted environments with appropriate governance
-policies. Workspace directories store everything the system reads and
-produces in plain files - treat them accordingly.
+policies. Ingested documents and workspace directories are stored in plain
+files - treat them accordingly.
 
 ## Tag
 
-Release tag: `v1.2.0`
+Release tag: `v1.3.0`

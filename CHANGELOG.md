@@ -7,6 +7,31 @@ and this project follows semantic versioning for release tags.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-07-10
+
+### Added
+
+- Document ingestion: `maios ingest` and the shell `/ingest` command read
+  local markdown, text, and HTML files into the knowledge graph as
+  document nodes - split on headings or paragraphs, HTML tags stripped,
+  cp949 fallback for Korean files, deterministic node ids so re-ingesting
+  updates instead of duplicating. Ingested documents are recalled during
+  cognition and cited as research sources.
+- Korean-aware search: tokenization emits Hangul character bigrams, and
+  semantic scores weight terms by inverse document frequency with cached
+  per-node token sets. Previously Korean text was invisible to search.
+- `KnowledgeGraph.bulk()` context manager for mass inserts and an
+  `auto_link` flag on `add_node`.
+
+### Fixed
+
+- Real-corpus scaling failures: bulk ingest no longer persists per node or
+  auto-links quadratically; outcomes are compacted before being stored in
+  world transitions, experiences, and long-term memory, stopping records
+  from re-ingesting themselves and snowballing; research source collection
+  prefers documents over the system's own activity records; node content
+  is capped; `semantic_search` no longer scores every node twice.
+
 ## [1.2.0] - 2026-07-09
 
 ### Added
