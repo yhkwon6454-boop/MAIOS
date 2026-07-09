@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 from maios.knowledge.graph import KnowledgeGraph
 
-RECALL_NODE_TYPES = {"concept", "evidence", "experience", "reflection"}
+RECALL_NODE_TYPES = {"concept", "document", "evidence", "experience", "reflection"}
 
 
 @dataclass(frozen=True)

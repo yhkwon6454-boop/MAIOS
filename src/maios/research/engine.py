@@ -114,7 +114,14 @@ class InMemorySourceCollector:
 class KnowledgeGraphSourceCollector:
     """Collects research sources from the long-term knowledge graph."""
 
-    NODE_TYPES = {"concept", "evidence", "experience", "reflection", "research_report"}
+    NODE_TYPES = {
+        "concept",
+        "document",
+        "evidence",
+        "experience",
+        "reflection",
+        "research_report",
+    }
 
     def __init__(self, knowledge_graph: KnowledgeGraph) -> None:
         self.knowledge_graph = knowledge_graph

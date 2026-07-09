@@ -4,6 +4,8 @@ from typing import Any
 
 __all__ = [
     "AGIFoundation",
+    "DocumentIngestor",
+    "IngestReport",
     "GoalDecomposer",
     "GoalPursuit",
     "ProjectPursuit",
@@ -54,6 +56,10 @@ def __getattr__(name: str) -> Any:
         from maios.kernel.goal_decomposer import GoalDecomposer
 
         return GoalDecomposer
+    if name in {"DocumentIngestor", "IngestReport"}:
+        from maios.kernel.ingestor import DocumentIngestor, IngestReport
+
+        return {"DocumentIngestor": DocumentIngestor, "IngestReport": IngestReport}[name]
     if name == "Workspace":
         from maios.kernel.workspace import Workspace
 
