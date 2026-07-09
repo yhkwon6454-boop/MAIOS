@@ -4,6 +4,33 @@ MAIOS is organized as small Python packages connected through dependency
 injection. The current architecture favors testable local abstractions over
 production infrastructure.
 
+## Cognitive Layer (v1.1+)
+
+Goal pursuit runs through a phased cognitive loop on top of the runtime:
+
+```text
+User goal (maios pursue / project / research / shell)
+  -> Workspace (.maios/: knowledge graph, memory store, journals, artifacts)
+  -> AGIFoundation (governance gate, goal registry, evolution reports)
+  -> CognitiveLoop: Observe -> Understand -> Plan -> Act -> Reflect -> Learn
+       Observe    world model refresh from runtime state
+       Understand world context + MemoryRecall over the knowledge graph
+                  (+ optional LLM interpretation)
+       Plan       ExecutiveBrain decision and planner selection
+       Act        TaskExecutor (LLM deliverable), research engine,
+                  or distributed/swarm/meta planners
+       Reflect    ImprovementReport (optional LLM reflection)
+       Learn      world transition, lessons, experience nodes
+  -> GoalPursuit / ProjectPursuit records + artifacts/<id>.md
+```
+
+Key components in `maios.kernel`: `AGIFoundation`, `CognitiveLoop`,
+`ExecutiveBrain`, `WorldModel`, `MemoryRecall`, `TaskExecutor`,
+`CognitiveInterpreter`, `GoalDecomposer`, `DocumentIngestor`, and
+`Workspace`. Every LLM-backed step degrades to a deterministic heuristic
+when no provider is configured, so the whole loop is offline-testable.
+Knowledge search is Hangul-aware TF-IDF over the knowledge graph.
+
 ## Runtime Pipeline
 
 ```text
@@ -25,8 +52,11 @@ Goal
 - `maios.core`: public `MAIOSCore`, `MissionResult`, and `run(goal)` API.
 - `maios.agents`: planner, memory, executor, and runtime orchestrator.
 - `maios.adapters`: GPT adapter and provider-based LLM integration.
-- `maios.kernel`: memory, context, cognitive, executive, and quality kernels.
-- `maios.knowledge`: JSON-backed knowledge store.
+- `maios.kernel`: memory, context, cognitive, executive, and quality kernels,
+  plus the cognitive layer (foundation, loop, world model, recall, executor,
+  interpreter, decomposer, ingestor, workspace).
+- `maios.knowledge`: JSON-backed knowledge store and the persistent
+  knowledge graph with Hangul-aware TF-IDF search.
 - `maios.retrieval`: document, chunker, retriever, embedding, and vector-store
   interfaces.
 - `maios.reasoning`: iterative reasoning and tool routing.

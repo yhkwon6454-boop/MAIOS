@@ -7,6 +7,16 @@ and this project follows semantic versioning for release tags.
 
 ## [Unreleased]
 
+### Added
+
+- Term-frequency weighting in knowledge search: documents that discuss a
+  query term repeatedly outrank ones that mention it once, fixing score
+  saturation ties on long documents.
+- `scripts/validate_live.py`: one-command end-to-end validation of the
+  cognitive stack against a real LLM provider (provider connectivity,
+  pursuit deliverable, ingestion + recall, research, project decomposition).
+- Architecture docs now describe the cognitive layer (v1.1+).
+
 ## [1.3.0] - 2026-07-10
 
 ### Added
