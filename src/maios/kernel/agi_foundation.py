@@ -62,6 +62,19 @@ class GoalPursuit:
     def success(self) -> bool:
         return self.status in {"COMPLETED", "SUCCESS"}
 
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> GoalPursuit:
+        return cls(
+            objective=str(data["objective"]),
+            goal_id=str(data.get("goal_id", "")),
+            status=str(data.get("status", "")),
+            cycle_ids=tuple(data.get("cycle_ids", ())),
+            lessons=tuple(data.get("lessons", ())),
+            governance=data.get("governance"),
+            pursuit_id=str(data.get("pursuit_id", "")) or f"GP-{uuid4().hex[:8]}",
+            created_at=str(data.get("created_at", "")) or _now(),
+        )
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "pursuit_id": self.pursuit_id,

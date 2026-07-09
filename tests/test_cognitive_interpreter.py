@@ -132,9 +132,10 @@ def test_agi_foundation_reports_llm_capability():
     assert injected.introspect().capabilities["llm"] is True
 
 
-def test_cli_pursue_with_mock_llm_prints_understanding(monkeypatch, capsys):
+def test_cli_pursue_with_mock_llm_prints_understanding(tmp_path, monkeypatch, capsys):
     from maios import cli
 
+    monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(
         "sys.argv",
         ["maios", "pursue", "Review", "the", "logs", "--llm", "mock"],
@@ -146,9 +147,10 @@ def test_cli_pursue_with_mock_llm_prints_understanding(monkeypatch, capsys):
     assert "[status] COMPLETED" in out
 
 
-def test_cli_introspect_with_mock_llm_reports_llm_available(monkeypatch, capsys):
+def test_cli_introspect_with_mock_llm_reports_llm_available(tmp_path, monkeypatch, capsys):
     from maios import cli
 
+    monkeypatch.chdir(tmp_path)
     monkeypatch.setattr("sys.argv", ["maios", "introspect", "--llm", "mock"])
     cli.main()
 

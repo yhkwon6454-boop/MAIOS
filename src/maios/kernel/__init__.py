@@ -6,6 +6,7 @@ __all__ = [
     "AGIFoundation",
     "GoalPursuit",
     "SelfModel",
+    "Workspace",
     "CognitiveCycleResult",
     "CognitiveInterpreter",
     "CognitiveLoop",
@@ -38,6 +39,10 @@ def __getattr__(name: str) -> Any:
             "GoalPursuit": GoalPursuit,
             "SelfModel": SelfModel,
         }[name]
+    if name == "Workspace":
+        from maios.kernel.workspace import Workspace
+
+        return Workspace
     if name == "CognitiveInterpreter":
         from maios.kernel.cognitive_interpreter import CognitiveInterpreter
 

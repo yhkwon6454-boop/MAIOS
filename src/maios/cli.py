@@ -10,23 +10,25 @@ from maios.runtime.runner import RuntimeRunner
 
 if TYPE_CHECKING:
     from maios.kernel.agi_foundation import AGIFoundation, GoalPursuit
+    from maios.kernel.workspace import Workspace
 
 
 def _print_usage() -> None:
     print("Usage: maios <mission.yaml>")
     print(
         "       maios pursue <objective> [--capability NAME ...] [--max-cycles N]"
-        " [--approve] [--llm PROVIDER]"
+        " [--approve] [--llm PROVIDER] [--workspace DIR]"
     )
-    print("       maios introspect [--llm PROVIDER]")
+    print("       maios introspect [--llm PROVIDER] [--workspace DIR]")
     print("       maios --version")
 
 
-def build_foundation(llm: str | None = None) -> AGIFoundation:
+def build_foundation(
+    llm: str | None = None,
+    workspace: str | None = None,
+) -> tuple[AGIFoundation, Workspace]:
     from maios.governance import GovernanceManager
-    from maios.kernel.agi_foundation import AGIFoundation
-    from maios.kernel.memory_kernel import MemoryKernel
-    from maios.knowledge.graph import KnowledgeGraph
+    from maios.kernel.workspace import DEFAULT_WORKSPACE, Workspace
 
     llm_provider = None
     if llm is not None:
@@ -36,12 +38,12 @@ def build_foundation(llm: str | None = None) -> AGIFoundation:
         config = load_config()
         config.model_provider = llm
         llm_provider = create_llm_provider(config)
-    return AGIFoundation(
-        knowledge_graph=KnowledgeGraph(),
-        memory_kernel=MemoryKernel(),
+    space = Workspace(workspace or DEFAULT_WORKSPACE)
+    foundation = space.build_foundation(
         governance=GovernanceManager(),
         llm_provider=llm_provider,
     )
+    return foundation, space
 
 
 def _print_pursuit(agi: AGIFoundation, pursuit: GoalPursuit) -> None:
@@ -72,6 +74,7 @@ def run_pursue(args: list[str]) -> None:
     max_cycles = 3
     approve = False
     llm: str | None = None
+    workspace: str | None = None
     index = 0
     while index < len(args):
         arg = args[index]
@@ -84,6 +87,9 @@ def run_pursue(args: list[str]) -> None:
         elif arg == "--llm":
             index += 1
             llm = args[index]
+        elif arg == "--workspace":
+            index += 1
+            workspace = args[index]
         elif arg == "--approve":
             approve = True
         else:
@@ -94,20 +100,24 @@ def run_pursue(args: list[str]) -> None:
         _print_usage()
         raise SystemExit(1)
 
-    agi = build_foundation(llm=llm)
+    agi, space = build_foundation(llm=llm, workspace=workspace)
     pursuit = agi.pursue(
         objective,
         capabilities=tuple(capabilities),
         max_cycles=max_cycles,
         human_approved=approve,
     )
+    space.save(agi)
     _print_pursuit(agi, pursuit)
+    stats = space.stats()
+    print(f"[memory] nodes={stats['nodes']} pursuits={stats['pursuits']} workspace={space.root}")
 
 
 def run_introspect(args: list[str] | None = None) -> None:
     args = args or []
     llm = args[args.index("--llm") + 1] if "--llm" in args else None
-    agi = build_foundation(llm=llm)
+    workspace = args[args.index("--workspace") + 1] if "--workspace" in args else None
+    agi, space = build_foundation(llm=llm, workspace=workspace)
     model = agi.introspect()
     print(
         f"[MAIOS] identity={model.identity} version={model.version} "
@@ -115,6 +125,8 @@ def run_introspect(args: list[str] | None = None) -> None:
     )
     print(f"[available] {', '.join(model.available())}")
     print(f"[missing] {', '.join(model.missing()) or '(none)'}")
+    stats = space.stats()
+    print(f"[memory] nodes={stats['nodes']} pursuits={stats['pursuits']} workspace={space.root}")
 
 
 def main() -> None:

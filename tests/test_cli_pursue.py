@@ -6,6 +6,11 @@ import maios
 from maios import cli
 
 
+@pytest.fixture(autouse=True)
+def _isolated_workspace(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+
 def _run(monkeypatch, *args: str) -> None:
     monkeypatch.setattr("sys.argv", ["maios", *args])
     cli.main()
