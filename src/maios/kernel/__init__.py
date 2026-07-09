@@ -3,6 +3,9 @@ from __future__ import annotations
 from typing import Any
 
 __all__ = [
+    "AGIFoundation",
+    "GoalPursuit",
+    "SelfModel",
     "CognitiveCycleResult",
     "CognitiveLoop",
     "CognitivePhase",
@@ -26,6 +29,14 @@ __all__ = [
 
 
 def __getattr__(name: str) -> Any:
+    if name in {"AGIFoundation", "GoalPursuit", "SelfModel"}:
+        from maios.kernel.agi_foundation import AGIFoundation, GoalPursuit, SelfModel
+
+        return {
+            "AGIFoundation": AGIFoundation,
+            "GoalPursuit": GoalPursuit,
+            "SelfModel": SelfModel,
+        }[name]
     if name in {
         "CognitiveCycleResult",
         "CognitiveLoop",
