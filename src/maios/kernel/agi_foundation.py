@@ -54,6 +54,7 @@ class GoalPursuit:
     status: str
     cycle_ids: tuple[str, ...] = ()
     lessons: tuple[str, ...] = ()
+    output: str = ""
     governance: dict[str, Any] | None = None
     pursuit_id: str = field(default_factory=lambda: f"GP-{uuid4().hex[:8]}")
     created_at: str = field(default_factory=_now)
@@ -70,6 +71,7 @@ class GoalPursuit:
             status=str(data.get("status", "")),
             cycle_ids=tuple(data.get("cycle_ids", ())),
             lessons=tuple(data.get("lessons", ())),
+            output=str(data.get("output", "")),
             governance=data.get("governance"),
             pursuit_id=str(data.get("pursuit_id", "")) or f"GP-{uuid4().hex[:8]}",
             created_at=str(data.get("created_at", "")) or _now(),
@@ -83,6 +85,7 @@ class GoalPursuit:
             "status": self.status,
             "cycle_ids": list(self.cycle_ids),
             "lessons": list(self.lessons),
+            "output": self.output,
             "governance": dict(self.governance) if self.governance else None,
             "created_at": self.created_at,
         }
@@ -148,6 +151,7 @@ class AGIFoundation:
             "memory": self.memory_kernel is not None,
             "governance": self.governance is not None,
             "llm": self.cognitive_loop.interpreter.available,
+            "task_execution": self.executive_brain.task_executor.available,
         }
         readiness = sum(capabilities.values()) / len(capabilities)
         self.self_model = SelfModel(
@@ -215,6 +219,11 @@ class AGIFoundation:
             status=last_cycle.status,
             cycle_ids=tuple(cycle.cycle_id for cycle in cycles),
             lessons=tuple(lessons),
+            output=(
+                str(last_cycle.outcome.get("output", ""))
+                if last_cycle.outcome.get("generated")
+                else ""
+            ),
             governance=governance_data,
         )
         self.pursuits.append(pursuit)

@@ -14,6 +14,7 @@ from maios.kernel.executive_brain import (
     ExecutiveDecision,
 )
 from maios.kernel.memory_kernel import MemoryKernel
+from maios.kernel.task_executor import TaskExecutor
 from maios.kernel.world_model import SystemState, WorldModel
 from maios.knowledge.graph import KnowledgeGraph
 from maios.reflection import ImprovementReport
@@ -115,7 +116,10 @@ class CognitiveLoop:
             knowledge_graph=knowledge_graph,
             memory_kernel=memory_kernel,
             world_model=world_model,
+            task_executor=TaskExecutor(llm_provider),
         )
+        if llm_provider is not None and not self.executive_brain.task_executor.available:
+            self.executive_brain.task_executor = TaskExecutor(llm_provider)
         if world_model is not None:
             self.executive_brain.world_model = world_model
         self.world_model = self.executive_brain.world_model

@@ -65,6 +65,9 @@ def _print_pursuit(agi: AGIFoundation, pursuit: GoalPursuit) -> None:
         print("[lessons]")
         for lesson in pursuit.lessons:
             print(f"  - {lesson}")
+    if pursuit.output:
+        preview = pursuit.output if len(pursuit.output) <= 500 else pursuit.output[:500] + "..."
+        print(f"[output]\n{preview}")
     print(f"[status] {pursuit.status}")
 
 
@@ -109,6 +112,8 @@ def run_pursue(args: list[str]) -> None:
     )
     space.save(agi)
     _print_pursuit(agi, pursuit)
+    if pursuit.output:
+        print(f"[artifact] {space.artifact_path(pursuit)}")
     stats = space.stats()
     print(f"[memory] nodes={stats['nodes']} pursuits={stats['pursuits']} workspace={space.root}")
 

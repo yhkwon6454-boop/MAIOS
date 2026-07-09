@@ -88,10 +88,11 @@ def test_reflect_on_outcome_without_summary_returns_none():
     assert interpreter.reflect_on_outcome("Goal", {"status": "COMPLETED"}, True) is None
 
 
-def test_cognitive_loop_uses_llm_for_understand_and_reflect():
+def test_cognitive_loop_uses_llm_for_understand_act_and_reflect():
     provider = ScriptedProvider(
         [
             "System healthy; no meaningful risk.",
+            "The weekly report shows steady progress.",
             "Cycle went well.\n- Reuse this pattern.",
         ]
     )
@@ -102,6 +103,8 @@ def test_cognitive_loop_uses_llm_for_understand_and_reflect():
     understand = cycle.phases[1]
     assert understand.summary == "System healthy; no meaningful risk."
     assert understand.data["interpretation"] == "System healthy; no meaningful risk."
+    assert cycle.outcome["output"] == "The weekly report shows steady progress."
+    assert cycle.outcome["generated"] is True
     assert cycle.report is not None
     assert cycle.report.summary == "Cycle went well."
     assert cycle.report.improvement_points == ["Reuse this pattern."]

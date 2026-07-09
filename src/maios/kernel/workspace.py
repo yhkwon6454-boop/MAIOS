@@ -73,6 +73,19 @@ class Workspace:
             ),
             encoding="utf-8",
         )
+        for pursuit in foundation.pursuits:
+            if pursuit.output:
+                self.save_artifact(pursuit)
+
+    def save_artifact(self, pursuit: GoalPursuit) -> Path:
+        artifacts_dir = self.root / "artifacts"
+        artifacts_dir.mkdir(parents=True, exist_ok=True)
+        path = artifacts_dir / f"{pursuit.pursuit_id}.md"
+        path.write_text(f"# {pursuit.objective}\n\n{pursuit.output}\n", encoding="utf-8")
+        return path
+
+    def artifact_path(self, pursuit: GoalPursuit) -> Path:
+        return self.root / "artifacts" / f"{pursuit.pursuit_id}.md"
 
     def stats(self) -> dict[str, int]:
         nodes = 0
