@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import json
+import math
 import re
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -78,18 +81,33 @@ class KnowledgeGraph:
         memory_kernel: MemoryKernel | None = None,
         auto_link_threshold: float = 0.2,
         duplicate_threshold: float = 0.86,
+        max_content_chars: int = 8000,
     ) -> None:
         self.path = Path(path) if path else None
         self.knowledge_store = knowledge_store
         self.memory_kernel = memory_kernel
         self.auto_link_threshold = auto_link_threshold
         self.duplicate_threshold = duplicate_threshold
+        self.max_content_chars = max(1000, max_content_chars)
         self.nodes: dict[str, KnowledgeNode] = {}
         self.edges: dict[str, KnowledgeEdge] = {}
         self.clusters: dict[str, KnowledgeCluster] = {}
+        self._token_cache: dict[str, tuple[str, frozenset[str]]] = {}
+        self._df_cache: dict[str, int] | None = None
 
         if self.path and self.path.exists():
             self._load()
+
+    @contextmanager
+    def bulk(self) -> Iterator[KnowledgeGraph]:
+        """Suspend per-write persistence during mass inserts, persist once at exit."""
+        path = self.path
+        self.path = None
+        try:
+            yield self
+        finally:
+            self.path = path
+            self._persist()
 
     def add_node(
         self,
@@ -99,10 +117,11 @@ class KnowledgeGraph:
         metadata: dict[str, Any] | None = None,
         node_id: str | None = None,
         merge_duplicates: bool = True,
+        auto_link: bool = True,
     ) -> KnowledgeNode:
         node = KnowledgeNode(
             title=title.strip(),
-            content=content.strip(),
+            content=content.strip()[: self.max_content_chars],
             node_type=node_type,
             node_id=node_id or f"KN-{uuid4().hex[:8]}",
             metadata=dict(metadata or {}),
@@ -116,13 +135,16 @@ class KnowledgeGraph:
             duplicate = self._find_duplicate(node)
             if duplicate is not None:
                 self._merge_node(duplicate, node)
+                self._invalidate_search_index()
                 self._persist_integrations(duplicate)
                 self._persist()
                 return duplicate
 
         self.nodes[node.node_id] = node
+        self._invalidate_search_index()
         self._persist_integrations(node)
-        self.link_related_concepts(node.node_id)
+        if auto_link:
+            self.link_related_concepts(node.node_id)
         self._link_metadata_relationships(node)
         self._persist()
         return node
@@ -295,9 +317,9 @@ class KnowledgeGraph:
 
     def semantic_search(self, query: str, top_k: int = 5) -> list[KnowledgeNode]:
         scored = [
-            (self._semantic_score(query, node), node)
+            (score, node)
             for node in self.nodes.values()
-            if self._semantic_score(query, node) > 0
+            if (score := self._semantic_score(query, node)) > 0
         ]
         return [
             node
@@ -427,6 +449,8 @@ class KnowledgeGraph:
             )
             for cluster_id, cluster_data in data.get("clusters", {}).items()
         }
+        self._token_cache.clear()
+        self._invalidate_search_index()
 
     def _persist(self) -> None:
         if self.path is None:
@@ -448,12 +472,42 @@ class KnowledgeGraph:
             encoding="utf-8",
         )
 
+    def _invalidate_search_index(self) -> None:
+        self._df_cache = None
+
+    def _node_tokens(self, node: KnowledgeNode) -> frozenset[str]:
+        cached = self._token_cache.get(node.node_id)
+        if cached is not None and cached[0] == node.updated_at:
+            return cached[1]
+        tokens = frozenset(self._tokens(node.text()))
+        self._token_cache[node.node_id] = (node.updated_at, tokens)
+        return tokens
+
+    def _document_frequencies(self) -> dict[str, int]:
+        if self._df_cache is None:
+            frequencies: dict[str, int] = {}
+            for node in self.nodes.values():
+                for token in self._node_tokens(node):
+                    frequencies[token] = frequencies.get(token, 0) + 1
+            self._df_cache = frequencies
+        return self._df_cache
+
     def _semantic_score(self, query: str, node: KnowledgeNode) -> float:
+        """IDF-weighted term overlap: rare query terms count more than common ones."""
         query_tokens = self._tokens(query)
-        node_tokens = self._tokens(node.text())
+        node_tokens = self._node_tokens(node)
         if not query_tokens or not node_tokens:
             return 0.0
-        overlap = len(query_tokens & node_tokens) / len(query_tokens)
+        frequencies = self._document_frequencies()
+        total = len(self.nodes) or 1
+
+        def idf(token: str) -> float:
+            return math.log(1 + total / (1 + frequencies.get(token, 0)))
+
+        denominator = sum(idf(token) for token in query_tokens)
+        if denominator <= 0:
+            return 0.0
+        overlap = sum(idf(token) for token in query_tokens & node_tokens) / denominator
         phrase_bonus = 0.25 if query.lower() in node.text().lower() else 0.0
         return overlap + phrase_bonus
 
@@ -465,7 +519,11 @@ class KnowledgeGraph:
         return len(left_tokens & right_tokens) / len(left_tokens | right_tokens)
 
     def _tokens(self, text: str) -> set[str]:
-        return {token for token in re.findall(r"[a-zA-Z0-9_]+", text.lower()) if len(token) > 2}
+        lowered = text.lower()
+        tokens = {token for token in re.findall(r"[a-zA-Z0-9_]+", lowered) if len(token) > 2}
+        for run in re.findall(r"[가-힣]{2,}", lowered):
+            tokens.update(run[index : index + 2] for index in range(len(run) - 1))
+        return tokens
 
     def _normalize_title(self, text: str) -> str:
         return " ".join(re.findall(r"[a-zA-Z0-9_]+", text.lower()))

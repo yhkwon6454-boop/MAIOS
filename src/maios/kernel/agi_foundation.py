@@ -145,7 +145,7 @@ class AGIFoundation:
         runtime: Any | None = None,
         llm_provider: BaseLLMProvider | None = None,
         identity: str = "maios",
-        version: str = "1.2.0",
+        version: str = "1.3.0",
         max_cycles: int = 3,
     ) -> None:
         self.cognitive_loop = cognitive_loop or CognitiveLoop(

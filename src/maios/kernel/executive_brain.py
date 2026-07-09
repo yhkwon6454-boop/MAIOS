@@ -434,7 +434,9 @@ class ExecutiveBrain:
         if self.knowledge_graph is None:
             return
         node = self.knowledge_graph.learn_experience(
-            description=f"Executive outcome for {context.objective}: {outcome}",
+            description=(
+                f"Executive outcome for {context.objective}: {self.compact_outcome(outcome)}"
+            ),
             outcome=(
                 "failure"
                 if str(outcome.get("status", "")).upper() in {"FAILED", "BLOCKED"}
@@ -449,6 +451,26 @@ class ExecutiveBrain:
             if self.knowledge_graph.get_node(goal.goal_id) is not None:
                 self.knowledge_graph.add_edge(node.node_id, goal.goal_id, "derived_from")
 
+    @staticmethod
+    def compact_outcome(outcome: dict[str, Any]) -> dict[str, Any]:
+        """Summarize an outcome for persistence.
+
+        Full outcomes can embed reports whose sources are themselves large
+        records; storing them verbatim in transitions and experiences makes
+        each cycle re-ingest the previous one and snowballs the state.
+        """
+        compact = {
+            "status": str(outcome.get("status", "")),
+            "planner": str(outcome.get("planner", "")),
+        }
+        error = str(outcome.get("error") or "")
+        if error:
+            compact["error"] = error[:300]
+        output = str(outcome.get("output", ""))
+        if output:
+            compact["output"] = output[:300]
+        return compact
+
     def _transition_world(self, context: DecisionContext, outcome: dict[str, Any]) -> None:
         self.world_model.transition(
             "executive_outcome",
@@ -458,7 +480,7 @@ class ExecutiveBrain:
                     "risk_level": context.risk_level,
                 },
                 "user": {"intent": context.objective},
-                "system": {"outcome": outcome},
+                "system": {"outcome": self.compact_outcome(outcome)},
             },
         )
 

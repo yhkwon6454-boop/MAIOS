@@ -6,10 +6,12 @@ connects planning, memory, model adapters, tool routing, multi-agent execution,
 autonomous control, distributed coordination, and governance abstractions.
 `v1.1.0` added a cognitive decision layer: an executive brain, a world model,
 a phased cognitive loop, and a unified autonomous core with governance gating
-and optional LLM-backed understanding and reflection. `v1.2.0` makes that
+and optional LLM-backed understanding and reflection. `v1.2.0` made that
 layer a working tool: a persistent workspace with memory recall, real
 LLM-backed task execution with artifacts, an interactive shell, project
-decomposition, and research over accumulated knowledge.
+decomposition, and research over accumulated knowledge. `v1.3.0` connects
+it to real knowledge assets: local document ingestion (Korean included)
+and Korean-aware IDF-weighted search, hardened against a real book corpus.
 
 MAIOS is not a hosted service. Components are local Python abstractions designed
 for extension and testing.
@@ -41,6 +43,8 @@ for extension and testing.
 - LLM task execution producing real deliverables, goal decomposition for
   multi-step projects, and research over the workspace's own knowledge.
 - Interactive `maios shell` session.
+- Document ingestion (`maios ingest`) for markdown, text, and HTML files,
+  with Korean cp949 fallback and Hangul-aware IDF-weighted search.
 - Local examples and a pytest suite covering implemented behavior.
 
 ## Installation
@@ -78,6 +82,7 @@ Run the full cognitive stack (governance gate, memory recall, cognitive
 loop, artifacts) from one command:
 
 ```bash
+maios ingest ~/books
 maios pursue "Summarize the weekly report" --llm mock
 maios project "Draft a three-part defense brief" --llm mock
 maios research "What did we learn about drone swarms?"
@@ -95,10 +100,11 @@ maios shell
 - `--workspace DIR` selects the persistent workspace (default `.maios/`).
 
 Every command prints `[memory]` stats; goals with generated output write
-`artifacts/<id>.md` in the workspace. `maios shell` keeps one session with
-`/project`, `/research`, `/approve`, `/history`, `/introspect`, and
-`/evolve`. See `examples/agi_foundation_demo.py` for the same flow as a
-script.
+`artifacts/<id>.md` in the workspace. `maios ingest` accepts files or
+directories (md, txt, html) and makes their content recallable and
+researchable. `maios shell` keeps one session with `/ingest`, `/project`,
+`/research`, `/approve`, `/history`, `/introspect`, and `/evolve`. See
+`examples/agi_foundation_demo.py` for the same flow as a script.
 
 ## REST API
 
@@ -123,7 +129,7 @@ pytest
 At release preparation time, the local suite passes with:
 
 ```text
-450 passed, 95.92% coverage
+478 passed, 95.94% coverage
 ```
 
 ## Documentation
@@ -141,8 +147,8 @@ At release preparation time, the local suite passes with:
 
 ## Status
 
-`v1.2.0` turns the `v1.1.0` cognitive layer into a working tool with
-persistent memory, recall, real execution, and an interactive shell.
-Public APIs remain intentionally small and are covered by tests, with
-extension points designed for providers, tools, plugins, governance
-policies, and distributed transports.
+`v1.3.0` connects the cognitive tool to real knowledge assets with
+document ingestion and Korean-aware search, validated against a real
+book corpus. Public APIs remain intentionally small and are covered by
+tests, with extension points designed for providers, tools, plugins,
+governance policies, and distributed transports.

@@ -11,6 +11,7 @@ HELP_TEXT = """Commands:
   <objective>          pursue the objective through the cognitive loop
   /project <objective> decompose a large objective and pursue the sub-goals
   /research <question> research the question against accumulated knowledge
+  /ingest <path>       read documents (md, txt, html) into the knowledge graph
   /approve             re-run the last objective with human approval
   /history             show recent pursuits
   /introspect          show the self-model and readiness
@@ -74,6 +75,9 @@ class MAIOSShell:
         if text == "/project" or text.startswith("/project "):
             self._project(text[len("/project") :].strip())
             return True
+        if text == "/ingest" or text.startswith("/ingest "):
+            self._ingest(text[len("/ingest") :].strip())
+            return True
         if text == "/research" or text.startswith("/research "):
             question = text[len("/research") :].strip()
             if not question:
@@ -117,6 +121,23 @@ class MAIOSShell:
             preview = project.output if len(project.output) <= 300 else project.output[:300] + "..."
             self.output_fn(preview)
             self.output_fn(f"  artifact: {self.workspace.project_artifact_path(project)}")
+        self._print_memory()
+
+    def _ingest(self, path: str) -> None:
+        if not path:
+            self.output_fn("usage: /ingest <path>")
+            return
+        if self.foundation.knowledge_graph is None:
+            self.output_fn("no knowledge graph available in this session")
+            return
+        from maios.kernel.ingestor import DocumentIngestor
+
+        report = DocumentIngestor(self.foundation.knowledge_graph).ingest(path)
+        for file in report.files:
+            self.output_fn(f"  ingested: {file}")
+        for file in report.skipped:
+            self.output_fn(f"  skipped: {file}")
+        self.output_fn(f"[done] files={len(report.files)} chunks={report.chunks}")
         self._print_memory()
 
     def _approve(self) -> None:

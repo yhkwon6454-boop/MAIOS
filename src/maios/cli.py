@@ -24,6 +24,7 @@ def _print_usage() -> None:
         " [--llm PROVIDER] [--workspace DIR]"
     )
     print("       maios research <question> [--llm PROVIDER] [--workspace DIR]")
+    print("       maios ingest <path> [<path> ...] [--workspace DIR]")
     print("       maios introspect [--llm PROVIDER] [--workspace DIR]")
     print("       maios shell [--llm PROVIDER] [--workspace DIR]")
     print("       maios --version")
@@ -202,6 +203,45 @@ def run_project(args: list[str]) -> None:
     print(f"[memory] nodes={stats['nodes']} pursuits={stats['pursuits']} workspace={space.root}")
 
 
+def run_ingest(args: list[str]) -> None:
+    paths: list[str] = []
+    workspace: str | None = None
+    index = 0
+    while index < len(args):
+        arg = args[index]
+        if arg == "--workspace":
+            index += 1
+            workspace = args[index]
+        else:
+            paths.append(arg)
+        index += 1
+    if not paths:
+        _print_usage()
+        raise SystemExit(1)
+
+    from maios.kernel.ingestor import DocumentIngestor
+    from maios.kernel.workspace import DEFAULT_WORKSPACE, Workspace
+
+    space = Workspace(workspace or DEFAULT_WORKSPACE)
+    from maios.knowledge.graph import KnowledgeGraph
+
+    graph = KnowledgeGraph(path=space.graph_path)
+    ingestor = DocumentIngestor(graph)
+    total_files = 0
+    total_chunks = 0
+    for path in paths:
+        report = ingestor.ingest(path)
+        total_files += len(report.files)
+        total_chunks += report.chunks
+        for file in report.files:
+            print(f"[ingested] {file}")
+        for file in report.skipped:
+            print(f"[skipped] {file}")
+    stats = space.stats()
+    print(f"[done] files={total_files} chunks={total_chunks}")
+    print(f"[memory] nodes={stats['nodes']} pursuits={stats['pursuits']} workspace={space.root}")
+
+
 def run_shell(args: list[str]) -> None:
     from maios.shell import MAIOSShell
 
@@ -231,6 +271,10 @@ def main() -> None:
 
     if argv[0] == "research":
         run_pursue([*argv[1:], "--capability", "research"])
+        return
+
+    if argv[0] == "ingest":
+        run_ingest(argv[1:])
         return
 
     if argv[0] == "introspect":

@@ -37,6 +37,24 @@ def test_collector_returns_graph_sources_and_skips_state_dumps():
     assert all(source.metadata["node_id"] for source in sources)
 
 
+def test_collector_prefers_documents_over_own_activity_records():
+    graph = KnowledgeGraph()
+    graph.add_node(
+        title="Experience: drone swarm defense research",
+        content="Cognitive cycle for drone swarm defense options succeeded.",
+        node_type="experience",
+    )
+    graph.add_node(
+        title="doctrine.md: Swarm Defense",
+        content="Layered jamming covers drone swarm defense at the low tier.",
+        node_type="document",
+    )
+
+    sources = KnowledgeGraphSourceCollector(graph).collect("drone swarm defense options", limit=2)
+
+    assert sources[0].metadata["node_type"] == "document"
+
+
 def test_collector_respects_limit_and_empty_graph():
     assert KnowledgeGraphSourceCollector(KnowledgeGraph()).collect("anything") == []
     sources = KnowledgeGraphSourceCollector(_seeded_graph()).collect("drone", limit=1)

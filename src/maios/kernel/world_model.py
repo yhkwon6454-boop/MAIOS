@@ -376,7 +376,7 @@ class WorldModel:
         if self.memory_kernel is not None:
             self.memory_kernel.remember_short_term({"world_state": data})
             self.memory_kernel.remember_long_term(
-                str(data),
+                str(data)[:8000],
                 metadata={"memory_type": "world_state", "state_id": self.state_id},
             )
         if self.knowledge_graph is not None:

@@ -1,6 +1,6 @@
 # Installation
 
-MAIOS `v1.2.0` targets Python 3.11 and 3.12.
+MAIOS `v1.3.0` targets Python 3.11 and 3.12.
 
 ## Local Development
 
