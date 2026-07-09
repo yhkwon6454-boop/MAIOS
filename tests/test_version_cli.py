@@ -15,7 +15,7 @@ def test_version_file_package_constant_and_pyproject_match():
     version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 
-    assert version == "1.0.0"
+    assert version == "1.1.0"
     assert maios.__version__ == version
     assert pyproject["project"]["version"] == version
     assert package_version("maios") == version

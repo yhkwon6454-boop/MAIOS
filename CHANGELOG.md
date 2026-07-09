@@ -7,6 +7,33 @@ and this project follows semantic versioning for release tags.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-07-09
+
+### Added
+
+- Executive Brain: top-level decision engine with goal prioritization,
+  planner selection, runtime control, and learning escalation.
+- World Model: environment, user, and system state with state transitions,
+  outcome prediction, and world-context building for executive decisions.
+- Cognitive Loop: Observe -> Understand -> Plan -> Act -> Reflect -> Learn
+  cycle wiring the executive, world model, reflection, and learning layers.
+- AGI Foundation: unified autonomous core (`AGIFoundation`) with goal pursuit,
+  self-introspection (`SelfModel`), evolution reports, and governance gating
+  (blocked keywords, risk-based human approval).
+- Cognitive Interpreter: optional LLM-backed understanding and reflection
+  using the existing provider adapters, with heuristic fallback when no
+  provider is configured or a provider call fails.
+- CLI commands: `maios pursue <objective>` (with `--capability`,
+  `--max-cycles`, `--approve`, `--llm`) and `maios introspect [--llm]`.
+- End-to-end example `examples/agi_foundation_demo.py`.
+
+### Changed
+
+- `ExecutiveBrain.decide` reuses a world context already built during the
+  Understand phase instead of rebuilding it.
+- `ExecutiveBrain` exposes public `act` and `learn` methods used by the
+  cognitive loop phases.
+
 ## [1.0.0] - 2026-07-05
 
 ### Added

@@ -1,9 +1,12 @@
 # MAIOS
 
 MAIOS is the MUSA AI Operating System: a Python runtime for mission-oriented AI
-workflows. The `v1.0.0` release stabilizes the local developer runtime that
+workflows. The `v1.0.0` release stabilized the local developer runtime that
 connects planning, memory, model adapters, tool routing, multi-agent execution,
 autonomous control, distributed coordination, and governance abstractions.
+`v1.1.0` adds a cognitive decision layer: an executive brain, a world model,
+a phased cognitive loop, and a unified autonomous core with governance gating
+and optional LLM-backed understanding and reflection.
 
 MAIOS is not a hosted service. Components are local Python abstractions designed
 for extension and testing.
@@ -23,6 +26,13 @@ for extension and testing.
 - Plugin manager for agents, tools, providers, and memory modules.
 - Distributed runtime and cognitive mesh abstractions for multiple MAIOS nodes.
 - FastAPI REST service and simple web dashboard.
+- Executive brain, world model, and a cognitive loop
+  (observe -> understand -> plan -> act -> reflect -> learn).
+- Unified autonomous core (`AGIFoundation`) with goal pursuit,
+  self-introspection, evolution reports, and governance gating. The class
+  name describes the module's role in the architecture; it is an
+  orchestration layer, not artificial general intelligence.
+- Optional LLM-backed understanding and reflection with heuristic fallback.
 - Local examples and a pytest suite covering implemented behavior.
 
 ## Installation
@@ -54,6 +64,28 @@ Run the included example:
 python examples/basic_usage.py
 ```
 
+## Goal Pursuit CLI
+
+Run the full cognitive stack (governance gate, cognitive loop, lessons) from
+one command:
+
+```bash
+maios pursue "Summarize the weekly report"
+maios pursue "Deploy the new build" --approve
+maios pursue "Review the logs" --llm mock
+maios introspect
+```
+
+- `--capability NAME` requests capabilities (repeatable).
+- `--max-cycles N` bounds retry cycles (default 3).
+- `--approve` grants human approval for high-risk goals.
+- `--llm PROVIDER` enables LLM-backed understanding and reflection
+  (`mock`, `openai`, `claude`, `gemini`; real providers need API keys).
+
+`maios introspect` prints the self-model: which layers are available and the
+resulting readiness score. See `examples/agi_foundation_demo.py` for the same
+flow as a script.
+
 ## REST API
 
 ```bash
@@ -77,7 +109,7 @@ pytest
 At release preparation time, the local suite passes with:
 
 ```text
-156 passed, 95.20% coverage
+392 passed, 95.71% coverage
 ```
 
 ## Documentation
@@ -95,6 +127,7 @@ At release preparation time, the local suite passes with:
 
 ## Status
 
-`v1.0.0` is the first stable MAIOS release. Public APIs remain intentionally
-small and are covered by tests, with extension points designed for providers,
-tools, plugins, governance policies, and distributed transports.
+`v1.1.0` adds the cognitive decision layer on top of the stable `v1.0.0`
+runtime. Public APIs remain intentionally small and are covered by tests,
+with extension points designed for providers, tools, plugins, governance
+policies, and distributed transports.
