@@ -44,7 +44,7 @@ class Mission:
     status: Status = Status.CREATED
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Mission":
+    def from_dict(cls, data: dict[str, Any]) -> Mission:
         return cls(
             title=data.get("title", "Untitled Mission"),
             objective=data.get("objective", ""),

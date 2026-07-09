@@ -10,7 +10,7 @@ from maios.runtime.models import CognitivePacket, CognitiveProcess, Mission
 class ProcessNode:
     process: CognitiveProcess
     packets: list[CognitivePacket] = field(default_factory=list)
-    children: list["ProcessNode"] = field(default_factory=list)
+    children: list[ProcessNode] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {

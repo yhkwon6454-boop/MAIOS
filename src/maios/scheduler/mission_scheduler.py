@@ -46,9 +46,15 @@ class MissionScheduler:
 
     def _schedule_military_research(self, mission: Mission) -> CognitiveProcessTree:
         p1 = CognitiveProcess(mission.mission_id, "Threat Research", "RESEARCH")
-        p2 = CognitiveProcess(mission.mission_id, "Operational Impact Analysis", "ANALYSIS", [p1.process_id])
-        p3 = CognitiveProcess(mission.mission_id, "Response Option Development", "STRATEGY", [p2.process_id])
-        p4 = CognitiveProcess(mission.mission_id, "Final Military Brief", "WRITING", [p3.process_id])
+        p2 = CognitiveProcess(
+            mission.mission_id, "Operational Impact Analysis", "ANALYSIS", [p1.process_id]
+        )
+        p3 = CognitiveProcess(
+            mission.mission_id, "Response Option Development", "STRATEGY", [p2.process_id]
+        )
+        p4 = CognitiveProcess(
+            mission.mission_id, "Final Military Brief", "WRITING", [p3.process_id]
+        )
 
         n1 = ProcessNode(
             p1,
@@ -111,15 +117,39 @@ class MissionScheduler:
 
         n1 = ProcessNode(
             p1,
-            [self._packet(p1, f"{mission.title}: 독자와 목적에 맞는 목차를 설계하라.", ["Reader-Centered Structure"], ["project", "style_guide"], "outline")]
+            [
+                self._packet(
+                    p1,
+                    f"{mission.title}: 독자와 목적에 맞는 목차를 설계하라.",
+                    ["Reader-Centered Structure"],
+                    ["project", "style_guide"],
+                    "outline",
+                )
+            ],
         )
         n2 = ProcessNode(
             p2,
-            [self._packet(p2, f"{mission.title}: 목차에 따라 본문 초안을 작성하라.", ["Logical Flow"], ["project", "style_guide"], mission.expected_output)]
+            [
+                self._packet(
+                    p2,
+                    f"{mission.title}: 목차에 따라 본문 초안을 작성하라.",
+                    ["Logical Flow"],
+                    ["project", "style_guide"],
+                    mission.expected_output,
+                )
+            ],
         )
         n3 = ProcessNode(
             p3,
-            [self._packet(p3, f"{mission.title}: 가독성, 구조, 완성도를 검수하라.", ["Quality Review"], ["style_guide"], "revision_note")]
+            [
+                self._packet(
+                    p3,
+                    f"{mission.title}: 가독성, 구조, 완성도를 검수하라.",
+                    ["Quality Review"],
+                    ["style_guide"],
+                    "revision_note",
+                )
+            ],
         )
         n1.children.append(n2)
         n2.children.append(n3)
@@ -127,20 +157,46 @@ class MissionScheduler:
 
     def _schedule_translation(self, mission: Mission) -> CognitiveProcessTree:
         p1 = CognitiveProcess(mission.mission_id, "Terminology Pass", "RESEARCH")
-        p2 = CognitiveProcess(mission.mission_id, "Translation Pass", "TRANSLATION", [p1.process_id])
+        p2 = CognitiveProcess(
+            mission.mission_id, "Translation Pass", "TRANSLATION", [p1.process_id]
+        )
         p3 = CognitiveProcess(mission.mission_id, "Review Pass", "QA", [p2.process_id])
 
         n1 = ProcessNode(
             p1,
-            [self._packet(p1, f"{mission.title}: 핵심 용어와 번역 원칙을 정리하라.", ["Terminology Consistency"], ["terminology"], "term_note")]
+            [
+                self._packet(
+                    p1,
+                    f"{mission.title}: 핵심 용어와 번역 원칙을 정리하라.",
+                    ["Terminology Consistency"],
+                    ["terminology"],
+                    "term_note",
+                )
+            ],
         )
         n2 = ProcessNode(
             p2,
-            [self._packet(p2, f"{mission.title}: 의미 보존 원칙에 따라 번역하라.", ["Meaning Preservation"], ["terminology", "style_guide"], mission.expected_output)]
+            [
+                self._packet(
+                    p2,
+                    f"{mission.title}: 의미 보존 원칙에 따라 번역하라.",
+                    ["Meaning Preservation"],
+                    ["terminology", "style_guide"],
+                    mission.expected_output,
+                )
+            ],
         )
         n3 = ProcessNode(
             p3,
-            [self._packet(p3, f"{mission.title}: 누락, 오역, 문체를 검수하라.", ["Translation QA"], ["terminology", "style_guide"], "qa_note")]
+            [
+                self._packet(
+                    p3,
+                    f"{mission.title}: 누락, 오역, 문체를 검수하라.",
+                    ["Translation QA"],
+                    ["terminology", "style_guide"],
+                    "qa_note",
+                )
+            ],
         )
         n1.children.append(n2)
         n2.children.append(n3)
@@ -149,7 +205,10 @@ class MissionScheduler:
     def _schedule_general(self, mission: Mission) -> CognitiveProcessTree:
         processes = self.cognitive_kernel.build_processes(mission)
         packets = self.cognitive_kernel.build_packets(mission, processes)
-        nodes = [ProcessNode(process=p, packets=[packet]) for p, packet in zip(processes, packets)]
+        nodes = [
+            ProcessNode(process=p, packets=[packet])
+            for p, packet in zip(processes, packets, strict=False)
+        ]
 
         for i in range(len(nodes) - 1):
             nodes[i].children.append(nodes[i + 1])

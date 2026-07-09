@@ -1,12 +1,48 @@
 [project]
 name = "maios"
-version = "0.1.0-alpha"
+version = "1.1.0"
 description = "MUSA AI Operating System"
-requires-python = ">=3.12"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "MUSA AI" },
+]
+keywords = [
+    "ai",
+    "agent",
+    "autonomous-runtime",
+    "multi-agent",
+    "rag",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
 dependencies = [
+    "fastapi>=0.110.0",
     "openai>=1.0.0",
     "python-dotenv>=1.0.0",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "black>=25.0.0",
+    "mypy>=1.16.0",
+    "pytest-cov>=7.0.0",
+    "pytest>=9.0.0",
+    "ruff>=0.14.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/MUSA-AI/MAIOS"
+Repository = "https://github.com/MUSA-AI/MAIOS"
+Issues = "https://github.com/MUSA-AI/MAIOS/issues"
 
 [project.scripts]
 maios = "maios.cli:main"
@@ -14,3 +50,50 @@ maios = "maios.cli:main"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+addopts = "--cov=maios --cov-report=term-missing --cov-fail-under=95"
+filterwarnings = [
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated.*:Warning",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["maios"]
+omit = [
+    "src/maios/cli.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = [
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "\\.\\.\\.",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py311", "py312"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["B008", "UP042"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["B011"]
+
+[tool.mypy]
+python_version = "3.11"
+packages = ["maios"]
+ignore_missing_imports = true
+check_untyped_defs = false
+disallow_untyped_defs = false
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
