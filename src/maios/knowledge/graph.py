@@ -92,7 +92,7 @@ class KnowledgeGraph:
         self.nodes: dict[str, KnowledgeNode] = {}
         self.edges: dict[str, KnowledgeEdge] = {}
         self.clusters: dict[str, KnowledgeCluster] = {}
-        self._token_cache: dict[str, tuple[str, frozenset[str]]] = {}
+        self._token_cache: dict[str, tuple[str, frozenset[str], dict[str, int]]] = {}
         self._df_cache: dict[str, int] | None = None
 
         if self.path and self.path.exists():
@@ -475,13 +475,20 @@ class KnowledgeGraph:
     def _invalidate_search_index(self) -> None:
         self._df_cache = None
 
-    def _node_tokens(self, node: KnowledgeNode) -> frozenset[str]:
+    def _node_entry(self, node: KnowledgeNode) -> tuple[str, frozenset[str], dict[str, int]]:
         cached = self._token_cache.get(node.node_id)
         if cached is not None and cached[0] == node.updated_at:
-            return cached[1]
-        tokens = frozenset(self._tokens(node.text()))
-        self._token_cache[node.node_id] = (node.updated_at, tokens)
-        return tokens
+            return cached
+        counts = self._token_counts(node.text())
+        entry = (node.updated_at, frozenset(counts), counts)
+        self._token_cache[node.node_id] = entry
+        return entry
+
+    def _node_tokens(self, node: KnowledgeNode) -> frozenset[str]:
+        return self._node_entry(node)[1]
+
+    def _node_token_counts(self, node: KnowledgeNode) -> dict[str, int]:
+        return self._node_entry(node)[2]
 
     def _document_frequencies(self) -> dict[str, int]:
         if self._df_cache is None:
@@ -493,12 +500,14 @@ class KnowledgeGraph:
         return self._df_cache
 
     def _semantic_score(self, query: str, node: KnowledgeNode) -> float:
-        """IDF-weighted term overlap: rare query terms count more than common ones."""
+        """TF-IDF style overlap: rare query terms count more, and documents
+        that mention a term repeatedly outrank ones that mention it once."""
         query_tokens = self._tokens(query)
         node_tokens = self._node_tokens(node)
         if not query_tokens or not node_tokens:
             return 0.0
         frequencies = self._document_frequencies()
+        counts = self._node_token_counts(node)
         total = len(self.nodes) or 1
 
         def idf(token: str) -> float:
@@ -507,7 +516,13 @@ class KnowledgeGraph:
         denominator = sum(idf(token) for token in query_tokens)
         if denominator <= 0:
             return 0.0
-        overlap = sum(idf(token) for token in query_tokens & node_tokens) / denominator
+        overlap = (
+            sum(
+                idf(token) * (1 + math.log(counts.get(token, 1)))
+                for token in query_tokens & node_tokens
+            )
+            / denominator
+        )
         phrase_bonus = 0.25 if query.lower() in node.text().lower() else 0.0
         return overlap + phrase_bonus
 
@@ -519,11 +534,19 @@ class KnowledgeGraph:
         return len(left_tokens & right_tokens) / len(left_tokens | right_tokens)
 
     def _tokens(self, text: str) -> set[str]:
+        return set(self._token_counts(text))
+
+    def _token_counts(self, text: str) -> dict[str, int]:
         lowered = text.lower()
-        tokens = {token for token in re.findall(r"[a-zA-Z0-9_]+", lowered) if len(token) > 2}
+        counts: dict[str, int] = {}
+        for token in re.findall(r"[a-zA-Z0-9_]+", lowered):
+            if len(token) > 2:
+                counts[token] = counts.get(token, 0) + 1
         for run in re.findall(r"[가-힣]{2,}", lowered):
-            tokens.update(run[index : index + 2] for index in range(len(run) - 1))
-        return tokens
+            for index in range(len(run) - 1):
+                bigram = run[index : index + 2]
+                counts[bigram] = counts.get(bigram, 0) + 1
+        return counts
 
     def _normalize_title(self, text: str) -> str:
         return " ".join(re.findall(r"[a-zA-Z0-9_]+", text.lower()))

@@ -99,6 +99,37 @@ def test_token_cache_refreshes_after_node_update():
     assert not graph.semantic_search("항공모함", top_k=1)
 
 
+def test_term_frequency_breaks_ties_between_matching_documents():
+    graph = KnowledgeGraph()
+    graph.add_node(
+        title="스치듯 언급",
+        content="여러 주제를 다루다가 드론을 한 번 언급하고 다른 이야기로 넘어간다.",
+        node_type="document",
+        auto_link=False,
+        merge_duplicates=False,
+    )
+    graph.add_node(
+        title="집중 분석",
+        content="드론 방어를 다룬다. 드론 탐지, 드론 요격, 드론 전파방해까지 드론 중심 서술.",
+        node_type="document",
+        auto_link=False,
+        merge_duplicates=False,
+    )
+
+    results = graph.semantic_search("드론", top_k=2)
+
+    assert results[0].title == "집중 분석"
+
+
+def test_token_counts_count_occurrences():
+    graph = KnowledgeGraph()
+
+    counts = graph._token_counts("drone drone drone 전쟁 전쟁")
+
+    assert counts["drone"] == 3
+    assert counts["전쟁"] == 2
+
+
 def test_recall_works_for_korean_documents(tmp_path):
     from maios.kernel import DocumentIngestor, MemoryRecall
 
