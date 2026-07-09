@@ -3,6 +3,10 @@ from __future__ import annotations
 from typing import Any
 
 __all__ = [
+    "CognitiveCycleResult",
+    "CognitiveLoop",
+    "CognitivePhase",
+    "PhaseRecord",
     "DecisionContext",
     "ExecutiveBrain",
     "ExecutiveDecision",
@@ -22,6 +26,25 @@ __all__ = [
 
 
 def __getattr__(name: str) -> Any:
+    if name in {
+        "CognitiveCycleResult",
+        "CognitiveLoop",
+        "CognitivePhase",
+        "PhaseRecord",
+    }:
+        from maios.kernel.cognitive_loop import (
+            CognitiveCycleResult,
+            CognitiveLoop,
+            CognitivePhase,
+            PhaseRecord,
+        )
+
+        return {
+            "CognitiveCycleResult": CognitiveCycleResult,
+            "CognitiveLoop": CognitiveLoop,
+            "CognitivePhase": CognitivePhase,
+            "PhaseRecord": PhaseRecord,
+        }[name]
     if name == "ExecutiveKernel":
         from maios.kernel.executive_kernel import ExecutiveKernel
 

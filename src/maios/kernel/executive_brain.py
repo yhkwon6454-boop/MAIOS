@@ -243,7 +243,8 @@ class ExecutiveBrain:
         return PlannerType.DIRECT
 
     def decide(self, context: DecisionContext) -> ExecutiveDecision:
-        self.build_world_context(context)
+        if "world_context" not in context.metadata:
+            self.build_world_context(context)
         ordered_goals = self.prioritize_goals(context)
         planner = self.select_planner(context)
         rationale = self._rationale(planner, context)
@@ -260,10 +261,14 @@ class ExecutiveBrain:
         self._negotiate_decision(decision)
         return decision
 
-    def execute(self, context: DecisionContext) -> ExecutiveDecision:
-        decision = self.decide(context)
+    def act(self, decision: ExecutiveDecision, context: DecisionContext) -> dict[str, Any]:
         outcome = self._execute_decision(decision, context)
         context.record_outcome(outcome)
+        return outcome
+
+    def execute(self, context: DecisionContext) -> ExecutiveDecision:
+        decision = self.decide(context)
+        outcome = self.act(decision, context)
         final_decision = ExecutiveDecision(
             context_id=decision.context_id,
             objective=decision.objective,
@@ -279,7 +284,7 @@ class ExecutiveBrain:
         self.decisions[-1] = final_decision
         self._record_outcome(final_decision, context)
         self._transition_world(context, outcome)
-        self._trigger_learning_if_needed(context)
+        self.learn(context)
         return final_decision
 
     def record_outcome(
@@ -290,7 +295,7 @@ class ExecutiveBrain:
         context.record_outcome(outcome)
         self._persist_execution_outcome(context, outcome)
         self._transition_world(context, outcome)
-        return self._trigger_learning_if_needed(context)
+        return self.learn(context)
 
     def _execute_decision(
         self,
@@ -352,7 +357,7 @@ class ExecutiveBrain:
             if goal.goal_id not in self.meta_planner.goals:
                 self.meta_planner.goals[goal.goal_id] = goal
 
-    def _trigger_learning_if_needed(self, context: DecisionContext) -> ImprovementReport | None:
+    def learn(self, context: DecisionContext) -> ImprovementReport | None:
         if context.failure_count() < self.failure_threshold:
             return None
 
