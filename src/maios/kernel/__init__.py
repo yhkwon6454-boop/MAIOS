@@ -13,6 +13,8 @@ __all__ = [
     "CognitiveLoop",
     "CognitivePhase",
     "PhaseRecord",
+    "MemoryRecall",
+    "RecallResult",
     "DecisionContext",
     "ExecutiveBrain",
     "ExecutiveDecision",
@@ -48,6 +50,10 @@ def __getattr__(name: str) -> Any:
         from maios.kernel.task_executor import TaskExecutor
 
         return TaskExecutor
+    if name in {"MemoryRecall", "RecallResult"}:
+        from maios.kernel.memory_recall import MemoryRecall, RecallResult
+
+        return {"MemoryRecall": MemoryRecall, "RecallResult": RecallResult}[name]
     if name == "CognitiveInterpreter":
         from maios.kernel.cognitive_interpreter import CognitiveInterpreter
 

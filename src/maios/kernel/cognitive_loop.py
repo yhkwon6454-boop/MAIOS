@@ -14,6 +14,7 @@ from maios.kernel.executive_brain import (
     ExecutiveDecision,
 )
 from maios.kernel.memory_kernel import MemoryKernel
+from maios.kernel.memory_recall import MemoryRecall
 from maios.kernel.task_executor import TaskExecutor
 from maios.kernel.world_model import SystemState, WorldModel
 from maios.knowledge.graph import KnowledgeGraph
@@ -107,10 +108,12 @@ class CognitiveLoop:
         success_statuses: tuple[str, ...] = ("COMPLETED", "SUCCESS"),
         interpreter: CognitiveInterpreter | None = None,
         llm_provider: BaseLLMProvider | None = None,
+        memory_recall: MemoryRecall | None = None,
     ) -> None:
         self.knowledge_graph = knowledge_graph
         self.memory_kernel = memory_kernel
         self.interpreter = interpreter or CognitiveInterpreter(llm_provider)
+        self.memory_recall = memory_recall or MemoryRecall(knowledge_graph)
         self.executive_brain = executive_brain or ExecutiveBrain(
             distributed_runtime=runtime,
             knowledge_graph=knowledge_graph,
@@ -150,7 +153,15 @@ class CognitiveLoop:
             },
         }
         summary = f"Built world context {world_context.context_id}."
-        interpretation = self.interpreter.interpret_situation(context.objective, world_context)
+        recall = self.memory_recall.recall(context.objective)
+        if recall:
+            data["recalled"] = list(recall.entries)
+            context.metadata["recalled_knowledge"] = list(recall.entries)
+        interpretation = self.interpreter.interpret_situation(
+            context.objective,
+            world_context,
+            recalled=recall.entries,
+        )
         if interpretation is not None:
             data["interpretation"] = interpretation
             context.metadata["situation_interpretation"] = interpretation
@@ -313,8 +324,13 @@ class CognitiveLoop:
         capabilities: tuple[str, ...] | list[str] = (),
         max_cycles: int = 3,
         stop_on_success: bool = True,
+        metadata: dict[str, Any] | None = None,
     ) -> list[CognitiveCycleResult]:
-        context = DecisionContext(objective, requested_capabilities=tuple(capabilities))
+        context = DecisionContext(
+            objective,
+            requested_capabilities=tuple(capabilities),
+            metadata=dict(metadata or {}),
+        )
         results: list[CognitiveCycleResult] = []
         for _ in range(max(1, max_cycles)):
             cycle = self.run_cycle(context)

@@ -60,7 +60,11 @@ def _print_pursuit(agi: AGIFoundation, pursuit: GoalPursuit) -> None:
     for index, cycle in enumerate(cycles, start=1):
         print(f"  cycle {index}: {cycle.status} ({' -> '.join(cycle.phase_order())})")
         for record in cycle.phases:
-            if record.phase == "understand" and "interpretation" in record.data:
+            if record.phase != "understand":
+                continue
+            for entry in record.data.get("recalled", []):
+                print(f"  [recall] {entry}")
+            if "interpretation" in record.data:
                 print(f"  [understanding] {record.data['interpretation']}")
     if pursuit.lessons:
         print("[lessons]")

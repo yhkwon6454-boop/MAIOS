@@ -353,6 +353,8 @@ class ExecutiveBrain:
             context.objective,
             interpretation=context.metadata.get("situation_interpretation"),
             capabilities=context.requested_capabilities,
+            recalled=tuple(context.metadata.get("recalled_knowledge", ())),
+            lessons=tuple(context.metadata.get("prior_lessons", ())),
         )
         if result is not None:
             return result

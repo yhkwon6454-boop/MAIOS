@@ -202,6 +202,7 @@ class AGIFoundation:
             objective,
             capabilities=tuple(capabilities),
             max_cycles=max_cycles or self.max_cycles,
+            metadata={"prior_lessons": self._prior_lessons()},
         )
         last_cycle = cycles[-1]
         if last_cycle.success:
@@ -229,6 +230,16 @@ class AGIFoundation:
         self.pursuits.append(pursuit)
         self._persist_pursuit(pursuit)
         return pursuit
+
+    def _prior_lessons(self, limit: int = 5) -> list[str]:
+        lessons: list[str] = []
+        for pursuit in reversed(self.pursuits):
+            for lesson in pursuit.lessons:
+                if lesson not in lessons:
+                    lessons.append(lesson)
+                if len(lessons) >= limit:
+                    return lessons
+        return lessons
 
     def evolve(self) -> dict[str, Any]:
         executed = [pursuit for pursuit in self.pursuits if pursuit.cycle_ids]

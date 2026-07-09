@@ -87,6 +87,13 @@ class MAIOSShell:
 
     def _print_pursuit(self, pursuit: GoalPursuit) -> None:
         self.output_fn(f"[{pursuit.status}] {pursuit.objective}")
+        for cycle in self.foundation.cognitive_loop.cycles:
+            if cycle.cycle_id not in pursuit.cycle_ids:
+                continue
+            for record in cycle.phases:
+                if record.phase == "understand":
+                    for entry in record.data.get("recalled", []):
+                        self.output_fn(f"  recall: {entry}")
         if pursuit.status == "PENDING_APPROVAL" and pursuit.governance is not None:
             self.output_fn(f"  governance: {pursuit.governance['reason']}")
             self.output_fn("  type /approve to re-run with human approval")
