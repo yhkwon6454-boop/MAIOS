@@ -47,7 +47,7 @@ class DocumentIngestor:
         self.max_chars = max(200, max_chars)
 
     def ingest(self, path: str | Path) -> IngestReport:
-        target = Path(path)
+        target = Path(path).expanduser()
         if target.is_dir():
             files = sorted(
                 candidate
@@ -75,7 +75,7 @@ class DocumentIngestor:
 
     def ingest_file(self, path: str | Path) -> list[str]:
         with self.knowledge_graph.bulk():
-            return self._ingest_file_nodes(Path(path))
+            return self._ingest_file_nodes(Path(path).expanduser())
 
     def _ingest_file_nodes(self, file: Path) -> list[str]:
         text = self._read_text(file)

@@ -85,6 +85,18 @@ def test_ingest_directory_recursively_and_skips_unsupported(tmp_path):
     assert report.to_dict()["chunks"] == 2
 
 
+def test_ingest_expands_home_paths(tmp_path, monkeypatch):
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setenv("HOME", str(tmp_path))
+    _write(tmp_path / "home-doc.md", "# Home\nTilde paths expand.")
+    graph = KnowledgeGraph()
+
+    report = DocumentIngestor(graph).ingest("~/home-doc.md")
+
+    assert report.chunks == 1
+    assert DocumentIngestor(graph).ingest_file("~/home-doc.md")
+
+
 def test_ingest_missing_or_unsupported_path_is_skipped(tmp_path):
     report = DocumentIngestor(KnowledgeGraph()).ingest(tmp_path / "nope.md")
 

@@ -170,10 +170,14 @@ maios ingest ~/문서폴더                   # 디렉터리 재귀
 시스템이 자기 구성을 보고합니다.
 
 ```text
+$ maios introspect --llm claude
 [MAIOS] identity=maios version=1.3.0 readiness=0.64
 [available] cognitive_loop, executive_brain, governance, knowledge_graph, llm, ...
 [missing] distributed_runtime, negotiation, swarm, ...
 ```
+
+(`--llm` 없이 실행하면 llm·task_execution 등이 missing으로 이동하고
+readiness가 낮게 나옵니다 — 정상입니다.)
 
 readiness는 전체 계층 중 가용 계층의 비율입니다. missing 항목은
 해당 엔진이 주입되지 않았다는 뜻이며 오류가 아닙니다.
@@ -286,7 +290,7 @@ provider = create_llm_provider(config)
 space = Workspace(".maios")
 agi = space.build_foundation(governance=GovernanceManager(), llm_provider=provider)
 
-DocumentIngestor(agi.knowledge_graph).ingest("~/문서")
+DocumentIngestor(agi.knowledge_graph).ingest("~/문서")   # ~ 자동 확장
 pursuit = agi.pursue("문서 핵심을 요약", capabilities=())
 project = agi.pursue_project("2부작 브리핑 작성")
 report = agi.evolve()          # 누적 성공률·교훈
