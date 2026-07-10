@@ -28,6 +28,7 @@ class Workspace:
         self.memory_path = self.root / "memory_store.json"
         self.pursuits_path = self.root / "pursuits.json"
         self.projects_path = self.root / "projects.json"
+        self.ontology_path = self.root / "ontology.ttl"
 
     def exists(self) -> bool:
         return self.root.exists()
@@ -38,16 +39,22 @@ class Workspace:
         governance: GovernanceManager | None = None,
         llm_provider: BaseLLMProvider | None = None,
         runtime: Any | None = None,
+        ontology: Any | None = None,
         **kwargs: Any,
     ) -> AGIFoundation:
         graph = KnowledgeGraph(path=self.graph_path)
         memory = MemoryKernel(knowledge_store=KnowledgeStore(path=self.memory_path))
+        if ontology is None and self.ontology_path.exists():
+            from maios.knowledge.ontology import OntologyAdapter
+
+            ontology = OntologyAdapter(self.ontology_path)
         foundation = AGIFoundation(
             knowledge_graph=graph,
             memory_kernel=memory,
             governance=governance,
             llm_provider=llm_provider,
             runtime=runtime,
+            ontology=ontology,
             **kwargs,
         )
         foundation.pursuits.extend(self.load_pursuits())

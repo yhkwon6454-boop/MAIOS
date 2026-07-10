@@ -5,6 +5,7 @@ from maios.knowledge.graph import (
     KnowledgeGraph,
     KnowledgeNode,
 )
+from maios.knowledge.ontology import OntologyAdapter
 from maios.knowledge.store import InMemoryKnowledgeStore, KnowledgeStore
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
     "KnowledgeGraph",
     "KnowledgeNode",
     "KnowledgeStore",
+    "OntologyAdapter",
 ]

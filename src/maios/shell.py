@@ -153,6 +153,8 @@ class MAIOSShell:
                 continue
             for record in cycle.phases:
                 if record.phase == "understand":
+                    if record.data.get("ontology_expanded"):
+                        self.output_fn("  ontology: " + ", ".join(record.data["ontology_expanded"]))
                     for entry in record.data.get("recalled", []):
                         self.output_fn(f"  recall: {entry}")
         if pursuit.status == "PENDING_APPROVAL" and pursuit.governance is not None:

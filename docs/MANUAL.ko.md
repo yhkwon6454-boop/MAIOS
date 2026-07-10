@@ -208,6 +208,25 @@ maios> /exit
 maios mission.yaml     # YAML 미션 파일 실행 (v1.0 런타임 파이프라인)
 ```
 
+### 4.8 온톨로지 확장 검색 (선택)
+
+워크스페이스에 `ontology.ttl`(RDFS/OWL, rdfs:label 한국어 지원)을 넣으면
+회상·연구 검색이 온톨로지 관계를 따라 확장됩니다:
+
+```bash
+pip install rdflib                        # 선택 의존성
+cp 나의온톨로지.ttl .maios/ontology.ttl    # 워크스페이스에 배치하면 자동 감지
+maios pursue "지휘관 의도 전파 실태 점검"
+  [ontology] 목적, 최종상태, 핵심과업, 제한사항, ...   ← 확장된 용어
+  [recall] 훈련메모.md: ... 최종상태를 서로 다르게 이해 ...
+```
+
+질의에 온톨로지 용어가 등장하면 그 이웃(상하위 클래스, 인스턴스,
+domain/range로 연결된 개념)이 검색어에 합류합니다 — 표층 단어가 하나도
+겹치지 않는 문서도 개념적으로 연결되면 회수됩니다. rdflib이 없거나
+파일이 없으면 조용히 기존 검색으로 동작합니다(introspect의 ontology
+항목으로 가용 여부 확인).
+
 ---
 
 ## 5. 워크스페이스의 구조

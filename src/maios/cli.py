@@ -68,6 +68,8 @@ def _print_pursuit(agi: AGIFoundation, pursuit: GoalPursuit) -> None:
         for record in cycle.phases:
             if record.phase != "understand":
                 continue
+            if record.data.get("ontology_expanded"):
+                print(f"  [ontology] {', '.join(record.data['ontology_expanded'])}")
             for entry in record.data.get("recalled", []):
                 print(f"  [recall] {entry}")
             if "interpretation" in record.data:

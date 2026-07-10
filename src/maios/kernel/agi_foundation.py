@@ -144,6 +144,7 @@ class AGIFoundation:
         memory_kernel: MemoryKernel | None = None,
         runtime: Any | None = None,
         llm_provider: BaseLLMProvider | None = None,
+        ontology: Any | None = None,
         identity: str = "maios",
         version: str = "1.3.0",
         max_cycles: int = 3,
@@ -153,7 +154,10 @@ class AGIFoundation:
             memory_kernel=memory_kernel,
             runtime=runtime,
             llm_provider=llm_provider,
+            ontology=ontology,
         )
+        if ontology is not None and self.cognitive_loop.memory_recall.ontology is None:
+            self.cognitive_loop.memory_recall.ontology = ontology
         if llm_provider is not None and not self.cognitive_loop.interpreter.available:
             self.cognitive_loop.interpreter = CognitiveInterpreter(llm_provider)
         self.decomposer = GoalDecomposer(llm_provider or self.cognitive_loop.interpreter.provider)
@@ -206,6 +210,10 @@ class AGIFoundation:
             "llm": self.cognitive_loop.interpreter.available,
             "task_execution": self.executive_brain.task_executor.available,
             "goal_decomposition": self.decomposer.available,
+            "ontology": (
+                self.cognitive_loop.memory_recall.ontology is not None
+                and self.cognitive_loop.memory_recall.ontology.available
+            ),
         }
         readiness = sum(capabilities.values()) / len(capabilities)
         self.self_model = SelfModel(

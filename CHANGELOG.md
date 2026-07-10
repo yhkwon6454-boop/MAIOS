@@ -20,6 +20,11 @@ and this project follows semantic versioning for release tags.
   workspace structure, governance, workflows, and troubleshooting.
 - Research paper draft (`docs/PAPER.ko.md`) documenting the design
   principles, architecture, and the real-corpus case study.
+- Ontology-expanded recall: drop an RDFS/OWL `ontology.ttl` into the
+  workspace (optional `rdflib` dependency) and queries expand along
+  subclass, instance, and domain/range relations, so documents that share
+  no surface tokens with the query are still recalled. Unavailable
+  ontologies degrade silently to plain search.
 
 ## [1.3.0] - 2026-07-10
 

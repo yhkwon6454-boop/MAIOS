@@ -31,11 +31,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+ontology = [
+    "rdflib>=7.0.0",
+]
 dev = [
     "black>=25.0.0",
     "mypy>=1.16.0",
     "pytest-cov>=7.0.0",
     "pytest>=9.0.0",
+    "rdflib>=7.0.0",
     "ruff>=0.14.0",
 ]
 

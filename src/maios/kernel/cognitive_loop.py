@@ -109,11 +109,12 @@ class CognitiveLoop:
         interpreter: CognitiveInterpreter | None = None,
         llm_provider: BaseLLMProvider | None = None,
         memory_recall: MemoryRecall | None = None,
+        ontology: Any | None = None,
     ) -> None:
         self.knowledge_graph = knowledge_graph
         self.memory_kernel = memory_kernel
         self.interpreter = interpreter or CognitiveInterpreter(llm_provider)
-        self.memory_recall = memory_recall or MemoryRecall(knowledge_graph)
+        self.memory_recall = memory_recall or MemoryRecall(knowledge_graph, ontology=ontology)
         self.executive_brain = executive_brain or ExecutiveBrain(
             distributed_runtime=runtime,
             knowledge_graph=knowledge_graph,
@@ -154,6 +155,8 @@ class CognitiveLoop:
         }
         summary = f"Built world context {world_context.context_id}."
         recall = self.memory_recall.recall(context.objective)
+        if recall.expanded_terms:
+            data["ontology_expanded"] = list(recall.expanded_terms)
         if recall:
             data["recalled"] = list(recall.entries)
             context.metadata["recalled_knowledge"] = list(recall.entries)
