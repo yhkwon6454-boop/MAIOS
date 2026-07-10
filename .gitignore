@@ -219,3 +219,6 @@ __marimo__/
 
 # MAIOS workspace (long-term memory)
 .maios/
+
+# Word lock files
+~$*
