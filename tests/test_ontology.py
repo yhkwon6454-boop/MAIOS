@@ -135,3 +135,97 @@ def test_foundation_without_ontology_reports_capability_false(tmp_path):
     space = Workspace(tmp_path / "space")
 
     assert space.build_foundation().introspect().capabilities["ontology"] is False
+
+
+def test_mentions_and_neighborhood(tmp_path):
+    adapter = OntologyAdapter(_write_ttl(tmp_path))
+
+    assert adapter.mentions("포병과 K9 자주포 배치") == ("K9자주포", "포병")
+    assert "제한과충돌" not in adapter.mentions("일반 행정 업무")
+    assert "제한사항" in adapter.neighborhood("제한사항")
+
+
+def test_ontology_risk_labels_escalate_governance(tmp_path):
+    from maios.governance import GovernanceManager
+    from maios.kernel import AGIFoundation
+
+    adapter = OntologyAdapter(_write_full_ttl(tmp_path))
+    agi = AGIFoundation(
+        governance=GovernanceManager(),
+        ontology=adapter,
+        ontology_risk_labels=("제한사항",),
+    )
+
+    direct = agi.pursue("제한사항 완화 검토")
+    assert direct.status == "PENDING_APPROVAL"
+    assert direct.governance["risk_level"] == "HIGH"
+
+    neighbor = agi.pursue("소대 기동이 제한과 충돌하는지 판단")
+    assert neighbor.status == "PENDING_APPROVAL"
+
+    unrelated = agi.pursue("주간 정비 일지 요약")
+    assert unrelated.status == "COMPLETED"
+
+    approved = agi.pursue("제한사항 완화 검토", human_approved=True)
+    assert approved.status == "COMPLETED"
+
+
+def test_risk_labels_without_ontology_have_no_effect():
+    from maios.governance import GovernanceManager
+    from maios.kernel import AGIFoundation
+
+    agi = AGIFoundation(
+        governance=GovernanceManager(),
+        ontology_risk_labels=("제한사항",),
+    )
+
+    assert agi.pursue("제한사항 완화 검토").status == "COMPLETED"
+
+
+def test_project_pursuit_respects_ontology_risk(tmp_path):
+    from maios.governance import GovernanceManager
+    from maios.kernel import AGIFoundation
+
+    adapter = OntologyAdapter(_write_full_ttl(tmp_path))
+    agi = AGIFoundation(
+        governance=GovernanceManager(),
+        ontology=adapter,
+        ontology_risk_labels=("수용가능위험",),
+    )
+
+    project = agi.pursue_project("수용가능위험 범위 재설정 계획")
+    assert project.status == "PENDING_APPROVAL"
+
+
+def test_workspace_reads_governance_config(tmp_path):
+    import json
+
+    from maios.governance import GovernanceManager
+
+    space = Workspace(tmp_path / "space")
+    space.root.mkdir(parents=True)
+    _write_full_ttl(space.root, "ontology.ttl")
+    (space.root / "governance.json").write_text(
+        json.dumps({"ontology_risk_labels": ["제한사항"]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    foundation = space.build_foundation(governance=GovernanceManager())
+    pursuit = foundation.pursue("제한사항 초과 기동 승인")
+
+    assert pursuit.status == "PENDING_APPROVAL"
+
+
+def _write_full_ttl(tmp_path, name="onto.ttl"):
+    path = tmp_path / name
+    path.write_text(
+        SAMPLE_TTL + """
+mc:Constraint a owl:Class ; rdfs:label "제한사항"@ko .
+mc:AcceptableRisk a owl:Class ; rdfs:label "수용가능위험"@ko .
+mc:Action a owl:Class ; rdfs:label "부하의 행동"@ko .
+mc:conflictsWith a owl:ObjectProperty ; rdfs:label "제한과충돌"@ko ;
+    rdfs:domain mc:Action ; rdfs:range mc:Constraint .
+""",
+        encoding="utf-8",
+    )
+    return path

@@ -227,6 +227,23 @@ domain/range로 연결된 개념)이 검색어에 합류합니다 — 표층 단
 파일이 없으면 조용히 기존 검색으로 동작합니다(introspect의 ontology
 항목으로 가용 여부 확인).
 
+**온톨로지 기반 거버넌스**: 워크스페이스에 `governance.json`을 두면
+특정 온톨로지 개념(과 그 이웃)을 건드리는 목표가 자동으로 고위험으로
+분류되어 인간 승인을 요구합니다:
+
+```json
+{"ontology_risk_labels": ["제한사항", "수용가능위험"]}
+```
+
+```text
+maios pursue "제한사항을 넘는 야간 침투 기동 승인"
+[governance] risk=HIGH approved=False ...
+[status] PENDING_APPROVAL          ← --approve로만 실행 가능
+```
+
+"제한과 충돌" 같은 이웃 개념을 언급해도 관계를 타고 상향됩니다 —
+임무형지휘의 "제한 속 자유"가 거버넌스 규칙이 되는 방식입니다.
+
 ---
 
 ## 5. 워크스페이스의 구조

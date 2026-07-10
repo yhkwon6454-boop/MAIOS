@@ -27,17 +27,34 @@ class OntologyAdapter:
 
     @property
     def available(self) -> bool:
-        return bool(self._neighbors)
+        return bool(self._normalized_labels)
 
     def labels(self) -> tuple[str, ...]:
-        return tuple(sorted(self._neighbors))
+        return tuple(sorted(self._normalized_labels.values()))
 
     def related(self, label: str) -> tuple[str, ...]:
         return tuple(sorted(self._neighbors.get(label, ())))
 
+    def mentions(self, text: str) -> tuple[str, ...]:
+        """Ontology labels that appear in the text (space-insensitive)."""
+        if not self._normalized_labels:
+            return ()
+        compact = "".join(text.split()).lower()
+        return tuple(
+            sorted(
+                label
+                for normalized, label in self._normalized_labels.items()
+                if normalized in compact
+            )
+        )
+
+    def neighborhood(self, label: str) -> frozenset[str]:
+        """A label plus everything directly related to it."""
+        return frozenset({label} | self._neighbors.get(label, set()))
+
     def expand_query(self, text: str) -> tuple[str, ...]:
         """Labels related to any ontology term mentioned in the text."""
-        if not self._neighbors:
+        if not self._normalized_labels:
             return ()
         compact = "".join(text.split()).lower()
         expansions: set[str] = set()
@@ -91,5 +108,5 @@ class OntologyAdapter:
                 link(subject, target)
 
         self._normalized_labels = {
-            "".join(label.split()).lower(): label for label in self._neighbors
+            "".join(label.split()).lower(): label for label in labels.values()
         }

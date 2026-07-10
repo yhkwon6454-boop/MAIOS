@@ -48,6 +48,10 @@ class Workspace:
             from maios.knowledge.ontology import OntologyAdapter
 
             ontology = OntologyAdapter(self.ontology_path)
+        governance_config = self.root / "governance.json"
+        if "ontology_risk_labels" not in kwargs and governance_config.exists():
+            config = json.loads(governance_config.read_text(encoding="utf-8"))
+            kwargs["ontology_risk_labels"] = tuple(config.get("ontology_risk_labels", ()))
         foundation = AGIFoundation(
             knowledge_graph=graph,
             memory_kernel=memory,

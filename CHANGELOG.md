@@ -25,6 +25,9 @@ and this project follows semantic versioning for release tags.
   subclass, instance, and domain/range relations, so documents that share
   no surface tokens with the query are still recalled. Unavailable
   ontologies degrade silently to plain search.
+- Ontology-driven governance: `governance.json` in the workspace lists
+  ontology concepts whose neighborhood escalates matching objectives to
+  HIGH risk, requiring human approval before execution.
 
 ## [1.3.0] - 2026-07-10
 

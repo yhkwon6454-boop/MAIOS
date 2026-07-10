@@ -145,6 +145,7 @@ class AGIFoundation:
         runtime: Any | None = None,
         llm_provider: BaseLLMProvider | None = None,
         ontology: Any | None = None,
+        ontology_risk_labels: tuple[str, ...] | list[str] = (),
         identity: str = "maios",
         version: str = "1.3.0",
         max_cycles: int = 3,
@@ -158,6 +159,7 @@ class AGIFoundation:
         )
         if ontology is not None and self.cognitive_loop.memory_recall.ontology is None:
             self.cognitive_loop.memory_recall.ontology = ontology
+        self.ontology_risk_labels = tuple(ontology_risk_labels)
         if llm_provider is not None and not self.cognitive_loop.interpreter.available:
             self.cognitive_loop.interpreter = CognitiveInterpreter(llm_provider)
         self.decomposer = GoalDecomposer(llm_provider or self.cognitive_loop.interpreter.provider)
@@ -182,6 +184,25 @@ class AGIFoundation:
         self.self_model: SelfModel | None = None
         if self.governance is not None:
             self.governance.policy_engine.permission_model.allow(self.identity, "PURSUE_GOAL")
+
+    def _ontology_risk_terms(self, objective: str) -> tuple[str, ...]:
+        """Objective terms that touch a configured risk concept's neighborhood."""
+        ontology = self.cognitive_loop.memory_recall.ontology
+        if ontology is None or not ontology.available or not self.ontology_risk_labels:
+            return ()
+        mentioned = set(ontology.mentions(objective))
+        if not mentioned:
+            return ()
+        flagged: set[str] = set()
+        for risk_label in self.ontology_risk_labels:
+            flagged.update(mentioned & ontology.neighborhood(risk_label))
+        return tuple(sorted(flagged))
+
+    def _governance_context(self, objective: str) -> dict[str, Any]:
+        risk_terms = self._ontology_risk_terms(objective)
+        if risk_terms:
+            return {"risk": "HIGH", "ontology_risk_terms": list(risk_terms)}
+        return {}
 
     @property
     def executive_brain(self) -> Any:
@@ -240,6 +261,7 @@ class AGIFoundation:
                 objective,
                 action="PURSUE_GOAL",
                 subject=self.identity,
+                context=self._governance_context(objective),
             )
             if decision.requires_human_approval and human_approved:
                 decision = self.governance.approve(decision)
@@ -311,6 +333,7 @@ class AGIFoundation:
                 objective,
                 action="PURSUE_GOAL",
                 subject=self.identity,
+                context=self._governance_context(objective),
             )
             if decision.requires_human_approval and human_approved:
                 decision = self.governance.approve(decision)
