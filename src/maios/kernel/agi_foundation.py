@@ -10,6 +10,7 @@ from maios.governance import GovernanceManager
 from maios.kernel.cognitive_interpreter import CognitiveInterpreter
 from maios.kernel.cognitive_loop import CognitiveLoop
 from maios.kernel.goal_decomposer import GoalDecomposer
+from maios.kernel.intent_alignment import CommandersIntent, IntentAlignmentChecker
 from maios.kernel.memory_kernel import MemoryKernel
 from maios.knowledge.graph import KnowledgeGraph
 from maios.planning import GoalHorizon, MetaGoal
@@ -57,6 +58,7 @@ class GoalPursuit:
     lessons: tuple[str, ...] = ()
     output: str = ""
     governance: dict[str, Any] | None = None
+    alignment: dict[str, Any] | None = None
     pursuit_id: str = field(default_factory=lambda: f"GP-{uuid4().hex[:8]}")
     created_at: str = field(default_factory=_now)
 
@@ -74,6 +76,7 @@ class GoalPursuit:
             lessons=tuple(data.get("lessons", ())),
             output=str(data.get("output", "")),
             governance=data.get("governance"),
+            alignment=data.get("alignment"),
             pursuit_id=str(data.get("pursuit_id", "")) or f"GP-{uuid4().hex[:8]}",
             created_at=str(data.get("created_at", "")) or _now(),
         )
@@ -88,6 +91,7 @@ class GoalPursuit:
             "lessons": list(self.lessons),
             "output": self.output,
             "governance": dict(self.governance) if self.governance else None,
+            "alignment": dict(self.alignment) if self.alignment else None,
             "created_at": self.created_at,
         }
 
@@ -146,6 +150,7 @@ class AGIFoundation:
         llm_provider: BaseLLMProvider | None = None,
         ontology: Any | None = None,
         ontology_risk_labels: tuple[str, ...] | list[str] = (),
+        intent: CommandersIntent | None = None,
         identity: str = "maios",
         version: str = "1.3.0",
         max_cycles: int = 3,
@@ -160,6 +165,11 @@ class AGIFoundation:
         if ontology is not None and self.cognitive_loop.memory_recall.ontology is None:
             self.cognitive_loop.memory_recall.ontology = ontology
         self.ontology_risk_labels = tuple(ontology_risk_labels)
+        self.intent_checker = (
+            IntentAlignmentChecker(intent, ontology=self.cognitive_loop.memory_recall.ontology)
+            if intent is not None
+            else None
+        )
         if llm_provider is not None and not self.cognitive_loop.interpreter.available:
             self.cognitive_loop.interpreter = CognitiveInterpreter(llm_provider)
         self.decomposer = GoalDecomposer(llm_provider or self.cognitive_loop.interpreter.provider)
@@ -235,6 +245,7 @@ class AGIFoundation:
                 self.cognitive_loop.memory_recall.ontology is not None
                 and self.cognitive_loop.memory_recall.ontology.available
             ),
+            "intent_alignment": self.intent_checker is not None,
         }
         readiness = sum(capabilities.values()) / len(capabilities)
         self.self_model = SelfModel(
@@ -255,13 +266,20 @@ class AGIFoundation:
         human_approved: bool = False,
         notes: tuple[str, ...] | list[str] = (),
     ) -> GoalPursuit:
+        alignment_data: dict[str, Any] | None = None
+        if self.intent_checker is not None:
+            alignment_data = self.intent_checker.check(objective).to_dict()
         governance_data: dict[str, Any] | None = None
         if self.governance is not None:
+            context = self._governance_context(objective)
+            if alignment_data is not None and alignment_data["verdict"] == "CONFLICT":
+                context.setdefault("risk", "HIGH")
+                context["intent_conflict"] = alignment_data["touched_constraints"]
             decision = self.governance.evaluate(
                 objective,
                 action="PURSUE_GOAL",
                 subject=self.identity,
-                context=self._governance_context(objective),
+                context=context,
             )
             if decision.requires_human_approval and human_approved:
                 decision = self.governance.approve(decision)
@@ -273,6 +291,7 @@ class AGIFoundation:
                     goal_id="",
                     status=status,
                     governance=governance_data,
+                    alignment=alignment_data,
                 )
                 self.pursuits.append(pursuit)
                 self._persist_pursuit(pursuit)
@@ -314,6 +333,7 @@ class AGIFoundation:
                 else ""
             ),
             governance=governance_data,
+            alignment=alignment_data,
         )
         self.pursuits.append(pursuit)
         self._persist_pursuit(pursuit)

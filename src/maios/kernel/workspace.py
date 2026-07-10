@@ -29,6 +29,7 @@ class Workspace:
         self.pursuits_path = self.root / "pursuits.json"
         self.projects_path = self.root / "projects.json"
         self.ontology_path = self.root / "ontology.ttl"
+        self.intent_path = self.root / "intent.json"
 
     def exists(self) -> bool:
         return self.root.exists()
@@ -52,6 +53,10 @@ class Workspace:
         if "ontology_risk_labels" not in kwargs and governance_config.exists():
             config = json.loads(governance_config.read_text(encoding="utf-8"))
             kwargs["ontology_risk_labels"] = tuple(config.get("ontology_risk_labels", ()))
+        if "intent" not in kwargs and self.intent_path.exists():
+            from maios.kernel.intent_alignment import CommandersIntent
+
+            kwargs["intent"] = CommandersIntent.load(self.intent_path)
         foundation = AGIFoundation(
             knowledge_graph=graph,
             memory_kernel=memory,

@@ -4,6 +4,9 @@ from typing import Any
 
 __all__ = [
     "AGIFoundation",
+    "AlignmentReport",
+    "CommandersIntent",
+    "IntentAlignmentChecker",
     "DocumentIngestor",
     "IngestReport",
     "GoalDecomposer",
@@ -56,6 +59,18 @@ def __getattr__(name: str) -> Any:
         from maios.kernel.goal_decomposer import GoalDecomposer
 
         return GoalDecomposer
+    if name in {"AlignmentReport", "CommandersIntent", "IntentAlignmentChecker"}:
+        from maios.kernel.intent_alignment import (
+            AlignmentReport,
+            CommandersIntent,
+            IntentAlignmentChecker,
+        )
+
+        return {
+            "AlignmentReport": AlignmentReport,
+            "CommandersIntent": CommandersIntent,
+            "IntentAlignmentChecker": IntentAlignmentChecker,
+        }[name]
     if name in {"DocumentIngestor", "IngestReport"}:
         from maios.kernel.ingestor import DocumentIngestor, IngestReport
 

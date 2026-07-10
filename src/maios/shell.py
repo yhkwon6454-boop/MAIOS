@@ -12,6 +12,7 @@ HELP_TEXT = """Commands:
   /project <objective> decompose a large objective and pursue the sub-goals
   /research <question> research the question against accumulated knowledge
   /ingest <path>       read documents (md, txt, html) into the knowledge graph
+  /align <action>      judge an action against the commander's intent
   /approve             re-run the last objective with human approval
   /history             show recent pursuits
   /introspect          show the self-model and readiness
@@ -78,6 +79,9 @@ class MAIOSShell:
         if text == "/ingest" or text.startswith("/ingest "):
             self._ingest(text[len("/ingest") :].strip())
             return True
+        if text == "/align" or text.startswith("/align "):
+            self._align(text[len("/align") :].strip())
+            return True
         if text == "/research" or text.startswith("/research "):
             question = text[len("/research") :].strip()
             if not question:
@@ -139,6 +143,16 @@ class MAIOSShell:
             self.output_fn(f"  skipped: {file}")
         self.output_fn(f"[done] files={len(report.files)} chunks={report.chunks}")
         self._print_memory()
+
+    def _align(self, action: str) -> None:
+        if not action:
+            self.output_fn("usage: /align <action>")
+            return
+        if self.foundation.intent_checker is None:
+            self.output_fn("no commander's intent - create intent.json in the workspace")
+            return
+        report = self.foundation.intent_checker.check(action)
+        self.output_fn(f"[{report.verdict}] {report.rationale}")
 
     def _approve(self) -> None:
         if self.last_objective is None:

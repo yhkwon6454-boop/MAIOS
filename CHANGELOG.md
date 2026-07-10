@@ -28,6 +28,11 @@ and this project follows semantic versioning for release tags.
 - Ontology-driven governance: `governance.json` in the workspace lists
   ontology concepts whose neighborhood escalates matching objectives to
   HIGH risk, requiring human approval before execution.
+- Commander's-intent alignment: specify intent (purpose, end state, key
+  tasks, constraints, acceptable risks) in `intent.json` and every pursued
+  goal is judged ALIGNED/CHECK/CONFLICT before execution; conflicts with
+  constraints escalate to human approval. New `maios align` command and
+  shell `/align`, ontology-widened matching included.
 
 ## [1.3.0] - 2026-07-10
 

@@ -25,6 +25,7 @@ def _print_usage() -> None:
     )
     print("       maios research <question> [--llm PROVIDER] [--workspace DIR]")
     print("       maios ingest <path> [<path> ...] [--workspace DIR]")
+    print("       maios align <action> [--workspace DIR]")
     print("       maios introspect [--llm PROVIDER] [--workspace DIR]")
     print("       maios shell [--llm PROVIDER] [--workspace DIR]")
     print("       maios --version")
@@ -74,6 +75,8 @@ def _print_pursuit(agi: AGIFoundation, pursuit: GoalPursuit) -> None:
                 print(f"  [recall] {entry}")
             if "interpretation" in record.data:
                 print(f"  [understanding] {record.data['interpretation']}")
+    if pursuit.alignment is not None:
+        print(f"[alignment] {pursuit.alignment['verdict']} - {pursuit.alignment['rationale']}")
     if pursuit.lessons:
         print("[lessons]")
         for lesson in pursuit.lessons:
@@ -244,6 +247,41 @@ def run_ingest(args: list[str]) -> None:
     print(f"[memory] nodes={stats['nodes']} pursuits={stats['pursuits']} workspace={space.root}")
 
 
+def run_align(args: list[str]) -> None:
+    action_parts: list[str] = []
+    workspace: str | None = None
+    index = 0
+    while index < len(args):
+        arg = args[index]
+        if arg == "--workspace":
+            index += 1
+            workspace = args[index]
+        else:
+            action_parts.append(arg)
+        index += 1
+    action = " ".join(action_parts).strip()
+    if not action:
+        _print_usage()
+        raise SystemExit(1)
+
+    agi, space = build_foundation(workspace=workspace)
+    if agi.intent_checker is None:
+        print(f"no commander's intent found - create {space.intent_path} first")
+        raise SystemExit(1)
+    report = agi.intent_checker.check(action)
+    print(f"[action] {action}")
+    if report.expanded_terms:
+        print(f"[ontology] {', '.join(report.expanded_terms)}")
+    print(f"[verdict] {report.verdict}")
+    print(f"[rationale] {report.rationale}")
+    if report.supported_tasks:
+        print(f"[supports] {', '.join(report.supported_tasks)}")
+    if report.touched_constraints:
+        print(f"[constraints] {', '.join(report.touched_constraints)}")
+    if report.covered_by_risks:
+        print(f"[accepted-risk] {', '.join(report.covered_by_risks)}")
+
+
 def run_shell(args: list[str]) -> None:
     from maios.shell import MAIOSShell
 
@@ -277,6 +315,10 @@ def main() -> None:
 
     if argv[0] == "ingest":
         run_ingest(argv[1:])
+        return
+
+    if argv[0] == "align":
+        run_align(argv[1:])
         return
 
     if argv[0] == "introspect":
