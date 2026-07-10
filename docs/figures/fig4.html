@@ -1,0 +1,33 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'><style>
+:root{--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--ink3:#8a887f;--line:#dedcd5;
+--panel:#f3f2ee;--blue:#2a78d6;--blue-d:#1c5cab;--aqua:#1baf7a;--yellow:#eda100;
+--green:#008300;--red:#e34948;--violet:#4a3aa7;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#ffffff;font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;padding:10px;}
+svg{width:100%;height:auto;display:block;}
+svg text{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;}
+.tiles{display:flex;gap:14px;}
+.tile{flex:1 1 200px;border:1px solid #dedcd5;border-radius:10px;padding:14px 16px;background:#fff;}
+.tile .t-label{font-size:13px;color:#52514e;margin-bottom:6px;}
+.tile .t-before{font-size:13.5px;color:#8a887f;}
+.tile .t-before b{color:#e34948;font-weight:700;}
+.tile .t-after{font-size:26px;font-weight:800;color:#1c5cab;line-height:1.3;}
+.tile .t-unit{font-size:14px;font-weight:600;color:#52514e;}
+</style></head><body><div class="tiles">
+  <div class="tile">
+    <div class="t-label">대량 흡수 (33파일 · 389청크)</div>
+    <div class="t-before">수정 전: <b>사실상 정지</b> (20초에 69노드)</div>
+    <div class="t-after">0.9<span class="t-unit">초</span></div>
+  </div>
+  <div class="tile">
+    <div class="t-label">동일 질의 반복 (자기 기록 재노출)</div>
+    <div class="t-before">수정 전: <b>발산</b> (2분 제한 초과)</div>
+    <div class="t-after">1.2<span class="t-unit">초</span></div>
+  </div>
+  <div class="tile">
+    <div class="t-label">지식그래프 파일 크기</div>
+    <div class="t-before">수정 전: <b>12.7 MB</b> (폭주)</div>
+    <div class="t-after">888<span class="t-unit">KB 안정</span></div>
+  </div>
+</div>
+</body></html>
