@@ -30,14 +30,14 @@ MAIOS는 "AI를 도구로 쓰는 것"과 "AI를 임무 중심으로 운용하는
 Python 3.11 또는 3.12가 필요합니다.
 
 ```bash
-git clone https://github.com/yhkwon6454-boop/MAIOS.git
+git clone -b develop https://github.com/yhkwon6454-boop/MAIOS.git
 cd MAIOS
 python -m venv .venv
 
 # Windows
 .\.venv\Scripts\python.exe -m pip install -e .[dev]
-# macOS/Linux
-.venv/bin/python -m pip install -e .[dev]
+# macOS/Linux (zsh에서는 대괄호 글로브 방지를 위해 따옴표 필요)
+.venv/bin/python -m pip install -e '.[dev]'
 ```
 
 설치 확인:
@@ -65,7 +65,7 @@ GEMINI_API_KEY=...               # Gemini
 
 ```bash
 # 1) 목표 하나 수행 (거버넌스 → 인지 루프 → 교훈 축적)
-maios pursue "주간 보고서를 세 문장으로 요약"  --llm claude
+maios pursue "주간 보고서를 세 문장으로 요약" --llm claude
 
 # 2) 내 문서를 지식으로 흡수 (md/txt/html, 한글 인코딩 자동)
 maios ingest ~/내문서폴더
@@ -109,10 +109,11 @@ maios pursue "국방 AI 동향을 다섯 줄로 정리" --llm claude
   [recall] ...                    과거 기억에서 회상한 항목
   [understanding] ...             LLM의 상황 해석 (--llm 사용 시)
 [lessons]                         이번 수행에서 추출된 교훈
-[output] ...                      생성된 산출물 미리보기 (500자)
+[output]                          생성된 산출물 미리보기 (다음 줄에 500자)
+  ...
 [status] COMPLETED
-[artifact] .maios\artifacts\GP-xxxx.md   산출물 전문 파일
-[memory] nodes=15 pursuits=3      누적 기억 현황
+[artifact] .maios/artifacts/GP-xxxx.md   산출물 전문 파일
+[memory] nodes=15 pursuits=3 workspace=.maios   누적 기억 현황
 ```
 
 옵션:
@@ -149,7 +150,7 @@ maios research "원고 전체를 관통하는 핵심 주장은?"
 
 보고서는 하위 질문·발견·공백·출처 구조의 마크다운으로 산출되며,
 **보고서 자체가 다시 지식그래프에 들어가** 다음 연구의 소스가 됩니다.
-출처 선정은 문서·개념·근거를 시스템 자신의 활동 기록보다 우선합니다.
+출처 선정은 문서·개념·근거를 시스템 자신의 활동 기록보다 우선시합니다.
 
 ### 4.4 `maios ingest <경로>` — 문서 흡수
 
@@ -160,7 +161,7 @@ maios ingest 보고서.md 메모.txt          # 개별 파일
 maios ingest ~/문서폴더                   # 디렉터리 재귀
 ```
 
-- 지원 형식: `.md` `.txt` `.html` (HTML은 태그·스크립트 제거)
+- 지원 형식: `.md`/`.markdown` · `.txt` · `.html`/`.htm` (HTML은 태그·스크립트 제거)
 - 마크다운은 제목(`#`) 단위, 텍스트는 문단 단위로 분할 (긴 절은 1,200자)
 - 한글 cp949 인코딩 파일 자동 처리
 - **같은 파일을 다시 흡수하면 중복 없이 갱신**됩니다 (경로 기반 결정적 ID)
@@ -171,7 +172,7 @@ maios ingest ~/문서폴더                   # 디렉터리 재귀
 시스템이 자기 구성을 보고합니다.
 
 ```text
-$ maios introspect --llm claude
+maios introspect --llm claude
 [MAIOS] identity=maios version=1.3.0 readiness=0.67
 [available] cognitive_loop, executive_brain, governance, knowledge_graph, llm, ...
 [missing] distributed_runtime, negotiation, swarm, ...
