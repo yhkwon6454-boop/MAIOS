@@ -85,6 +85,8 @@
   .status{font-family:'Malgun Gothic',sans-serif; font-size:13px; color:var(--ink3);
     text-align:center; margin:70px auto 0; max-width:520px; line-height:1.8;
     border-top:1px solid var(--line); padding-top:22px;}
+  .status a{color:var(--blue-d); text-decoration:none;}
+  .status a:hover{text-decoration:underline;}
 
   footer{max-width:660px; margin:100px auto 60px; padding:24px 24px 0; border-top:1px solid var(--line);
     font-family:'Malgun Gothic',sans-serif; font-size:12.5px; color:var(--ink3); text-align:center;
@@ -233,7 +235,6 @@
       </ol>
     </li>
     <li class="toc-part"><a href="#afterword">에필로그 — 남은 질문들</a></li>
-    <li class="toc-part"><a href="#appendix">부록 — 투고 후보와 개작 방향</a></li>
   </ol>
 </nav>
 
@@ -1613,36 +1614,11 @@ IDF에 기반한 표층 어휘 매칭이고, 의미 기반 검색(임베딩)은 
 
 </div>
 
-<div class="part-divider" id="appendix">
-  <div class="num head-font">Appendix</div>
-  <h2>부록 — 투고 후보와 개작 방향</h2>
-  <p class="part-note">연구논문의 내부 메모. 논문 본문이 아닌 저자의 작업 기록이다.</p>
-  <div class="rule"></div>
-</div>
-
-<div class="part-paper">
-
-<h2>부록 A. 투고 후보와 개작 방향 <span class="note">(내부 메모)</span></h2>
-<p class="draft-flag">이 절은 논문 본문이 아니라 저자의 작업용 메모다 — 투고처 검토
-상황과 진행 중인 행정 이슈(크레딧 잠금 등)를 그대로 남겨 이 문서 자체를 살아 있는
-기록으로 유지한다. 인용·심사용으로는 본문 1~9절만 참고하라. 크레딧 잠금 사건의 전말은
-<a href="#part5">제1편 5부</a>에 있다.</p>
-<table>
-<tr><th style="width:32%">후보</th><th>개작 방향</th></tr>
-<tr><td>한국방위산업학회지</td><td>7절(온톨로지×임무형지휘)을 중심 축으로 재편, 6절 결함 사례는 압축, 기존 투고 양식(21×28cm) 적용. 저자의 온톨로지 3부작·임무형지휘 연구와 연계 인용</td></tr>
-<tr><td>J. of Defense Modeling &amp; Simulation</td><td>영역(英譯), 아키텍처·실증(6절) 축, 7절은 사례로</td></tr>
-<tr><td>arXiv (cs.AI / cs.SE)</td><td>영역, 6절 사례연구 중심의 시스템 논문으로, 7절은 응용 절</td></tr>
-</table>
-<p class="note">남은 v2 확정 조건: 실LLM 종단 검증(validate_live) 결과를 6절에 추가.
-현재 크레딧 잠금 건으로 Anthropic 지원 처리 대기 중(2026-07-10 접수).</p>
-
-
-</div>
-
 <div class="status">
-통합본 — 서문 · 제1편(이야기) · 제2편(사용 안내) · 제3편(설계와 실증) · 에필로그 · 부록.
+통합본 — 서문 · 제1편(이야기) · 제2편(사용 안내) · 제3편(설계와 실증) · 에필로그.
 원문은 <code>BOOK_NARRATIVE.ko.md</code> · <code>MANUAL.ko.md</code> · <code>PAPER.ko.md</code>에서 관리되며
-이 HTML은 세 문서의 합본 조판본이다.
+이 HTML은 세 문서의 합본 조판본이다. 논문의 투고 계획 메모는
+<a href="./PAPER.ko.html">PAPER.ko.html</a> 부록 A에 있다.
 </div>
 
 <footer>
