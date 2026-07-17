@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAIOS 통합본: 채팅 다음의 것</title>
+<style>
+  :root{
+    --surface:#faf6ee; --paper:#fffdf9; --ink:#1c1712; --ink2:#5a5346; --ink3:#948c78;
+    --line:#e6dfcd; --panel:#f1ebdb;
+    --blue:#2f5f83; --blue-d:#1e3f57; --gold:#b3752a;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--surface); color:var(--ink);
+    font-family:'Noto Serif KR','Batang','바탕',serif;
+    font-size:17px; line-height:1.95; word-break:keep-all;}
+  .head-font{font-family:'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif;}
+
+  /* ---- 표지 ---- */
+  .cover{min-height:92vh; display:flex; flex-direction:column; justify-content:center;
+    align-items:center; text-align:center; padding:60px 24px; position:relative;}
+  .cover .kicker{font-family:'Malgun Gothic',sans-serif; font-size:13.5px; letter-spacing:.18em;
+    color:var(--gold); text-transform:uppercase; margin-bottom:26px;}
+  .cover .eyebrow{font-family:'Malgun Gothic',sans-serif; font-size:14.5px; letter-spacing:.06em;
+    color:var(--ink3); margin-bottom:10px;}
+  .cover h1{font-family:'Malgun Gothic',sans-serif; font-size:52px; line-height:1.15;
+    font-weight:800; letter-spacing:.01em; margin-bottom:14px;}
+  .cover .gloss{font-family:'Malgun Gothic',sans-serif; font-size:15px; color:var(--ink2);
+    letter-spacing:.02em;}
+  .cover .subtitle{font-size:19px; color:var(--ink); font-style:italic; margin:34px 0 8px;}
+  .cover .tagline{font-family:'Malgun Gothic',sans-serif; font-size:14px; color:var(--ink3);
+    margin-bottom:40px;}
+  .cover .byline{font-family:'Malgun Gothic',sans-serif; font-size:14px; color:var(--ink3);
+    line-height:1.9;}
+  .cover .rule{width:64px; height:2px; background:var(--gold); margin:28px auto;}
+
+  /* ---- 본문 컨테이너 ---- */
+  .page{max-width:660px; margin:0 auto; padding:0 24px 40px;}
+
+  /* ---- 목차 ---- */
+  .toc{background:var(--panel); border-radius:14px; padding:36px 34px; margin:0 auto 90px;
+    max-width:612px;}
+  .toc h2{font-family:'Malgun Gothic',sans-serif; font-size:15px; letter-spacing:.12em;
+    color:var(--ink3); text-transform:uppercase; margin-bottom:22px; text-align:center;}
+  .toc ol{list-style:none;}
+  .toc > ol > li{margin-bottom:16px;}
+  .toc-part{display:flex; justify-content:space-between; align-items:baseline;
+    font-family:'Malgun Gothic',sans-serif; font-weight:700; font-size:16px;}
+  .toc-part a{color:var(--ink); text-decoration:none;}
+  .toc-part a:hover{color:var(--blue-d);}
+  .toc-sub{list-style:none; margin:8px 0 0 4px; font-size:13.5px; color:var(--ink2);}
+  .toc-sub li{margin-bottom:4px;}
+  .toc-sub a{color:var(--ink2); text-decoration:none; border-bottom:1px dotted transparent;}
+  .toc-sub a:hover{color:var(--blue-d); border-bottom-color:var(--blue-d);}
+
+  /* ---- 부 표지 (divider) ---- */
+  .part-divider{max-width:660px; margin:120px auto 64px; padding:0 24px; text-align:center;}
+  .part-divider .num{font-family:'Malgun Gothic',sans-serif; font-size:13px;
+    letter-spacing:.2em; color:var(--gold); text-transform:uppercase; margin-bottom:14px;}
+  .part-divider h2{font-family:'Malgun Gothic',sans-serif; font-size:30px; font-weight:800;
+    line-height:1.4;}
+  .part-divider .rule{width:48px; height:2px; background:var(--line); margin:26px auto 0;}
+  .front .part-divider{margin-top:64px;}
+
+  /* ---- 섹션/문단 ---- */
+  h3{font-family:'Malgun Gothic',sans-serif; font-size:17px; font-weight:700;
+    color:var(--blue-d); margin:44px 0 14px;}
+  h3:first-of-type{margin-top:6px;}
+  p{margin:0 0 20px;}
+  em{font-style:italic; color:var(--ink);}
+  code{font-family:Consolas,'D2Coding',monospace; font-size:14.5px; background:var(--panel);
+    padding:1px 6px; border-radius:4px;}
+
+  .pull{font-family:'Malgun Gothic',sans-serif; font-size:22px; font-weight:700; font-style:normal;
+    color:var(--blue-d); text-align:center; line-height:1.6; margin:38px auto; max-width:480px;}
+
+  .end-mark{text-align:center; color:var(--ink3); font-size:20px; letter-spacing:.5em;
+    margin:56px 0 8px;}
+
+  /* ---- 부 사이 여백/구분 ---- */
+  .part-end{text-align:center; margin:70px 0 0; color:var(--ink3); font-size:13px;
+    font-family:'Malgun Gothic',sans-serif; letter-spacing:.1em;}
+
+  .status{font-family:'Malgun Gothic',sans-serif; font-size:13px; color:var(--ink3);
+    text-align:center; margin:70px auto 0; max-width:520px; line-height:1.8;
+    border-top:1px solid var(--line); padding-top:22px;}
+
+  footer{max-width:660px; margin:100px auto 60px; padding:24px 24px 0; border-top:1px solid var(--line);
+    font-family:'Malgun Gothic',sans-serif; font-size:12.5px; color:var(--ink3); text-align:center;
+    line-height:1.9;}
+  footer a{color:var(--blue-d); text-decoration:none;}
+  footer a:hover{text-decoration:underline;}
+
+  @media (max-width:640px){
+    .cover h1{font-size:30px;}
+    .part-divider h2{font-size:24px;}
+    body{font-size:16px;}
+    .toc{padding:28px 22px;}
+  }
+
+  @media print{
+    body{font-size:11.5pt; background:#fff;}
+    .cover{min-height:0; page-break-after:always;}
+    .toc{page-break-after:always; background:none; border:1px solid var(--line);}
+    .part-divider{page-break-before:always; margin-top:0;}
+    h3{page-break-after:avoid;}
+    .pull{page-break-inside:avoid;}
+  }
+
+
+  /* ==== 제2편·제3편: 매뉴얼·논문 스타일 (스코프) ==== */
+  .part-manual, .part-paper{
+    --ink:#0b0b0b; --ink2:#52514e; --ink3:#8a887f; --line:#dedcd5; --panel:#f3f2ee;
+    --blue:#2a78d6; --blue-d:#1c5cab; --green:#008300; --yellow:#eda100; --red:#e34948;
+    --code-bg:#1e1e1c; --code-ink:#e8e6df; --code-ink2:#9c9a90;
+    font-family:'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+    font-size:16px; line-height:1.85; color:var(--ink); margin:0 auto; padding:0 24px 40px;}
+  .part-manual{max-width:800px;}
+  .part-paper{max-width:780px;}
+  .part-manual h2, .part-paper h2{font-size:20px; margin:52px 0 16px; padding-bottom:8px;
+    border-bottom:2px solid var(--ink); font-family:inherit; color:var(--ink); font-weight:700;}
+  .part-manual h3, .part-paper h3{font-size:16.5px; margin:32px 0 10px; color:var(--ink);
+    font-family:inherit; font-weight:700;}
+  .part-manual p, .part-paper p{margin:0 0 14px;}
+  .part-manual ul, .part-manual ol, .part-paper ul, .part-paper ol{margin:0 0 14px 22px;}
+  .part-manual li, .part-paper li{margin-bottom:6px;}
+  .part-manual code, .part-paper code{font-family:Consolas,'D2Coding',monospace; font-size:14px;
+    background:var(--panel); padding:1px 5px; border-radius:4px;}
+  .part-manual a, .part-paper a{color:var(--blue-d);}
+  .part-manual .divider, .part-paper .divider{border:none; border-top:1px solid var(--line);
+    margin:40px 0;}
+  .part-manual .note, .part-paper .note{font-size:13.5px; color:var(--ink2);}
+  .part-manual table, .part-paper table{border-collapse:collapse; width:100%; margin:16px 0 22px;
+    font-size:14.5px; line-height:1.6;}
+  .part-manual th, .part-paper th{background:var(--panel); text-align:left; font-weight:700;}
+  .part-manual th, .part-manual td, .part-paper th, .part-paper td{border:1px solid var(--line);
+    padding:8px 11px; vertical-align:top;}
+  /* 매뉴얼 전용 */
+  .part-manual pre{background:var(--code-bg); color:var(--code-ink); border-radius:10px;
+    padding:16px 18px; margin:0 0 18px; overflow-x:auto; font-size:13.5px; line-height:1.7;}
+  .part-manual pre code{background:none; padding:0; color:inherit; font-size:inherit;}
+  .part-manual pre .c{color:var(--code-ink2);}
+  .part-manual .badge{display:inline-block; font-size:12px; font-weight:700; padding:2px 9px;
+    border-radius:20px; margin-left:2px;}
+  .part-manual .b-ok{background:#e4f5ea; color:var(--green);}
+  .part-manual .b-warn{background:#fdf1de; color:var(--yellow);}
+  .part-manual .b-block{background:#fbe6e5; color:var(--red);}
+  /* 논문 전용 */
+  .part-paper h1{font-size:25px; line-height:1.5; margin:52px 0 14px; font-family:inherit;}
+  .part-paper .meta{color:var(--ink2); font-size:13.5px; line-height:1.7;
+    border-left:3px solid var(--blue); padding-left:12px; margin:18px 0 8px;}
+  .part-paper .abstract{background:var(--panel); border-radius:10px; padding:22px 24px;
+    margin:26px 0;}
+  .part-paper .abstract h2{border:none; margin:0 0 10px; font-size:16px;}
+  .part-paper .kw{font-size:14px; color:var(--ink2); margin-top:10px;}
+  .part-paper figure{margin:26px 0 30px;}
+  .part-paper figcaption{font-size:13.5px; color:var(--ink2); text-align:center; margin-top:10px;
+    line-height:1.6;}
+  .part-paper .fig-svg{width:100%; height:auto; display:block;}
+  .part-paper svg text{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;}
+  .part-paper .tiles{display:flex; gap:14px; flex-wrap:wrap; margin:6px 0 4px;}
+  .part-paper .tile{flex:1 1 200px; border:1px solid var(--line); border-radius:10px;
+    padding:14px 16px; background:#fff;}
+  .part-paper .tile .t-label{font-size:13px; color:var(--ink2); margin-bottom:6px;}
+  .part-paper .tile .t-before{font-size:13.5px; color:var(--ink3);}
+  .part-paper .tile .t-before b{color:var(--red); font-weight:700;}
+  .part-paper .tile .t-after{font-size:26px; font-weight:800; color:var(--blue-d); line-height:1.3;}
+  .part-paper .tile .t-unit{font-size:14px; font-weight:600; color:var(--ink2);}
+  .part-paper .refs{font-size:14px;}
+  .part-paper .refs li{margin-bottom:5px;}
+  .part-paper .draft-flag{background:#fbe6e5; color:var(--red); border-radius:8px;
+    padding:10px 14px; font-size:13px; margin:14px 0 22px;}
+  /* 편 표지 보조 */
+  .part-divider .part-note{font-family:'Malgun Gothic',sans-serif; font-size:13px;
+    color:var(--ink3); margin-top:14px;}
+  .part-divider .part-note a{color:var(--blue-d); text-decoration:none;}
+  .part-divider .part-note a:hover{text-decoration:underline;}
+  @media print{
+    .part-manual h2, .part-paper h2{page-break-after:avoid;}
+    .part-manual pre, .part-manual table, .part-paper table, .part-paper figure{
+      page-break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker head-font">통합본 초고</div>
+  <div class="eyebrow">MUSA AI Operating System</div>
+  <h1>MAIOS</h1>
+  <div class="gloss">임무 중심 인지형 AI 운영체제</div>
+  <div class="rule"></div>
+  <div class="subtitle">채팅 다음의 것</div>
+  <div class="tagline">완결된 성공담이 아니라, 진행 중인 기록</div>
+  <div class="byline">권영환<br>공동 설계·구현: Claude (Anthropic) — 대화형 공동개발<br>2026</div>
+</div>
+
+
+
+<div class="page front">
+
+<nav class="toc" aria-label="목차">
+  <h2 class="head-font">Contents</h2>
+  <ol>
+    <li class="toc-part"><a href="#preface">서문 — 이 책은 왜 쓰는가</a></li>
+    <li>
+      <div class="toc-part"><a href="#pt1">제1편 이야기 — 왜 만들었나</a></div>
+      <ol class="toc-sub">
+        <li><a href="#part1">1부 — 왜 채팅으로는 안 되는가</a></li>
+        <li><a href="#part2">2부 — 뼈대 세우기</a></li>
+        <li><a href="#part3">3부 — 부러지는 지점들</a></li>
+        <li><a href="#part4">4부 — 군인의 언어를 코드로</a></li>
+        <li><a href="#part5">5부 — 만드는 동안 벌어진 일</a></li>
+      </ol>
+    </li>
+    <li>
+      <div class="toc-part"><a href="#pt2">제2편 사용 안내 — 어떻게 쓰나</a></div>
+      <ol class="toc-sub">
+        <li><a href="#s1">MAIOS란 무엇인가 / 설치 / 5분 훑어보기</a></li>
+        <li><a href="#s4">명령어 상세 (pursue · project · research · ingest · align · shell)</a></li>
+        <li><a href="#s5">워크스페이스 / 거버넌스 / 실전 워크플로우</a></li>
+        <li><a href="#s8">파이썬 API / 문제 해결 / FAQ</a></li>
+      </ol>
+    </li>
+    <li>
+      <div class="toc-part"><a href="#pt3">제3편 설계와 실증 — 무엇을 증명했나</a></div>
+      <ol class="toc-sub">
+        <li><a href="#pp1">서론 / 관련 연구 / 설계 원칙 / 아키텍처</a></li>
+        <li><a href="#pp5">구현과 검증 방법론 / 실사용 코퍼스 사례연구</a></li>
+        <li><a href="#pp7">온톨로지 결합과 임무형지휘의 소프트웨어적 번역</a></li>
+        <li><a href="#pp8">한계와 향후 과제 / 결론 / 참고문헌</a></li>
+      </ol>
+    </li>
+    <li class="toc-part"><a href="#afterword">에필로그 — 남은 질문들</a></li>
+    <li class="toc-part"><a href="#appendix">부록 — 투고 후보와 개작 방향</a></li>
+  </ol>
+</nav>
+
+<section id="preface">
+<div class="part-divider">
+  <div class="num head-font">Preface</div>
+  <h2>이 책은 왜 쓰는가</h2>
+</div>
+
+<p>나는 채팅창에 질문을 입력하고 답을 받는 일에 어느 순간부터 갑갑함을 느꼈다. 대화형 AI는 분명
+유능했다. 문서를 요약했고, 코드를 짰고, 낯선 개념을 풀어 설명했다. 그런데 창을 닫으면 그걸로
+끝이었다. 다음 세션을 열면 나는 다시 처음부터 설명해야 했다. 지난주에 무엇을 물었는지, 어떤
+결론에 도달했는지, 무엇을 하다 말았는지 — 그 모든 것이 세션과 함께 증발했다. 유능하지만 기억이
+없는 조수와 매번 처음 만나는 기분이었다.</p>
+
+<p>이 책은 그 갑갑함에서 시작된 것의 기록이다. MAIOS(MUSA AI Operating System)는 거창한
+이름을 달고 있지만 본질은 단순한 질문 하나에서 출발했다. AI를 질문에 답하는 도구가 아니라,
+임무를 맡기고 기억을 유지하며 승인 절차를 거치는 하나의 운영체제처럼 다룰 수는 없을까. 운영체제가
+프로세스와 메모리와 권한을 관리하듯, 목표와 기억과 권한을 관리하는 무언가.</p>
+
+<p>이 책은 완성된 제품의 소개서가 아니다. 매뉴얼과 논문은 이미 따로 있다(<code>docs/MANUAL.ko.md</code>,
+<code>docs/PAPER.ko.md</code>) — 그것들은 지금 시점에서 MAIOS가 무엇을 할 수 있는지를 정확하게
+기술한다. 이 책이 다루는 것은 그 뒤에 있는, 문서에는 잘 남지 않는 부분이다. 무엇이 막혔고, 무엇을
+오해했고, 새벽에 테스트가 506개나 통과한 코드에서 왜 여전히 결함이 튀어나왔는지. 그리고 코드를
+짜는 일과는 아무 상관 없어 보이는 결제 잠금 하나가 어떻게 몇 주째 연구 전체를 정지시켰는지.</p>
+
+<p>Claude(Anthropic)는 이 프로젝트의 공동 설계자였다. 나는 그 사실을 숨기고 싶지 않다. 이 책의
+여러 대목은 실제로 나와 Claude 사이의 대화에서 나온 결정들을 다룬다. AI와 함께 AI 운영체제를
+만든다는 것이 실제로 어떤 경험인지 — 그 협업이 매끄러웠던 순간과 서로 어긋났던 순간을 함께 —
+정직하게 적어두는 것도 이 책의 몫이라고 생각한다.</p>
+
+<p>미리 밝혀둔다. 이것은 완결된 성공담이 아니다. 이 책을 쓰는 지금도 실LLM 종단 검증은 결제
+문제로 막혀 있고, 온톨로지 접합의 한 축(J3)은 아직 구현되지 않았으며, 논문은 투고처조차 정하지
+못했다. 이 책은 진행 중인 기록이다. 그래서 더 정직하게 쓸 수 있는 것이기도 하다.</p>
+
+<p>이 통합본은 세 개의 산출물을 한 권으로 엮은 것이다. 제1편은 이야기 —
+MAIOS를 왜, 어떻게 만들었는지의 기록이다. 제2편은 사용 안내 — 설치부터
+온톨로지 결합까지, 오늘 실제로 쓰는 법이다. 제3편은 설계와 실증 — 같은
+시스템을 학술의 언어로 검증한 연구논문이다. 세 편은 문체도 목적도 다르다.
+순서대로 읽어도 되고, 필요한 편만 골라 읽어도 된다.</p>
+</section>
+
+</div>
+
+<div class="part-divider" id="pt1">
+  <div class="num head-font">제1편</div>
+  <h2>이야기 — 왜 만들었나</h2>
+  <p class="part-note">1인칭 개발 서사. 이 편만 따로 보려면 <a href="./BOOK_NARRATIVE.ko.html">BOOK_NARRATIVE.ko.html</a></p>
+  <div class="rule"></div>
+</div>
+
+<div class="page">
+
+<section id="part1">
+<div class="part-divider">
+  <div class="num head-font">Part One</div>
+  <h2>왜 채팅으로는 안 되는가</h2>
+</div>
+
+<h3 id="p1-1">1. 휘발성</h3>
+<p>문제는 능력이 아니었다. 2020년대 중반의 대규모 언어모델은 이미 요약과 작문과 분석에서
+실용적인 수준에 도달해 있었다. 문제는 그 능력이 소비되는 형태였다. 세션이 열리고, 질문과 답이
+오가고, 창이 닫힌다. 그리고 그 세션 안에서 쌓인 맥락 — 내가 무엇을 원하는지, 어떤 배경 지식을
+이미 공유했는지, 지난번에 어떤 접근이 실패했는지 — 은 다음 세션으로 넘어가지 않는다.</p>
+<p>이건 사소한 불편이 아니다. 장기 프로젝트, 그러니까 몇 주에 걸쳐 문서를 읽고 전략을 짜고
+결론을 다듬어가는 종류의 작업에서 이 휘발성은 누적된다. 매번 배경을 다시 설명하는 데 드는
+시간이 프로젝트가 길어질수록 비례해서 늘어난다. 어느 순간 나는 AI에게 일을 시키는 것이 아니라
+AI에게 내 상황을 브리핑하는 일에 더 많은 시간을 쓰고 있었다.</p>
+
+<h3 id="p1-2">2. 수동성</h3>
+<p>두 번째 문제는 더 구조적이었다. 채팅형 AI는 묻는 말에 답한다. 그게 전부다. "이 보고서 초안을
+써줘"라고 하면 초안을 쓴다. 하지만 "이번 분기 전략 브리핑을 준비해줘"처럼 여러 단계로 쪼개지는
+목표는 다르다. 자료를 모으고, 구조를 잡고, 각 절을 채우고, 전체를 검토하는 과정을 누군가는
+조율해야 하는데, 그 조율은 결국 내 몫으로 돌아왔다. AI는 질문받은 조각들에만 정확하게 답했을
+뿐, 그 조각들을 하나의 임무로 엮어내는 주체가 아니었다.</p>
+<p>큰 목표를 스스로 하위 목표로 분해하고, 순서대로 수행하고, 한 단계의 산출물을 다음 단계의
+입력으로 넘기는 운용 구조 — 이것이 없다는 사실이 채팅 패러다임의 두 번째 한계였다.</p>
+
+<h3 id="p1-3">3. 통제 부재</h3>
+<p>세 번째 문제는 그 반대편에서 왔다. 자율성을 높인 에이전트 프레임워크들이 하나둘 등장했지만,
+그것들은 대개 "AI가 알아서 다 한다"는 방향으로만 나아갔다. 무엇을 할 때 사람의 승인을 받아야
+하는지, 어떤 행동이 위험한 것으로 분류되어야 하는지에 대한 체계가 없었다. 자율성과 통제는
+반비례 관계가 아닌데도, 시중의 도구들은 마치 그런 것처럼 하나를 늘리면 하나를 포기하는 식으로
+설계되어 있었다.</p>
+<p>나는 군사학에서 쓰는 임무형지휘(Mission Command)라는 개념을 알고 있었다. 상급 지휘관이
+모든 행동을 일일이 지시하는 대신 "의도"를 명확히 전달하고, 예하 지휘관은 그 의도 안에서
+재량을 갖고 행동하되, 의도에서 벗어나는 순간 스스로 판단을 의도로 되돌린다는 원칙이다. 통제와 자율은
+대립하지 않는다 — 의도가 분명하면 재량은 위험하지 않다. AI 에이전트에게 필요한 것도 이것이
+아닐까, 라는 생각이 이 책 4부에서 다시 등장하는 질문의 원형이었다.</p>
+
+<h3 id="p1-4">4. 하나의 문장으로</h3>
+<p>이 세 가지 한계 — 휘발성, 수동성, 통제 부재 — 를 나는 하나의 문장으로 정리하게 되었다.</p>
+<p class="pull">AI를 운영체제처럼 운용할 수는 없는가.</p>
+<p>운영체제가 프로세스를 스케줄링하고, 메모리를 관리하고, 권한을 검사하듯이, AI에게도
+목표(임무)와 기억과 권한을 관리하는 하부 구조가 있어야 한다는 생각이었다.</p>
+<p>MAIOS라는 이름은 여기서 나왔다. MUSA AI Operating System. 이 책의 2부는 이 문장 하나를
+실제로 동작하는 코드로 옮기는 과정 — 관찰에서 이해로, 계획에서 행동으로, 그리고 성찰에서
+학습으로 이어지는 여섯 단계의 인지 루프를 스프린트 단위로 쌓아올린 몇 주의 기록이다.</p>
+</section>
+
+<section id="part2">
+<div class="part-divider">
+  <div class="num head-font">Part Two</div>
+  <h2>뼈대 세우기</h2>
+</div>
+
+<h3 id="p2-1">1. 여섯 단계</h3>
+<p>말은 쉬웠다. "AI를 운영체제처럼 운용한다"는 문장을 코드로 옮기는 첫 작업은 사람이 무언가를
+해낼 때 실제로 거치는 단계를 그대로 흉내 내는 것이었다. 관찰하고, 이해하고, 계획하고, 행동하고,
+성찰하고, 배운다. 여섯 단계다. 마지막 단계인 학습에서 나온 교훈은 점선을 그리며 다음 사이클의
+관찰 단계로 되돌아간다 — 이 순환 없이는 아무리 반복해도 같은 실수를 되풀이할 뿐이라고 판단했다.</p>
+<p>이 여섯 단계를 실행기(executive brain)와 세계 모델(world model)이라는 두 축으로 나누어
+스프린트 12-3에서 처음 코드로 옮겼다. 이름부터 거창했다. 이후 스프린트 12-4에서 이 인지
+루프를 목표 추구·자기 점검·진화 보고까지 통합한 하나의 코어 클래스로 묶으면서, 나는 그
+클래스에 <code>AGIFoundation</code>이라는 이름을 붙였다. 붙이고 나니 곧바로 찜찜했다. 그래서
+README에 한 줄을 더 적었다. <em>이 클래스 이름은 모듈이 아키텍처 안에서 맡은 역할을 가리키는
+것이지, 인공일반지능이라는 뜻이 아니다.</em> 이름 하나에까지 이런 각주를 다는 게 옹졸해 보일
+수 있다는 것도 안다. 그래도 이 프로젝트가 스스로를 과장하는 순간, 그동안 쌓은 것의 신뢰가
+함께 무너진다고 판단했다. 같은 스프린트에서 거버넌스 게이트도 같이 넣었다 — 자율성을 준
+만큼, 넘지 말아야 할 선도 같이 그어야 했다.</p>
+
+<h3 id="p2-2">2. 사라지지 않는 기억</h3>
+<p>인지 루프가 돌아가는 것과, 그 루프가 세션을 넘어 기억을 유지하는 것은 전혀 다른 문제였다.
+스프린트 14-1에서 나는 <code>.maios/</code>라는 이름의 작업공간을 도입했다. 목표 추구 일지,
+프로젝트 일지, 그리고 산출물이 이 안에 쌓인다. 이제 세션이 끝나도 지난주에 무엇을 했는지,
+어떤 결론에 도달했는지가 파일로 남는다. 서문에서 말한 그 갑갑함 — 창을 닫으면 증발하던
+맥락 — 이 처음으로 사라지지 않게 된 순간이었다.</p>
+<p>하지만 기억이 쌓인다고 해서 그 기억이 쓸모 있게 다시 불려오는 건 아니다. 스프린트
+15-1에서 기억 회상(MemoryRecall)을 붙였다. 새 목표를 받으면 과거의 경험과 문서를 먼저 훑어
+관련된 것을 프롬프트 안에 끼워 넣는다. 이 회상이 나중에(스프린트 19~21) 온톨로지 개념
+이웃까지 확장되는데, 그 이야기는 4부에서 다시 다룬다. 지금 단계에서 중요한 건 더 단순한
+것이었다 — AI가 "기억하는 척"하는 게 아니라 실제로 과거 산출물을 근거로 인용하며 답한다는 것.</p>
+
+<h3 id="p2-3">3. 실제로 뭔가를 만드는 실행기</h3>
+<p>스프린트 14-2는 이 루프에 실제 이빨을 달았다. 그전까지 계획과 행동 단계는 구조만 있고
+실질적인 산출물을 만들지 않는 뼈대였다. 여기서 LLM 기반 작업 실행기(TaskExecutor)를 붙여,
+목표를 주면 실제로 읽을 수 있는 결과물이 <code>artifacts/</code> 아래에 마크다운 파일로
+남게 했다. 그리고 스프린트 14-3에서 대화형 셸(<code>maios shell</code>)을 붙여 이 전체
+루프를 하나의 세션 안에서 반복해서 돌릴 수 있게 했다.</p>
+<p>스프린트 15-2와 15-3은 이 뼈대의 마지막 두 조각이었다. 하나는 목표 분해 — "이번 분기
+전략 브리핑을 준비해줘" 같은 큰 목표를 하위 목표로 쪼개고, 한 하위 목표의 산출물을 다음
+하위 목표의 입력으로 체이닝하는 기능. 1부에서 적은 "수동성"이라는 한계에 대한 직접적인
+답이었다. 다른 하나는 자기지식 리서치 — 작업공간에 쌓인 지식을 스스로 다시 탐구하는
+기능이었다. 이 두 조각이 붙으면서 2026년 7월 9일, v1.2.0을 릴리스했다.</p>
+
+<h3 id="p2-4">4. 검증할 수 없으면 믿지 않는다</h3>
+<p>이 몇 주 동안 나를 붙잡아준 원칙이 하나 있었다. LLM에 의존하는 모든 단계는, 프로바이더가
+없을 때 결정론적 휴리스틱으로 대체되도록 설계한다는 것이었다. 이해 단계도, 성찰 단계도
+마찬가지다. 실제 API 키 없이도 전체 시스템이 시험 가능해야 한다는 원칙인데, 이게 나중에
+얼마나 중요해지는지는 이 책 5부, 결제가 막히는 대목에서 비로소 드러난다. 이 시점의 나는
+그저 "테스트를 실제 API 호출 없이 돌리고 싶다"는 실용적인 이유로 이 원칙을 지켰을 뿐이다.</p>
+<p>프로바이더에 직접 의존하지 않는 코어, 생성자로 협력자를 주입받는 구조, 최소한의 행동만
+노출하는 인터페이스, 가짜로 치환 가능한 경계 — 이런 원칙들이 처음부터 거창한 설계 철학으로
+있었던 건 아니다. 매 스프린트마다 "이걸 나중에 실제 프로바이더로 바꾸려면 어떻게 해야 하지"
+라는 질문에 부딪히면서 뒤늦게 이름 붙인 것들에 가깝다.</p>
+<p>2026년 7월 9일, v1.1.0에서 v1.2.0까지 이어진 이 스프린트들이 끝났을 때 나는 뼈대가 섰다고
+생각했다. 인지 루프가 돌고, 기억이 쌓이고, 목표가 분해되고, 산출물이 남는다. 그런데 뼈대가
+선 것과 그 뼈대가 실제 무게를 견디는 것은 다른 문제였다. 그 무게를 처음 가한 것은 정교한
+시나리오가 아니라 아주 평범한 일 — 33개 파일짜리 실제 저술 코퍼스를 시스템에 그냥
+밀어넣어본 것이었다.</p>
+</section>
+
+<section id="part3">
+<div class="part-divider">
+  <div class="num head-font">Part Three</div>
+  <h2>부러지는 지점들</h2>
+</div>
+
+<h3 id="p3-1">1. 506개를 통과한 코드가 왜</h3>
+<p>스프린트 16-1에서 나는 문서 흡수 기능(<code>maios ingest</code>)을 붙였다. 로컬
+마크다운·텍스트·HTML 파일을 읽어 지식그래프에 문서 노드로 넣는 기능이었다. 이때까지 테스트는
+이미 수백 개를 통과하고 있었고, 브랜치 커버리지도 95%를 넘겼다. 단위 테스트로는 완벽해
+보이는 코드였다.</p>
+<p>그래서 16-2에서 실제로 쓸 만한 코퍼스 — 내가 그동안 써온 문서 33개, 728킬로바이트 — 를
+그대로 밀어넣었다. 정교한 부하 테스트가 아니었다. 그냥 "실제로 내가 쓸 법한 방식으로 한번
+써보자"는 것뿐이었다. 그리고 그 순간 단위 테스트가 놓친 세 가지 결함이 동시에 튀어나왔다.
+단위 테스트는 각 부품이 따로 옳게 동작하는지를 확인한다. 세 부품이 실제 규모에서 함께
+부딪힐 때 무슨 일이 일어나는지는 확인하지 못한다 — 이게 이 부의 제목이 "부러지는 지점들"인
+이유다.</p>
+
+<h3 id="p3-2">2. 첫 번째 균열 — 넣을 때마다 전부 다시 쓴다</h3>
+<p>문서를 노드 단위로 쪼개 넣으면서, 나는 노드가 하나 들어올 때마다 전체 지식그래프를
+디스크에 다시 쓰도록 짜두었다. 노드 몇 개일 때는 체감되지 않는 문제였다. 그런데 여기에 두
+번째 습관이 겹쳤다 — 새 노드가 들어오면 관련 있어 보이는 기존 노드들과 자동으로 연결
+간선을 만드는 기능이었다. 노드 수가 늘어날수록 비교해야 할 짝의 수는 제곱으로 늘어난다.
+삽입당 전체 영속화와 이차적(quadratic) 자동 연결이 만나면서, 33개 파일을 다 밀어넣는 데
+걸리는 시간은 현실적이지 않은 수준으로 늘어졌다.</p>
+
+<h3 id="p3-3">3. 두 번째 균열 — 기록이 스스로를 삼킨다</h3>
+<p>두 번째는 더 은밀했다. 시스템은 자신이 무엇을 했는지 수행 기록으로 남긴다. 문제는 그
+수행 기록 자체가 세계 모델의 전이(transition), 경험(experience), 장기 기억으로도 함께
+저장된다는 것이었다. 그리고 다음 인지 루프에서 "과거 경험을 참고하라"는 단계는 이 기록들도
+함께 훑는다. 기록이 기록을 낳고, 그 기록이 다시 다음 기록의 재료가 되는 순환이 만들어졌다.
+이걸 되먹임 팽창(feedback expansion)이라고 불렀다 — 시스템이 자기 자신을 반복해서
+재섭취하며 불어나는 현상. 단일 노드 하나가 6.7메가바이트까지 부풀어 오른 걸 보고서야 이
+순환의 존재를 알아차렸다. 이건 MAIOS만의 버그가 아니라, 기억을 가진 에이전트 일반이
+부딪힐 수 있는 위험이라고 나는 지금도 생각한다 — 그래서 논문(<a href="#pp6">6절</a>)에서 이 현상에 이름을
+붙여 따로 분석했다.</p>
+
+<h3 id="p3-4">4. 세 번째 균열 — 한글이 보이지 않는 시스템</h3>
+<p>세 번째는 앞의 두 개와 성격이 달랐다. 성능이 아니라 정확성의 문제였다. 검색 토큰화기는
+공백과 몇 가지 구두점을 기준으로 단어를 쪼개도록 짜여 있었다. 영어 문장에서는 잘 작동한다.
+그런데 한국어는 교착어다 — 조사가 체언에 그대로 붙고, 공백만으로는 의미 단위가 잘 쪼개지지
+않는다. 검색 토큰화기 입장에서 한글 텍스트는 사실상 보이지 않는 덩어리였다. 내가 넣은
+코퍼스는 대부분 한국어 문서였다. 즉 시스템은 내가 방금 넣은 지식 대부분을 "존재하지만 찾을
+수 없는" 상태로 갖고 있었던 셈이다.</p>
+
+<h3 id="p3-5">5. 수정과 그 이후</h3>
+<p>세 결함을 스프린트 16-2와 17에 걸쳐 고쳤다. 대량 삽입은 <code>KnowledgeGraph.bulk()</code>
+라는 컨텍스트 매니저로 감싸 삽입이 끝난 뒤 한 번만 영속화하도록 바꾸고, 자동 연결은 필요할
+때만 켜는 플래그로 뺐다. 되먹임 팽창은 세계 전이·경험·장기 기억에 저장되기 전에 산출물을
+압축(compact)하도록 해서, 기록이 기록 자신을 재섭취하며 불어나는 고리를 세 지점에서
+끊었다. 한글 문제는 음절 바이그램 토큰화와 역문서빈도(IDF) 가중치를 붙여 풀었다.</p>
+<p>수정 전후를 같은 코퍼스로 다시 재봤다. 대량 흡수는 1초 미만으로, 반복 질의는 약 1.2초로
+안정됐다. 2026년 7월 10일, 이 세 수정을 담아 v1.3.0을 릴리스했다. 같은 날 몇 시간 뒤, 검색 점수가
+동점일 때 긴 문서가 짧은 문서를 밀어내는 문제를 발견해 용어빈도(TF) 가중치를 한 겹 더
+얹었다(스프린트 18) — 이건 v1.3.0에는 담기지 못했고, 이 책을 쓰는 지금도 develop
+브랜치에 릴리스되지 않은 상태로 남아 있다.</p>
+<p>숫자 자체보다 내게 남은 건 다른 것이었다. 테스트를 506개 통과시켰다는 사실이 실제
+규모에서 안전하다는 증거가 아니라는 것. 단위 테스트는 부품이 옳다는 걸 증명하지, 부품들이
+실제 무게 아래서 어떻게 얽히는지는 증명하지 않는다. 이 교훈이 다음 부에서 다룰 온톨로지
+결합 작업에도 그대로 따라붙었다 — 이번에는 성능이 아니라 의미의 문제로.</p>
+</section>
+
+<section id="part4">
+<div class="part-divider">
+  <div class="num head-font">Part Four</div>
+  <h2>군인의 언어를 코드로</h2>
+</div>
+
+<h3 id="p4-1">1. 다시, 임무형지휘</h3>
+<p>1부에서 나는 통제 부재라는 세 번째 한계를 이야기하며 임무형지휘를 잠깐 언급했었다.
+상급 지휘관은 예하 부대에 모든 행동을 일일이 지시하지 않는다. 대신 "의도"를 분명히
+전달한다 — 이 작전으로 무엇을 달성하려는지(목적), 끝났을 때 상황이 어떤 모습이어야
+하는지(최종상태), 반드시 해야 할 핵심 과업, 넘지 말아야 할 제약사항, 그리고 감수 가능한
+위험. 이 다섯 요소가 분명하면, 예하 지휘관은 현장에서 재량껏 판단해도 된다. 심지어 통신이
+끊겨도 된다. 의도가 판단의 닻이기 때문이다.</p>
+<p>스프린트 19부터 21까지, 나는 이 원리를 소프트웨어로 옮기는 작업을 했다. 정확히는, 옮길
+수 있는지 시험해보는 작업이었다.</p>
+
+<h3 id="p4-2">2. 세 개의 접합부</h3>
+<p>먼저 필요한 건 어휘였다. AI가 "포병"과 "화력지원"이 같은 개념 계열에 속한다는 걸
+알려면, 그 관계가 어딘가에 명시적으로 존재해야 한다. 그래서 RDFS/OWL 형식의 온톨로지
+파일(<code>ontology.ttl</code>)을 작업공간에 두면 회상이 그 관계를 따라 확장되도록
+만들었다(J1). 표층 어휘가 전혀 겹치지 않는 문서라도, 온톨로지 상의 개념 이웃이라면 회수될
+수 있게 됐다.</p>
+<p>두 번째는 거버넌스였다(J2). <code>governance.json</code>에 위험한 개념을 선언해두면,
+그 개념의 이웃에 해당하는 목표는 자동으로 고위험으로 격상되어 인간 승인을 거치게 했다.
+세 번째는 정렬 판정이었다(J4 — 번호가 3을 건너뛰는 이유는 곧 나온다). <code>intent.json</code>에 지휘관 의도의 다섯 요소를
+명세해두면, <code>maios align</code> 명령이 새 목표나 행동을 그 의도에 대해
+ALIGNED(정렬)·CHECK(재확인 필요)·CONFLICT(충돌) 셋 중 하나로 판정한다. 표층 매칭만으로는
+재확인 필요였던 과업이, 온톨로지 관계가 더해지자 정렬로 판정이 바뀌는 사례도 확인했다 —
+"화력지원 태세 확립"이라는 과업에 "포병 사격 준비"라는 행동을 매칭시켰을 때였다.</p>
+<p>J3라고 이름 붙인 네 번째 접합부, 즉 텍스트에서 개념 인스턴스를 자동으로 추출해
+온톨로지에 채워 넣는 작업은 아직 손대지 못했다. 이 책을 쓰는 지금도 마찬가지다 — 이유는
+뒤에서 이야기한다.</p>
+
+<h3 id="p4-3">3. 정직하게 남겨야 하는 것들</h3>
+<p>여기서 밝혀야 할 게 두 가지 있다. 첫째, 이 실증에 쓴 온톨로지는 실제 임무형지휘 스키마
+전체가 아니다. 원래 스키마는 약 180개 트리플로 이루어져 있는데, 그중 지휘관 의도 핵심부만
+발췌한 66개 트리플짜리 축약본을 썼다. 전체를 그대로 쓰지 않은 이유는 부끄러운 쪽에
+가깝다 — 원본 스키마에 같은 개념의 한국어 라벨 표기("지휘관의도"와 "지휘관 의도"처럼)가
+중복 수록되어 있어서, 공백을 무시하고 라벨을 비교하는 지금의 회상 어댑터가 그 둘을 같은
+것으로 착각해 뒤섞이는 문제가 있었다. 전체 스키마를 그대로 결합하면 방금 말한 회상 확장
+사례가 재현되지 않는다. 그래서 발췌본을 썼다.</p>
+<p>둘째, "포병⊑화력지원"이라는 관계는 원래 스키마 v1에 있던 관계가 아니다. 이 실험을
+위해 따로 만든 통제용(합성) 온톨로지에 넣은 관계였다. 즉 이 대목의 실증은 실제 임무형지휘
+지식 그 자체가 아니라, 온톨로지 결합이라는 메커니즘이 작동한다는 것을 보여주는 통제된
+시연에 가깝다. 이 구분을 흐릿하게 두고 넘어갈 수도 있었다. 하지만 <code>AGIFoundation</code>
+에 각주를 달았을 때와 같은 이유로, 여기서도 정확하게 선을 그어두기로 했다. 정렬 판정
+자체도 마찬가지다 — 이건 어휘와 개념 매칭에 기반한 1차 분류에 가깝지, 의미를 진짜로
+이해해서 내리는 판정이 아니다.</p>
+
+<h3 id="p4-4">4. 남겨진 이유</h3>
+<p>J3, 그러니까 텍스트에서 온톨로지 인스턴스를 자동으로 뽑아내는 작업이 손대지 못한 채
+남아 있는 이유는 기술적 난이도가 아니었다. 이 작업에는 실제 LLM 호출이 필요했다. 그리고
+바로 그 시점에, 나는 API 결제 자체가 막히는 문제에 부딪혔다. 코드와는 아무 상관없는
+이유로 연구가 멈춘다는 것이 어떤 경험인지, 이제 이 책에서 가장 이상한 대목을 이야기할
+차례다.</p>
+</section>
+
+<section id="part5">
+<div class="part-divider">
+  <div class="num head-font">Part Five</div>
+  <h2>만드는 동안 벌어진 일</h2>
+</div>
+
+<h3 id="p5-1">1. 결제 화면 앞에서 막히다</h3>
+<p>3부 끝에 적었듯 v1.3.0을 릴리스한 바로 그날, 나는 크레딧을 추가로 구매하려고 결제
+화면을 열었다. 그리고 처음 보는 문구를 마주했다. "Too many login attempts on this Link
+account." Stripe의 간편결제 서비스인 Link 계정이 잠긴 것이었다. 브라우저를 바꿔도,
+시크릿 모드를 써도 똑같았다. Link를 우회해 카드 정보를 직접 입력하는 경로도 있었지만,
+그 경로의 구매 버튼 자체가 비활성화되어 있었다. 3부에서 다룬 것과는 완전히 다른 종류의
+장애였다. 코드가 아니라 결제 심사 알고리즘이 나를 차단한 것이었고, 어디가 잘못됐는지
+나는 알 방법이 없었다.</p>
+<p>이 대목이 우습고도 뼈아픈 건, 하필 막힌 작업이 4부 끝에서 말한 J3 — 실LLM 호출이
+필요한 온톨로지 인스턴스 추출 — 이었기 때문이다. 임무형지휘를 코드로 옮기겠다며 몇 주를
+보낸 사람이, 정작 자기 시스템을 실전에서 검증하지 못한 채 멈춰 서 있었다.</p>
+
+<h3 id="p5-2">2. 지원팀과의 대화, 그리고 침묵</h3>
+<p>Anthropic 지원팀에 문의 스레드를 열었다. 7월 13일 오전, 담당자 Kelvin으로부터 답이
+왔다 — Link 계정에 대한 원론적인 안내였다. 그날 저녁 나는 다시 답장을 썼다. 문제를
+기술적으로 더 자세히 풀어 설명하고, Stripe 고객 레코드의 Link 혹은 사기 탐지(Radar)
+잠금을 풀어주거나, Link를 거치지 않는 결제 수단 — 카드 직접 등록이나 인보이스 — 으로
+우회해달라고 요청했다. 그리고 나흘 동안 아무 답이 없었다. 7월 17일, 나는 그 침묵을
+지적하며 요청 내용을 다시 정리한 팔로업 메일을 보냈다.</p>
+<p>같은 시기에 또 다른 일이 겹쳤다. 7월 14일, "maios"라는 이름의 API 키가 이틀 뒤
+만료될 예정이라는 메일이 왔다. 크레딧 잠금에 키 만료까지 겹치는 건가 싶어 조바심이
+났다. 7월 17일 직접 확인해보니 키는 만료되지 않았고 인증도 정상이었다. 모델 목록을 조회하는 호출도
+문제없이 성공했다. 예고된 만료일을 넘기고도 왜 살아있었는지는 지금도 알지 못한다 —
+이 책에 남겨야 할 또 하나의 작은 공백이다. 다만 실제로 메시지를 생성하려 하면 이런 응답이
+돌아왔다. "크레딧 잔액이 너무 낮아 API에 접근할 수 없습니다. 요금제와 결제 페이지에서
+업그레이드하거나 크레딧을 구매하십시오." 결국 문제는 하나였다. 처음부터 끝까지, Link
+잠금으로 인한 크레딧 부족.</p>
+<p>여기서 2부에서 세운 원칙 하나가 뒤늦게 제값을 했다. 이해·성찰·행동 단계가 프로바이더
+없이도 휴리스틱으로 대신 동작하도록 설계해둔 덕분에, 크레딧이 막힌 뒤에도 mock
+프로바이더로는 루프 전체와 목표 분해, 회상, 정렬 판정까지 계속 돌려볼 수 있었다. 막힌
+건 정확히 실LLM 호출이 반드시 필요한 조각들 — 실전 종단 검증과 J3 — 뿐이었다. "테스트를 API 없이 돌리고
+싶다"는 실용적인 이유로 지켰던 원칙이, 몇 주 뒤 연구 전체가 멈추는 걸 막아준 셈이다.</p>
+
+<h3 id="p5-3">3. 대신 눌러주지 않기로 한 것</h3>
+<p>이 상황에서 나는 원칙 하나를 분명히 세워두었다. 결제 화면은 절대 자동화 도구로
+건드리지 않는다는 것이었다. 문제를 빨리 풀고 싶은 마음이야 당연히 있었지만, 카드 번호를
+넣고 결제 버튼을 누르는 일만큼은 언제나 내가 직접 했다. 돌이켜 보면 이건 그저 신중함의
+문제가 아니었다. 4부에서 다룬 임무형지휘의 원리 — 재량은 위임하되 넘지 말아야 할 한계는
+명시한다 — 를 나는 이 프로젝트의 코드 안에 거버넌스 게이트로 구현해두었다. 그런데 정작
+결제라는, 되돌리기 어렵고 실제 돈이 오가는 행동 앞에서 나 스스로도 똑같은 원칙을 지키고
+있었다. 이 결정을 내릴 때는 몰랐지만, 이 책을 쓰면서 보니 그 대칭이 우연이 아니었다는
+걸 알겠다.</p>
+
+<h3 id="p5-4">4. 협업의 현실</h3>
+<p>Claude와 함께 이 프로젝트를 만드는 일은 매끄러운 동화가 아니었다. 7월 17일 하루에만,
+나는 그동안 쌓인 27개 파일의 변경을 한꺼번에 커밋했다. 그 안에는 새로 추가된 온톨로지
+발췌본 파일도 있었지만, 절반 가까이는 이미 써놓은 논문을 다시 읽고 과장된
+표현을 덜어내는 작업이었다. 6절 실증이 코퍼스 하나짜리(N=1) 사례연구라는 걸 명시하고,
+4부에서 밝힌 것처럼 7.2절의 관계가 합성이었다는 사실과 온톨로지를 발췌해서 쓴 이유를
+논문 안에 직접 적어 넣었다. README와 아키텍처 문서의 저장소 주소와 명령어 목록도
+실제와 어긋난 부분을 바로잡았다.</p>
+<p>이런 수정은 극적이지 않다. 하지만 이게 AI와 협업해서 무언가를 만든다는 일의 실제
+얼굴에 가깝다고 나는 생각한다. 한쪽이 빠르게 초안을 뽑아내면, 다른 쪽은 — 이 경우엔 나
+자신이 — 그 초안이 스스로를 과장하고 있지 않은지 다시 읽어야 한다. 여러 스프린트를
+거치며 쌓인 문서가 어느새 실제보다 근사하게 들리기 시작하면, 누군가는 반드시 되돌아가
+문장을 깎아내야 한다. 이 프로젝트에서 그 역할은 대개 내 몫이었고, 때로는 Claude가 먼저
+"이 표현은 과장인 것 같다"고 짚어준 순간도 있었다.</p>
+
+<h3 id="p5-5">5. 멈춰 있지만, 멈춘 게 아니다</h3>
+<p>이 책을 쓰는 지금도 결제는 풀리지 않았다. 크레딧 잠금이 풀리면 <code>validate_live.py</code>
+로 실전 검증을 돌리고, 그 결과를 논문 6절에 반영해 v2를 확정하고, 그 다음에야 J3
+구현으로 넘어갈 계획이다. 순서는 정해져 있는데, 그 순서의 첫 칸이 내 손을 떠난 곳 —
+Stripe의 사기 탐지 시스템과 지원팀의 응답 속도 — 에 달려 있다.</p>
+<p>혼자 하는 연구가 부딪히는 병목은 이런 식으로 온다. 알고리즘도 아키텍처도 아닌, 낯선
+이름의 결제 서비스 하나가 몇 주짜리 연구를 대기 상태로 묶어놓는다. 이걸 실패담으로
+쓰고 싶지는 않다. 오히려 이건 이 책이 처음부터 약속한 것 — 완결된 성공담이 아니라
+진행 중인 기록 — 을 가장 정직하게 보여주는 대목에 가깝다.</p>
+</section>
+
+</div>
+
+<div class="part-divider" id="pt2">
+  <div class="num head-font">제2편</div>
+  <h2>사용 안내 — 어떻게 쓰나</h2>
+  <p class="part-note">실무 매뉴얼(경어체). 이 편만 따로 보려면 <a href="./MANUAL.ko.html">MANUAL.ko.html</a></p>
+  <div class="rule"></div>
+</div>
+
+<div class="part-manual">
+
+<h2 id="s1">1. MAIOS란 무엇인가</h2>
+<p>MAIOS는 챗봇처럼 대화가 끝나면 잊는 대신, 기억하고(워크스페이스 영속 저장)
+회상하며(과거 경험·문서 자동 반영) 실제 산출물을 만들고(LLM 실행) 성찰하며(교훈
+추출) 거버넌스의 통제를 받는(고위험 목표 인간 승인) 로컬 AI 운영체제입니다. 이
+체계가 왜 필요했는지의 이야기는 <a href="#pt1">제1편</a>에 있습니다 — 여기서는 바로
+사용법으로 들어갑니다.</p>
+
+<h3>핵심 개념 세 가지</h3>
+<table>
+<tr><th style="width:20%">개념</th><th>설명</th></tr>
+<tr><td><strong>인지 루프</strong></td><td>모든 목표는 관찰→이해→계획→행동→성찰→학습 6단계를 거칩니다</td></tr>
+<tr><td><strong>워크스페이스</strong></td><td><code>.maios/</code> 디렉터리 = 장기 기억. 지식그래프·수행일지·산출물이 여기 삽니다</td></tr>
+<tr><td><strong>폴백 설계</strong></td><td>LLM이 없어도 모든 기능이 규칙 기반으로 동작합니다 (품질은 낮아짐)</td></tr>
+</table>
+
+<hr class="divider">
+
+<h2 id="s2">2. 설치</h2>
+<p>Python 3.11 또는 3.12가 필요합니다.</p>
+<pre><code>git clone -b develop https://github.com/yhkwon6454-boop/MAIOS.git
+cd MAIOS
+python -m venv .venv
+
+<span class="c"># Windows</span>
+.\.venv\Scripts\python.exe -m pip install -e .[dev]
+<span class="c"># macOS/Linux (zsh에서는 대괄호 글로브 방지를 위해 따옴표 필요)</span>
+.venv/bin/python -m pip install -e '.[dev]'</code></pre>
+
+<p>설치 확인:</p>
+<pre><code>maios --version        <span class="c"># 1.3.0</span></code></pre>
+
+<h3>LLM 연결 (선택이지만 강력 권장)</h3>
+<p><code>.env.example</code>을 <code>.env</code>로 복사하고 사용할 프로바이더의 키를 넣습니다:</p>
+<pre><code>ANTHROPIC_API_KEY=sk-ant-...     <span class="c"># Claude</span>
+OPENAI_API_KEY=sk-...            <span class="c"># GPT</span>
+GEMINI_API_KEY=...               <span class="c"># Gemini</span></code></pre>
+<p>키 없이도 모든 명령이 동작하지만, 산출물 생성·목표 분해·상황 이해가 규칙 기반으로 대체됩니다.
+<code>--llm mock</code>은 오프라인 테스트용 가짜 모델입니다.</p>
+
+<hr class="divider">
+
+<h2 id="s3">3. 5분 훑어보기</h2>
+<pre><code><span class="c"># 1) 목표 하나 수행 (거버넌스 → 인지 루프 → 교훈 축적)</span>
+maios pursue "주간 보고서를 세 문장으로 요약" --llm claude
+
+<span class="c"># 2) 내 문서를 지식으로 흡수 (md/txt/html, 한글 인코딩 자동)</span>
+maios ingest ~/내문서폴더
+
+<span class="c"># 3) 흡수한 지식 위에서 연구</span>
+maios research "우리 문서에서 드론 방어의 핵심 교훈은?"
+
+<span class="c"># 4) 큰 목표를 하위 목표로 쪼개 순차 수행 후 종합</span>
+maios project "드론 위협 분석 2부작 브리핑 작성" --llm claude
+
+<span class="c"># 5) 시스템 자기 점검</span>
+maios introspect
+
+<span class="c"># 6) 대화형 세션 (가장 편한 사용법)</span>
+maios shell --llm claude</code></pre>
+<p>대부분의 명령 끝에 <code>[memory] nodes=N pursuits=M workspace=경로</code>가
+출력됩니다(<code>align</code>·미션 파일 실행 제외) — 기억이 쌓이는 것이 눈에 보입니다.</p>
+
+<hr class="divider">
+
+<h2 id="s4">4. 명령어 상세</h2>
+
+<h3>4.1 <code>maios pursue &lt;목표&gt;</code> — 단일 목표 수행</h3>
+<p>목표 하나를 인지 루프 전체에 태웁니다.</p>
+<pre><code>maios pursue "국방 AI 동향을 다섯 줄로 정리" --llm claude</code></pre>
+<p>출력 해설:</p>
+<pre><code>[MAIOS] objective: ...            <span class="c">목표</span>
+[governance] risk=LOW approved=True   <span class="c">거버넌스 심사 결과</span>
+[cycles] 1 executed               <span class="c">실행된 인지 사이클 수</span>
+  cycle 1: COMPLETED (observe -&gt; understand -&gt; ... -&gt; learn)
+  [recall] ...                    <span class="c">과거 기억에서 회상한 항목</span>
+  [understanding] ...             <span class="c">LLM의 상황 해석 (--llm 사용 시)</span>
+[lessons]                         <span class="c">이번 수행에서 추출된 교훈</span>
+[output]                          <span class="c">생성된 산출물 미리보기 (다음 줄에 500자)</span>
+  ...
+[status] COMPLETED
+[artifact] .maios/artifacts/GP-xxxx.md   <span class="c">산출물 전문 파일</span>
+[memory] nodes=15 pursuits=3 workspace=.maios   <span class="c">누적 기억 현황</span></code></pre>
+
+<p>옵션:</p>
+<table>
+<tr><th style="width:26%">옵션</th><th>설명</th></tr>
+<tr><td><code>--llm PROVIDER</code></td><td>mock / openai / claude / gemini</td></tr>
+<tr><td><code>--capability NAME</code></td><td>요구 능력 지정, 반복 가능 (예: research)</td></tr>
+<tr><td><code>--max-cycles N</code></td><td>실패 시 재시도 사이클 상한 (기본 3)</td></tr>
+<tr><td><code>--approve</code></td><td>고위험 목표에 인간 승인 부여</td></tr>
+<tr><td><code>--workspace DIR</code></td><td>워크스페이스 위치 (기본 <code>.maios</code>)</td></tr>
+</table>
+
+<h3>4.2 <code>maios project &lt;목표&gt;</code> — 다단계 프로젝트</h3>
+<p>큰 목표를 LLM이 하위 목표 목록으로 분해하고, 순차 수행하면서 <strong>앞 단계의 산출물을 뒤
+단계에 전달</strong>한 뒤, 최종 종합본을 만듭니다.</p>
+<pre><code>maios project "신간 서평 작성: 자료 조사 후 초안" --max-subgoals 4 --llm claude</code></pre>
+<ul>
+<li>하위 목표 하나가 실패하면 거기서 중단하고 프로젝트는 FAILED가 됩니다.</li>
+<li>종합 산출물은 <code>artifacts/PJ-xxxx.md</code>로 저장됩니다.</li>
+<li>LLM이 없으면 분해 없이 단일 목표로 수행됩니다.</li>
+</ul>
+
+<h3>4.3 <code>maios research &lt;질문&gt;</code> — 자기 지식 연구</h3>
+<p>지식그래프(흡수한 문서 + 축적된 경험·성찰)를 소스로 연구 보고서를 만듭니다.</p>
+<pre><code>maios ingest ~/책원고
+maios research "원고 전체를 관통하는 핵심 주장은?"</code></pre>
+<p>보고서는 하위 질문·발견·공백·출처 구조의 마크다운으로 산출되며, <strong>보고서 자체가 다시
+지식그래프에 들어가</strong> 다음 연구의 소스가 됩니다. 출처 선정은 문서·개념·근거를 시스템 자신의
+활동 기록보다 우선시합니다.</p>
+
+<h3>4.4 <code>maios ingest &lt;경로&gt;</code> — 문서 흡수</h3>
+<p>로컬 문서를 지식그래프의 회상·연구 가능한 노드로 만듭니다.</p>
+<pre><code>maios ingest 보고서.md 메모.txt          <span class="c"># 개별 파일</span>
+maios ingest ~/문서폴더                   <span class="c"># 디렉터리 재귀</span></code></pre>
+<ul>
+<li>지원 형식: <code>.md</code>/<code>.markdown</code> · <code>.txt</code> · <code>.html</code>/<code>.htm</code> (HTML은 태그·스크립트 제거)</li>
+<li>마크다운은 제목(<code>#</code>) 단위, 텍스트는 문단 단위로 분할 (긴 절은 1,200자)</li>
+<li>한글 cp949 인코딩 파일 자동 처리</li>
+<li><strong>같은 파일을 다시 흡수하면 중복 없이 갱신</strong>됩니다 (경로 기반 결정적 ID)</li>
+<li>대량 흡수는 벌크 모드로 동작합니다 (33개 파일 389청크 기준 약 1초)</li>
+</ul>
+
+<h3>4.5 <code>maios introspect</code> — 자기 점검</h3>
+<p>시스템이 자기 구성을 보고합니다.</p>
+<pre><code>maios introspect --llm claude
+[MAIOS] identity=maios version=1.3.0 readiness=0.67
+[available] cognitive_loop, executive_brain, governance, knowledge_graph, llm, ...
+[missing] distributed_runtime, negotiation, swarm, ...</code></pre>
+<p class="note">(<code>--llm</code> 없이 실행하면 llm·task_execution 등이 missing으로 이동하고
+readiness가 낮게 나옵니다 — 정상입니다.)</p>
+<p>readiness는 전체 계층 중 가용 계층의 비율입니다. missing 항목은 해당 엔진이 주입되지
+않았다는 뜻이며 오류가 아닙니다.</p>
+
+<h3>4.6 <code>maios shell</code> — 대화형 세션 (권장 사용법)</h3>
+<p>한 세션에서 연속으로 목표를 수행하며 기억을 공유합니다.</p>
+<pre><code>maios shell --llm claude</code></pre>
+<pre><code>maios&gt; 오늘 회의록 요약해줘              <span class="c">← 일반 목표</span>
+maios&gt; /ingest ~/회의록모음              <span class="c">← 문서 흡수</span>
+maios&gt; /research 최근 회의의 반복 쟁점은?  <span class="c">← 연구</span>
+maios&gt; /project 월간 보고서 초안 작성      <span class="c">← 프로젝트</span>
+maios&gt; /history                          <span class="c">← 최근 수행 이력</span>
+maios&gt; /introspect                       <span class="c">← 자기 점검</span>
+maios&gt; /evolve                           <span class="c">← 누적 성공률·교훈 보고</span>
+maios&gt; /approve                          <span class="c">← 마지막 수행 목표를 인간 승인으로 재실행 (차단 직후 바로 사용)</span>
+maios&gt; /exit</code></pre>
+
+<h3>4.7 기존 v1.0 명령</h3>
+<pre><code>maios mission.yaml     <span class="c"># YAML 미션 파일 실행 (v1.0 런타임 파이프라인)</span></code></pre>
+
+<h3>4.8 온톨로지 확장 검색 (선택)</h3>
+<p>워크스페이스에 <code>ontology.ttl</code>(RDFS/OWL, rdfs:label 한국어 지원)을 넣으면 회상·연구
+검색이 온톨로지 관계를 따라 확장됩니다:</p>
+<pre><code>pip install rdflib                        <span class="c"># 선택 의존성</span>
+cp 나의온톨로지.ttl .maios/ontology.ttl    <span class="c"># 워크스페이스에 배치하면 자동 감지</span>
+maios pursue "지휘관 의도 전파 실태 점검"
+  [ontology] 목적, 최종상태, 핵심과업, 제한사항, ...   <span class="c">← 확장된 용어</span>
+  [recall] 훈련메모.md: ... 최종상태를 서로 다르게 이해 ...</code></pre>
+<p>질의에 온톨로지 용어가 등장하면 그 이웃(상하위 클래스, 인스턴스, domain/range로 연결된
+개념)이 검색어에 합류합니다 — 표층 단어가 하나도 겹치지 않는 문서도 개념적으로 연결되면
+회수됩니다. rdflib이 없거나 파일이 없으면 조용히 기존 검색으로 동작합니다(introspect의
+ontology 항목으로 가용 여부 확인).</p>
+
+<p><strong>온톨로지 기반 거버넌스</strong>: 워크스페이스에 <code>governance.json</code>을 두면
+특정 온톨로지 개념(과 그 이웃)을 건드리는 목표가 자동으로 고위험으로 분류되어 인간 승인을
+요구합니다:</p>
+<pre><code>{"ontology_risk_labels": ["제한사항", "수용가능위험"]}</code></pre>
+<pre><code>maios pursue "제한사항을 넘는 야간 침투 기동 승인"
+[governance] risk=HIGH approved=False ...
+[status] PENDING_APPROVAL          <span class="c">← --approve로만 실행 가능</span></code></pre>
+<p>"제한과 충돌" 같은 이웃 개념을 언급해도 관계를 타고 상향됩니다 — 임무형지휘의 "제한 속
+자유"가 거버넌스 규칙이 되는 방식입니다.</p>
+
+<h3>4.9 지휘관 의도 정렬 판정 (<code>maios align</code>)</h3>
+<p>워크스페이스에 <code>intent.json</code>으로 지휘관 의도를 명세하면, 행동(목표)이 의도에
+부합하는지 실행 전에 판정합니다:</p>
+<pre><code>{
+  "purpose": "적 방어선 돌파로 후속 부대 진출 여건 보장",
+  "end_state": "주교량 확보 및 적 포병 무력화 상태",
+  "key_tasks": ["교량 확보", "적 포병 무력화"],
+  "constraints": ["민간 지역 포격 금지"],
+  "acceptable_risks": ["야간 기동 간 소부대 고립"]
+}</code></pre>
+<pre><code>maios align 1중대가 교량을 확보하고 통로 개척
+[verdict] ALIGNED      <span class="c">← 핵심과업 지원: 교량 확보</span>
+
+maios align 민간 지역 인근 포격 준비
+[verdict] CONFLICT     <span class="c">← 제한사항과 충돌</span>
+
+maios pursue "민간 지역 포격 계획 수립"
+[alignment] CONFLICT - 제한사항과 충돌: 민간 지역 포격 금지
+[status] PENDING_APPROVAL   <span class="c">← 충돌 목표는 자동으로 인간 승인 관문 통과 필요</span></code></pre>
+<p>판정 3종: <strong>ALIGNED</strong>(핵심과업·목적 지원) / <strong>CHECK</strong>(연결 미확인 —
+인간 확인 필요) / <strong>CONFLICT</strong>(제한사항 접촉, 수용가능위험으로 커버되지 않음).
+온톨로지가 있으면 개념 관계를 타고 판정 폭이 넓어집니다(예: 과업 "화력지원 태세" ← 행동 "포병
+사격 준비"). 셸에서는 <code>/align &lt;행동&gt;</code>. 이 판정은 표층 매칭 기반의 1차 분류이며,
+CHECK는 "모른다"는 정직한 신호입니다 — 최종 판단은 항상 인간의 몫입니다.</p>
+
+<hr class="divider">
+
+<h2 id="s5">5. 워크스페이스의 구조</h2>
+<pre><code>.maios/
+├── knowledge_graph.json   <span class="c">지식그래프 (문서·경험·성찰·개념 노드와 관계)</span>
+├── memory_store.json      <span class="c">장기 기억 저장소</span>
+├── pursuits.json          <span class="c">목표 수행 일지 (교훈·산출물 포함)</span>
+├── projects.json          <span class="c">프로젝트 일지</span>
+└── artifacts/             <span class="c">산출물 (GP-*.md = 목표, PJ-*.md = 프로젝트)</span></code></pre>
+<ul>
+<li>전부 사람이 읽을 수 있는 JSON/마크다운입니다.</li>
+<li>프로젝트마다 다른 워크스페이스를 쓰려면 <code>--workspace 경로</code>를 지정하세요.</li>
+<li>워크스페이스를 지우면 기억이 초기화됩니다 (파일 복사 = 백업).</li>
+<li><strong>평문 저장</strong>이므로 민감한 문서를 흡수할 때는 보관 위치에 주의하세요.</li>
+</ul>
+
+<hr class="divider">
+
+<h2 id="s6">6. 거버넌스 (안전장치)</h2>
+<p>모든 목표는 실행 전에 정책 심사를 받습니다.</p>
+<table>
+<tr><th style="width:18%">판정</th><th style="width:34%">조건</th><th>동작</th></tr>
+<tr><td><span class="badge b-ok">승인</span></td><td>저위험</td><td>즉시 실행</td></tr>
+<tr><td><span class="badge b-warn">PENDING_APPROVAL</span></td>
+  <td>고위험 키워드 (deploy, delete, production 등)</td>
+  <td><code>--approve</code> 또는 셸 <code>/approve</code>로 인간 승인 필요</td></tr>
+<tr><td><span class="badge b-block">BLOCKED</span></td><td>금지 키워드 (운영자 설정)</td><td>실행 거부</td></tr>
+</table>
+<p>모든 심사는 감사 로그에 기록됩니다. 프로그래밍 방식으로 키워드·위험 등급을 조정하려면
+<code>GovernanceManager</code>와 <code>PolicyEngine</code>을 직접 구성하세요.</p>
+
+<hr class="divider">
+
+<h2 id="s7">7. 실전 워크플로우 예시</h2>
+
+<h3>7.1 저술 보조: 내 원고 위에서 일하기</h3>
+<pre><code>maios ingest ~/책원고                    <span class="c"># 원고 전체 흡수</span>
+maios shell --llm claude
+maios&gt; /research 3장과 7장의 논리적 충돌은 없는가?
+maios&gt; 4장 도입부를 두 문단으로 다시 써줘   <span class="c"># 회상이 원고 맥락을 주입</span>
+maios&gt; /project 출판사 투고용 시놉시스 작성</code></pre>
+
+<h3>7.2 연구 보조: 자료 축적형 리서치</h3>
+<pre><code>maios ingest ~/수집자료/                 <span class="c"># 수시로 자료 추가 (재흡수 안전)</span>
+maios research "수집 자료에서 상반되는 주장 정리"
+<span class="c"># 보고서가 지식그래프에 쌓임 → 다음 연구가 이전 연구를 인용</span></code></pre>
+
+<h3>7.3 정기 업무: 기억이 쌓이는 요약</h3>
+<p>매일 실행하면 어제의 교훈·맥락이 오늘 요약에 반영됩니다:</p>
+<pre><code>maios pursue "오늘자 안보 뉴스 다섯 꼭지 요약" --llm claude</code></pre>
+
+<hr class="divider">
+
+<h2 id="s8">8. 파이썬 API</h2>
+<p>CLI가 하는 모든 일은 코드로도 가능합니다:</p>
+<pre><code>from maios.governance import GovernanceManager
+from maios.kernel import DocumentIngestor, Workspace
+from maios.adapters.llm_provider import create_llm_provider
+from maios.config import load_config
+
+config = load_config()
+config.model_provider = "claude"
+provider = create_llm_provider(config)
+
+space = Workspace(".maios")
+agi = space.build_foundation(governance=GovernanceManager(), llm_provider=provider)
+
+DocumentIngestor(agi.knowledge_graph).ingest("~/문서")   <span class="c"># ~ 자동 확장</span>
+pursuit = agi.pursue("문서 핵심을 요약", capabilities=())
+project = agi.pursue_project("2부작 브리핑 작성")
+report = agi.evolve()          <span class="c"># 누적 성공률·교훈</span>
+model = agi.introspect()       <span class="c"># 자기 모델</span>
+space.save(agi)                <span class="c"># 일지·산출물 저장</span></code></pre>
+<p>v1.0 API(<code>maios.run(goal)</code>, <code>MAIOSCore</code>)도 그대로 사용 가능합니다.</p>
+
+<hr class="divider">
+
+<h2 id="s9">9. 문제 해결</h2>
+<table>
+<tr><th style="width:34%">증상</th><th>원인·해법</th></tr>
+<tr><td><code>[understanding]</code>이 안 나온다</td>
+  <td>LLM 미연결 또는 호출 실패 → 폴백 동작 중. <code>.env</code> 키와 크레딧 확인</td></tr>
+<tr><td><code>credit balance is too low</code></td><td>API 크레딧 부족 → 콘솔에서 충전</td></tr>
+<tr><td>산출물이 목표 문장 그대로다</td><td>LLM 없이 실행됨 (echo 폴백). <code>--llm</code> 지정</td></tr>
+<tr><td>프로젝트가 하위 목표 1개로 돈다</td><td>LLM의 분해 응답이 목록 형식이 아님 → 실모델에서는 정상 동작</td></tr>
+<tr><td>회상이 엉뚱한 것을 가져온다</td><td>검색은 한글 바이그램 TF-IDF — 질문에 구체적 명사를 넣을수록 정확</td></tr>
+<tr><td>한글 파일이 깨진다</td><td>UTF-8/cp949 외 인코딩 → UTF-8로 재저장 후 흡수</td></tr>
+<tr><td>흡수가 느리다</td><td>v1.3 미만 버전 사용 중 → 업그레이드 (벌크 모드)</td></tr>
+</table>
+<p>전체 파이프라인 자가 진단:</p>
+<pre><code>python scripts/validate_live.py --provider mock    <span class="c"># 오프라인 점검</span>
+python scripts/validate_live.py                    <span class="c"># 실모델 점검 (키·크레딧 필요)</span></code></pre>
+
+<hr class="divider">
+
+<h2 id="s10">10. 자주 묻는 질문</h2>
+
+<p><strong>Q. 인터넷 없이 쓸 수 있나?</strong><br>
+LLM 프로바이더 호출을 제외한 전부(흡수·회상·연구·기억)가 오프라인입니다.</p>
+
+<p><strong>Q. 데이터가 외부로 나가나?</strong><br>
+LLM 호출 시 프롬프트(목표·회상된 기억 일부)가 해당 프로바이더로 전송됩니다. 그 외에는 아무것도
+로컬을 떠나지 않습니다.</p>
+
+<p><strong>Q. AGIFoundation이라는 이름은 AGI라는 뜻인가?</strong><br>
+아닙니다. 아키텍처상 최상위 통합 계층이라는 뜻의 이름이며, 실체는 자율 워크플로우 오케스트레이션
+계층입니다.</p>
+
+<p><strong>Q. 여러 사람이 같이 쓸 수 있나?</strong><br>
+현재는 단일 사용자·단일 머신 설계입니다. 워크스페이스 디렉터리를 공유 저장소에 두는 방식은
+동시 쓰기에 안전하지 않습니다.</p>
+
+
+</div>
+
+<div class="part-divider" id="pt3">
+  <div class="num head-font">제3편</div>
+  <h2>설계와 실증 — 무엇을 증명했나</h2>
+  <p class="part-note">연구논문(학술 평서체). 이 편만 따로 보려면 <a href="./PAPER.ko.html">PAPER.ko.html</a></p>
+  <div class="rule"></div>
+</div>
+
+<div class="part-paper">
+
+<h1>MAIOS: 기억·회상·거버넌스를 갖춘<br>임무 중심 인지형 AI 운영체제의 설계와 실증</h1>
+<div class="meta">
+연구논문 초고 v2-준비판 (2026-07-10) — 온톨로지 적용 절(7절) 추가.
+실LLM 종단 검증 결과를 6절에 반영하는 시점에 v2로 확정.<br>
+저자: 권영환 (소속·표기 방식 추후 확정) ·
+공동 설계·구현: Claude (Anthropic), 대화형 공동개발
+</div>
+
+<div class="abstract">
+<h2>초록</h2>
+<p>대화형 AI의 능력이 급성장했음에도 그 사용 형태는 여전히 세션 단위의 휘발적 문답에 머물러 있다.
+본 논문은 AI를 "질문에 답하는 도구"가 아니라 "임무를 중심으로 운용되는 체계"로 재구성한
+로컬 AI 운영체제 MAIOS(MUSA AI Operating System)의 설계와 구현, 그리고 실사용 코퍼스 기반
+실증 결과를 보고한다. MAIOS는 (1) 관찰-이해-계획-행동-성찰-학습의 6단계 인지 루프,
+(2) 지식그래프·수행일지·산출물로 구성되어 실행 간 지속되는 워크스페이스 기억,
+(3) 새 목표 수행 시 과거 경험과 문서를 자동 회수해 프롬프트에 주입하는 기억 회상,
+(4) 고위험 목표를 차단하고 인간 승인을 요구하는 거버넌스 게이트를 통합한다.
+모든 LLM 의존 단계는 프로바이더 부재 시 결정론적 휴리스틱으로 대체되는 폴백 설계를 따르며,
+이로써 전체 시스템이 API 접근 없이 시험 가능하다(본고 시점 테스트 506개, 분기 포함 커버리지 95.9%).
+실제 저술 코퍼스(33개 파일, 728KB)를 이용한 실증에서 단위 시험이 포착하지 못한 세 가지 규모 결함
+— 삽입당 전체 영속화와 이차적 자동 연결의 결합, 수행 기록이 자기 자신을 재섭취하는 되먹임
+팽창(단일 노드 6.7MB 도달), 토큰화기의 한글 불가시성 — 을 발견·수정하였고, 수정 후 대량 흡수는
+1초 미만, 반복 질의는 약 1.2초에 안정화되었다. 나아가 형식 온톨로지(RDFS/OWL)를
+회상·거버넌스·의도 정렬의 세 지점에 결합하는 적용 연구를 수행하여, 실제 군 임무형지휘
+온톨로지(의도 핵심부 발췌본)를 이용해 (a) 표층 어휘가 전혀 겹치지 않는 문서의 개념적 회수, (b) 온톨로지 개념
+이웃에 기반한 위험 상향과 인간 승인 요구, (c) 지휘관 의도 5요소에 대한 행동 정렬 판정
+(ALIGNED/CHECK/CONFLICT)을 시연하였다. 본 연구는 개인 지식노동의 맥락에서 "기억하는 AI
+체계"가 부딪히는 실제 공학 문제와 그 해법, 그리고 군 지휘 이론과 소프트웨어 통제의 접합
+가능성을 구체적 실증과 함께 제시한다는 점에서 기여를 갖는다.</p>
+<p class="kw"><strong>주제어</strong>: AI 에이전트, 인지 아키텍처, 장기 기억, 검색 증강, AI 거버넌스, 임무형지휘</p>
+</div>
+
+<h2 id="pp1">1. 서론</h2>
+<h3>1.1 문제 제기</h3>
+<p>대규모 언어모델(LLM)은 요약·작문·분석에서 실용 수준에 도달했으나, 일반 사용자가 이를
+활용하는 지배적 형태는 여전히 채팅이다. 채팅 패러다임은 세 가지 구조적 한계를 갖는다.
+첫째, <strong>휘발성</strong> — 세션이 끝나면 맥락과 교훈이 소실되어, 사용자는 매번 배경을 다시 설명한다.
+둘째, <strong>수동성</strong> — 모델은 묻는 말에 답할 뿐, 큰 목표를 분해하고 순차 수행하며 중간 산출을
+잇는 운용 구조가 없다. 셋째, <strong>통제 부재</strong> — 자율성을 높인 에이전트 프레임워크들은 반대로
+인간의 승인 개입 지점을 체계화하지 못했다.</p>
+<p class="note">이 세 한계의 서사적 배경 — 저자가 실제로 부딪힌 경험 — 은
+<a href="#part1">제1편 1부</a>에 있다.</p>
+<p>본 연구는 이 세 한계를 "AI를 운영체제처럼 운용한다"는 관점에서 통합적으로 다룬다.
+운영체제가 프로세스·메모리·권한을 관리하듯, MAIOS는 목표(임무)·기억·권한을 관리한다.</p>
+
+<h3>1.2 연구 질문</h3>
+<ul>
+<li><strong>RQ1.</strong> 세션을 넘어 지속·회상되는 기억 체계는 개인용 로컬 환경에서 어떤 아키텍처로 실현 가능한가?</li>
+<li><strong>RQ2.</strong> LLM 의존 기능과 오프라인 검증 가능성은 양립할 수 있는가?</li>
+<li><strong>RQ3.</strong> 그러한 체계가 실제 사용 규모(수백 문서 청크, 반복 질의)에 노출될 때 어떤 결함이 드러나며, 어떻게 해소되는가?</li>
+</ul>
+
+<h3>1.3 기여</h3>
+<ol>
+<li>인지 루프·영속 기억·회상·거버넌스를 단일 체계로 통합한 공개 구현체 (GitHub, MIT 라이선스, v1.3.0 기준 테스트 478개·본고 시점 506개, 분기 포함 커버리지 약 96%).</li>
+<li>모든 LLM 단계가 휴리스틱으로 대체되는 <strong>폴백 설계 원칙</strong>의 정식화 — API 없는 완전 오프라인 시험 가능성.</li>
+<li>실사용 코퍼스 실증에서 발견한 세 가지 규모 결함의 사례 분석과 정량적 수정 효과(6절) — 특히 <strong>자기 기록 되먹임 팽창</strong>은 기억을 가진 에이전트 일반에 적용되는 위험으로, 본 연구가 명명·분석한다.</li>
+<li>한글 교착어 특성을 반영한 무의존성(zero-dependency) 검색 개선 — 음절 바이그램 + TF-IDF.</li>
+<li>형식 온톨로지와 인지 루프의 3점 결합(회상 확장·거버넌스 상향·의도 정렬)과, 실제 임무형지휘 온톨로지를 이용한 작동 실증(7절) — 군사 지휘 이론(임무형지휘)의 "의도 공유·실행 위임·한계 명시"를 소프트웨어 통제 구조로 번역한 사례.</li>
+</ol>
+
+<h2 id="pp2">2. 관련 연구</h2>
+<p><strong>에이전트 프레임워크.</strong> AutoGPT[1], LangChain[2], AutoGen[3], CrewAI[4] 등은 LLM의 도구
+사용과 다중 에이전트 협업을 구조화했다. 그러나 이들의 기억은 주로 세션 내 컨텍스트 또는 외부
+벡터 저장소 연동에 머물며, 수행 이력으로부터의 교훈 추출·재주입, 그리고 인간 승인 게이트를
+1급 개념으로 통합한 경우는 드물다. MAIOS는 프레임워크(라이브러리)가 아니라 운영체제(상주
+체계)의 은유를 취해, 기억·회상·거버넌스를 기본 동작으로 내장한다.</p>
+<p><strong>메모리 증강 에이전트.</strong> MemGPT[5] 계열 연구는 LLM 컨텍스트를 가상 메모리로 확장하는 관리
+기법을 제안했다. MAIOS의 워크스페이스는 이와 상보적으로, 모델 외부의 구조화된 장기
+기억(지식그래프·일지)을 두고 회상 시점에만 발췌를 프롬프트에 주입한다. 이는 모델
+교체(model-agnostic)에 강건하다.</p>
+<p><strong>인지 아키텍처.</strong> Soar[6], ACT-R[7], BDI[8] 등 고전 인지·에이전트 아키텍처는 지각-결정-행동 순환과
+장기/작업 기억의 분리를 정식화했다. MAIOS의 6단계 루프는 이 전통의 경량 실용화로 볼 수 있으며,
+차이는 각 단계가 LLM 호출로 증강되되 호출 실패 시 결정론적으로 퇴행한다는 점이다.</p>
+<p><strong>임무형지휘와 인간 통제.</strong> 군사 지휘 이론의 임무형지휘(Auftragstaktik)[9]는 "의도를 공유하고
+실행을 위임하되, 한계를 명시"하는 통제 양식이다. MAIOS의 거버넌스 게이트(위험 분류, 금지어,
+인간 승인)는 이 원리의 소프트웨어적 번역으로, 자율 에이전트에 대한 인간 통제 지점을 실행 전
+단계에 정형화한다.</p>
+
+<h2 id="pp3">3. 설계 원칙</h2>
+<p>MAIOS는 여섯 원칙을 따른다(프로젝트 비전 문서에서 정식화).</p>
+<table>
+<tr><th style="width:38%">원칙</th><th>구현상의 귀결</th></tr>
+<tr><td>P1. 임무 중심 (Mission Driven)</td><td>모든 동작의 단위는 "목표"이며 수행 기록이 1급 객체다</td></tr>
+<tr><td>P2. 모델 불가지 (Model Agnostic)</td><td>프로바이더 추상화(BaseLLMProvider), mock/OpenAI/Claude/Gemini 교체 가능</td></tr>
+<tr><td>P3. 지식 중심 (Knowledge Centric)</td><td>산출물·경험·문서가 모두 지식그래프에 축적된다</td></tr>
+<tr><td>P4. 품질 우선 (Quality First)</td><td>정적검사 3종 + 분기 커버리지 95% 강제 CI</td></tr>
+<tr><td>P5. 장기 지속 (Long-term Continuity)</td><td>워크스페이스 영속화, 재실행 간 복원</td></tr>
+<tr><td>P6. 인간 지휘·AI 실행 (Human Command, AI Execution)</td><td>거버넌스 게이트, 고위험 인간 승인</td></tr>
+</table>
+<p>여기에 구현 과정에서 일곱째 원칙이 추가되었다:</p>
+<p><strong>P7. 폴백 설계(Graceful Degradation)</strong> — LLM을 요구하는 모든 단계(이해·실행·성찰·분해·종합)는
+프로바이더 부재 또는 호출 실패 시 결정론적 휴리스틱으로 대체된다. 이 원칙의 실익은 두 가지다.
+(a) 전체 파이프라인이 API 키 없이 시험 가능해져 CI가 외부 의존을 갖지 않는다.
+(b) 운용 중 프로바이더 장애가 체계 정지가 아니라 품질 저하로 나타난다. 실제로 본 연구의 개발
+기간 중 API 크레딧이 전무한 상태에서 이 시점 기준 전체 테스트와 실코퍼스 실증이 수행되었다.</p>
+
+<h2 id="pp4">4. 아키텍처</h2>
+<h3>4.1 전체 구조</h3>
+
+<figure>
+<svg class="fig-svg" viewBox="0 0 680 330" role="img" aria-label="MAIOS 계층 아키텍처">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52514e"/>
+    </marker>
+  </defs>
+  <!-- 사용자 -->
+  <rect x="140" y="8" width="400" height="34" rx="8" fill="#0b0b0b"/>
+  <text x="340" y="30" text-anchor="middle" font-size="13.5" fill="#ffffff" font-weight="700">사용자 목표 (pursue · project · research · ingest · shell)</text>
+  <line x1="340" y1="42" x2="340" y2="58" stroke="#52514e" stroke-width="1.6" marker-end="url(#arr)"/>
+  <!-- Workspace -->
+  <rect x="60" y="60" width="560" height="46" rx="8" fill="#f3f2ee" stroke="#dedcd5"/>
+  <text x="340" y="79" text-anchor="middle" font-size="13.5" font-weight="700" fill="#0b0b0b">Workspace — 영속 기억 (.maios/)</text>
+  <text x="340" y="97" text-anchor="middle" font-size="12" fill="#52514e">지식그래프 · 기억저장소 · 수행/프로젝트 일지 · 산출물 · ontology.ttl · intent.json</text>
+  <line x1="340" y1="106" x2="340" y2="122" stroke="#52514e" stroke-width="1.6" marker-end="url(#arr)"/>
+  <!-- AGIFoundation -->
+  <rect x="60" y="124" width="560" height="44" rx="8" fill="#ffffff" stroke="#4a3aa7" stroke-width="1.6"/>
+  <text x="340" y="142" text-anchor="middle" font-size="13.5" font-weight="700" fill="#0b0b0b">AGIFoundation — 거버넌스 게이트 · 목표 등록 · 진화 보고</text>
+  <text x="340" y="160" text-anchor="middle" font-size="12" fill="#52514e">위험 분류 → BLOCKED / PENDING_APPROVAL(인간 승인) / 승인 · 의도 정렬 판정</text>
+  <line x1="340" y1="168" x2="340" y2="184" stroke="#52514e" stroke-width="1.6" marker-end="url(#arr)"/>
+  <!-- CognitiveLoop -->
+  <rect x="26" y="186" width="628" height="86" rx="8" fill="#ffffff" stroke="#2a78d6" stroke-width="1.8"/>
+  <text x="340" y="206" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1c5cab">CognitiveLoop — 6단계 인지 사이클</text>
+  <!-- 6 stage boxes -->
+  <g font-size="12" text-anchor="middle" fill="#0b0b0b">
+    <rect x="42"  y="218" width="88" height="40" rx="6" fill="#f3f2ee" stroke="#dedcd5"/><text x="86"  y="235" font-weight="700">관찰</text><text x="86"  y="251" font-size="10.5" fill="#52514e">세계모델 갱신</text>
+    <rect x="142" y="218" width="88" height="40" rx="6" fill="#e8f0fb" stroke="#2a78d6"/><text x="186" y="235" font-weight="700">이해</text><text x="186" y="251" font-size="10.5" fill="#52514e">회상+온톨로지</text>
+    <rect x="242" y="218" width="88" height="40" rx="6" fill="#f3f2ee" stroke="#dedcd5"/><text x="286" y="235" font-weight="700">계획</text><text x="286" y="251" font-size="10.5" fill="#52514e">플래너 선택</text>
+    <rect x="342" y="218" width="88" height="40" rx="6" fill="#e8f0fb" stroke="#2a78d6"/><text x="386" y="235" font-weight="700">행동</text><text x="386" y="251" font-size="10.5" fill="#52514e">LLM 산출/연구</text>
+    <rect x="442" y="218" width="88" height="40" rx="6" fill="#f3f2ee" stroke="#dedcd5"/><text x="486" y="235" font-weight="700">성찰</text><text x="486" y="251" font-size="10.5" fill="#52514e">개선 보고</text>
+    <rect x="542" y="218" width="88" height="40" rx="6" fill="#e6f4ee" stroke="#1baf7a"/><text x="586" y="235" font-weight="700">학습</text><text x="586" y="251" font-size="10.5" fill="#52514e">교훈·경험 축적</text>
+  </g>
+  <g stroke="#52514e" stroke-width="1.4">
+    <line x1="130" y1="238" x2="140" y2="238" marker-end="url(#arr)"/>
+    <line x1="230" y1="238" x2="240" y2="238" marker-end="url(#arr)"/>
+    <line x1="330" y1="238" x2="340" y2="238" marker-end="url(#arr)"/>
+    <line x1="430" y1="238" x2="440" y2="238" marker-end="url(#arr)"/>
+    <line x1="530" y1="238" x2="540" y2="238" marker-end="url(#arr)"/>
+  </g>
+  <!-- loop back -->
+  <path d="M 586 258 L 586 292 L 86 292 L 86 260" fill="none" stroke="#1baf7a" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+  <text x="340" y="288" text-anchor="middle" font-size="11.5" fill="#1baf7a" font-weight="700">교훈이 다음 사이클의 회상·실행 프롬프트로 환류</text>
+  <!-- output -->
+  <text x="340" y="322" text-anchor="middle" font-size="12.5" fill="#52514e">↓ GoalPursuit / ProjectPursuit 일지 기록 + artifacts/&lt;id&gt;.md 산출</text>
+</svg>
+<figcaption><strong>그림 1.</strong> MAIOS 계층 아키텍처와 6단계 인지 루프.
+모든 목표는 영속 워크스페이스와 거버넌스 게이트를 거쳐 인지 사이클로 수행되며,
+학습 단계의 교훈은 점선 경로를 따라 다음 사이클에 환류된다.</figcaption>
+</figure>
+
+<p>계층 명칭에 관한 주의: 최상위 통합 계층의 클래스명 AGIFoundation은 아키텍처상 위치를
+가리키는 이름일 뿐이며, 본 체계는 범용 인공지능이 아니라 자율 워크플로우 오케스트레이션
+계층이다. 공개 문서에도 동일한 한정을 명시하였다.</p>
+
+<h3>4.2 기억과 회상</h3>
+<p>워크스페이스는 네 저장소로 구성된다: 지식그래프(노드=문서 청크·경험·성찰·개념,
+간선=유사·도출 관계), 장기 기억 저장소, 목표 수행 일지, 프로젝트 일지.
+회상(MemoryRecall)은 이해 단계에서 목표 문장으로 지식그래프를 검색해 내용성
+노드(문서·개념·근거·경험·성찰)만 상위 k개 회수하고, 이를 (a) LLM 상황 해석 프롬프트와
+(b) 실행 프롬프트에 "관련 기억" 블록으로 주입한다. 직전 수행들의 교훈 최근 5건도 별도
+블록으로 주입되어, 세션과 프로세스를 넘는 행동 개선이 일어난다.</p>
+
+<h3>4.3 검색: 한글 친화 TF-IDF</h3>
+<p>초기 구현의 토큰화기는 <code>[a-zA-Z0-9_]+</code> 패턴만 사용해 <strong>한글 텍스트가 검색에 전혀 보이지
+않는</strong> 결함이 있었다(6.3절). 개선된 검색은 (i) ASCII 단어 + 한글 음절 바이그램
+토큰화("전쟁과"→{전쟁, 쟁과} — 교착어의 조사 결합에 강건), (ii) 역문헌빈도(IDF)[10] 가중으로
+희귀어 우대, (iii) 용어빈도(TF) 로그 가중으로 주제 집중 문서 우대, (iv) 노드별 토큰 캐시로
+반복 질의 비용 상수화를 결합한다. 외부 의존성과 사전 없이 구현되어 P2·P7과 정합한다.</p>
+
+<h3>4.4 거버넌스</h3>
+<p>모든 목표는 실행 전 정책 엔진 심사를 받는다: 금지어 검사(BLOCKED), 위험 분류(키워드 기반
+LOW/MEDIUM/HIGH), 고위험 시 인간 승인 요구(PENDING_APPROVAL). 승인은 명시적
+행위(<code>--approve</code>, 셸 <code>/approve</code>)로만 부여되며 모든 판정이 감사 로그에 남는다. 프로젝트 수행 시
+상위 목표와 하위 목표가 각각 심사된다.</p>
+
+<h2 id="pp5">5. 구현과 검증 방법론</h2>
+<h3>5.1 대화형 공동개발</h3>
+<p>본 시스템의 개발은 두 단계로 나뉜다. 초기 인지 계층의 두 모듈(Executive Brain, World
+Model)은 별도의 LLM 도구 조합(ChatGPT 설계, Codex 구현)으로 개발되었고, Cognitive
+Loop(v1.1의 세 번째 모듈) 이후의 전 기능 — 인지 루프, 통합 계층, CLI, 워크스페이스, 회상,
+분해, 흡수, 검색 개선 — 은 인간 연구자와 LLM 기반 코딩 에이전트(Claude)의 대화형 공동개발로
+구현되었다. 후자는 스프린트 단위(설계 제안 → 인간 승인 → 구현 → 검증 → 1커밋)로 진행했으며,
+설계 대안 제시와 우선순위 판단은 에이전트가, 방향 결정과 위험 수용은 인간이 담당했다.
+이 개발 양식 자체가 P6(인간 지휘·AI 실행)의 재귀적 실천이라는 점을 부기한다.</p>
+
+<h3>5.2 품질 게이트</h3>
+<p>모든 커밋은 black(포맷), ruff(린트), mypy(타입), pytest(분기 커버리지 95% 강제)를 통과해야
+하며 GitHub Actions CI가 Python 3.11/3.12에서 동일 게이트를 재검한다. v1.3.0 기준 테스트
+478개(본고 시점 506개), 분기 포함 커버리지 약 96%(CLI 진입 모듈은 산정에서 제외)이며, 인지 계층 모듈
+대부분(루프·해석기·회상·실행기·분해기·흡수기·워크스페이스·통합 계층)이 문장 기준 100%,
+나머지(집행 두뇌·세계 모델)는 96~97%다. P7(폴백 설계) 덕분에 이 모든 검증은 네트워크 접근
+없이 수행된다. LLM 경로 자체는 스크립트드 프로바이더(응답 대본 주입)로 시험하며, 실모델 종단
+검증용 하네스(<code>scripts/validate_live.py</code>)를 별도로 제공한다.</p>
+
+<figure>
+<svg class="fig-svg" viewBox="0 0 680 300" role="img" aria-label="스프린트별 테스트 수 성장 라인 차트">
+  <!-- grid -->
+  <g stroke="#e8e6df" stroke-width="1">
+    <line x1="40" y1="224.5" x2="648" y2="224.5"/>
+    <line x1="40" y1="166.8" x2="648" y2="166.8"/>
+    <line x1="40" y1="109.2" x2="648" y2="109.2"/>
+    <line x1="40" y1="51.5"  x2="648" y2="51.5"/>
+  </g>
+  <g font-size="11" fill="#8a887f" text-anchor="end">
+    <text x="34" y="228">350</text><text x="34" y="171">400</text>
+    <text x="34" y="113">450</text><text x="34" y="55">500</text>
+  </g>
+  <!-- line -->
+  <polyline fill="none" stroke="#2a78d6" stroke-width="2"
+    points="40,227.9 75,196.8 111,187.6 146,176.1 181,164.5 216,156.4 252,141.5 287,131.1 322,116.1 357,109.2 393,93.0 428,83.8 463,76.9 499,74.6 534,73.4 569,63.1 604,57.3 640,44.6"/>
+  <!-- points with native tooltips -->
+  <g fill="#2a78d6" stroke="#fcfcfb" stroke-width="2">
+    <circle cx="40"  cy="227.9" r="4"><title>Sprint 12-3 (Cognitive Loop): 347</title></circle>
+    <circle cx="75"  cy="196.8" r="4"><title>Sprint 12-4 (AGI Foundation): 374</title></circle>
+    <circle cx="111" cy="187.6" r="4"><title>Sprint 13-1 (CLI): 382</title></circle>
+    <circle cx="146" cy="176.1" r="4"><title>Sprint 13-2 (LLM 주입): 392</title></circle>
+    <circle cx="181" cy="164.5" r="4"><title>Sprint 14-1 (지속 기억): 402</title></circle>
+    <circle cx="216" cy="156.4" r="4"><title>Sprint 14-2 (실제 실행): 409</title></circle>
+    <circle cx="252" cy="141.5" r="4"><title>Sprint 14-3 (셸): 422</title></circle>
+    <circle cx="287" cy="131.1" r="4"><title>Sprint 15-1 (기억 회상): 431</title></circle>
+    <circle cx="322" cy="116.1" r="4"><title>Sprint 15-2 (목표 분해): 444</title></circle>
+    <circle cx="357" cy="109.2" r="4"><title>Sprint 15-3 (리서치): 450</title></circle>
+    <circle cx="393" cy="93.0"  r="4"><title>Sprint 16-1 (문서 흡수): 464</title></circle>
+    <circle cx="428" cy="83.8"  r="4"><title>Sprint 16-2 (실증·스케일링): 472</title></circle>
+    <circle cx="463" cy="76.9"  r="4"><title>Sprint 17 (한국어 검색): 478</title></circle>
+    <circle cx="499" cy="74.6"  r="4"><title>Sprint 18 (TF 가중): 480</title></circle>
+    <circle cx="534" cy="73.4"  r="4"><title>레드팀·경로 수정: 481</title></circle>
+    <circle cx="569" cy="63.1"  r="4"><title>Sprint 19 (온톨로지 회상): 490</title></circle>
+    <circle cx="604" cy="57.3"  r="4"><title>Sprint 20 (온톨로지 거버넌스): 495</title></circle>
+    <circle cx="640" cy="44.6"  r="4"><title>Sprint 21 (의도 정렬): 506</title></circle>
+  </g>
+  <text x="640" y="42" text-anchor="end" font-size="12.5" font-weight="700" fill="#1c5cab">506개 (S21)</text>
+  <text x="40" y="248" font-size="11" fill="#8a887f" text-anchor="middle">S12-3</text>
+  <text x="181" y="248" font-size="11" fill="#8a887f" text-anchor="middle">S14-1</text>
+  <text x="357" y="248" font-size="11" fill="#8a887f" text-anchor="middle">S15-3</text>
+  <text x="499" y="248" font-size="11" fill="#8a887f" text-anchor="middle">S18</text>
+  <text x="640" y="248" font-size="11" fill="#8a887f" text-anchor="middle">S21</text>
+  <text x="344" y="278" text-anchor="middle" font-size="11.5" fill="#52514e">스프린트 (2026-07-09 ~ 07-10, 시간순) — S12-3부터 S21까지 18개 지점, 347→506</text>
+</svg>
+<figcaption><strong>그림 2.</strong> 스프린트별 누적 테스트 수(347→506).
+분기 커버리지 95% 게이트를 유지한 채 이틀간 18개 지점에서 증가했다.</figcaption>
+</figure>
+
+<h2 id="pp6">6. 실증 평가: 실사용 코퍼스 사례연구</h2>
+<p class="note">이 절이 정량 분석하는 세 결함의 발견 과정은 <a href="#part3">제1편
+3부</a>에 서사로 기록되어 있다.</p>
+<p>단위 시험이 모두 통과한 상태에서, 저자 본인의 실제 저술 코퍼스(단행본 원고 폴더: 33개 파일,
+728KB, 한국어 위주)를 흡수·질의하는 실증을 수행했다. 그 결과 시험이 포착하지 못한 세 가지
+규모 결함이 드러났다. 본 절의 시간·용량 수치는 저자의 단일 개발 머신(Windows 11)에서 개발
+세션 중 실측한 단일 실행 값으로, 통계적 반복 측정이 아니라 규모 등급의 차이(초 대 분, KB 대
+MB)를 보고하는 것이다. 각 결함과 수정, 정량 효과는 다음과 같다.</p>
+
+<h3>6.1 결함 A: 삽입당 영속화 × 이차적 자동 연결</h3>
+<p>지식그래프는 노드 추가마다 전체 JSON을 재기록하고, 신규 노드를 기존 전 노드와 유사도 비교해
+자동 연결했다. 대량 흡수에서 이는 시간 O(n²)·저장 O(n²)로 복합되어, 실측 20초 동안 69개
+노드에 간선 2,258개가 생성되며 사실상 정지했다. <strong>수정</strong>: 대량 삽입 구간의 영속화를 지연하고
+종료 시 1회 기록하는 벌크 컨텍스트, 흡수 노드의 자동 연결 비활성화.
+<strong>효과</strong>: 33파일 389청크 흡수 0.9초.</p>
+
+<h3>6.2 결함 B: 자기 기록 되먹임 팽창 (self-record feedback inflation)</h3>
+
+<figure>
+<svg class="fig-svg" viewBox="0 0 680 250" role="img" aria-label="자기 기록 되먹임 팽창의 순환 구조와 차단 지점">
+  <defs>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e34948"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1baf7a"/>
+    </marker>
+  </defs>
+  <!-- cycle nodes -->
+  <g text-anchor="middle" font-size="12.5">
+    <rect x="30"  y="30" width="170" height="46" rx="8" fill="#fdecec" stroke="#e34948"/>
+    <text x="115" y="49" font-weight="700" fill="#0b0b0b">수행 결과 기록</text>
+    <text x="115" y="66" font-size="11" fill="#52514e">보고서 전문이 원문 내장</text>
+    <rect x="255" y="30" width="170" height="46" rx="8" fill="#fdecec" stroke="#e34948"/>
+    <text x="340" y="49" font-weight="700" fill="#0b0b0b">지식그래프 저장</text>
+    <text x="340" y="66" font-size="11" fill="#52514e">전이·경험 노드 비대화</text>
+    <rect x="480" y="30" width="170" height="46" rx="8" fill="#fdecec" stroke="#e34948"/>
+    <text x="565" y="49" font-weight="700" fill="#0b0b0b">회상·연구가 재회수</text>
+    <text x="565" y="66" font-size="10.5" fill="#52514e">질의어 담은 기록이 상위 랭크</text>
+  </g>
+  <g stroke="#e34948" stroke-width="1.8">
+    <line x1="200" y1="53" x2="253" y2="53" marker-end="url(#arrR)"/>
+    <line x1="425" y1="53" x2="478" y2="53" marker-end="url(#arrR)"/>
+  </g>
+  <path d="M 565 76 L 565 112 L 115 112 L 115 78" fill="none" stroke="#e34948" stroke-width="1.8" marker-end="url(#arrR)"/>
+  <rect x="98" y="95" width="484" height="15" fill="#fcfcfb"/>
+  <text x="340" y="106" text-anchor="middle" font-size="12" fill="#e34948" font-weight="700">거대 기록이 새 결과에 재내장 → 복리적 팽창 (실측: 단일 노드 6.7MB, 질의 발산)</text>
+  <!-- fixes -->
+  <g text-anchor="middle" font-size="12">
+    <rect x="30"  y="160" width="170" height="52" rx="8" fill="#e6f4ee" stroke="#1baf7a"/>
+    <text x="115" y="180" font-weight="700" fill="#0b0b0b">차단 ① 요약 내장</text>
+    <text x="115" y="198" font-size="11" fill="#52514e">상태·플래너·산출 300자만</text>
+    <rect x="255" y="160" width="170" height="52" rx="8" fill="#e6f4ee" stroke="#1baf7a"/>
+    <text x="340" y="180" font-weight="700" fill="#0b0b0b">차단 ② 내용 상한</text>
+    <text x="340" y="198" font-size="11" fill="#52514e">노드당 8,000자 캡</text>
+    <rect x="480" y="160" width="170" height="52" rx="8" fill="#e6f4ee" stroke="#1baf7a"/>
+    <text x="565" y="180" font-weight="700" fill="#0b0b0b">차단 ③ 문서 우선</text>
+    <text x="565" y="198" font-size="10.5" fill="#52514e">소스 랭킹: 내용성 &gt; 자기 기록</text>
+  </g>
+  <g stroke="#1baf7a" stroke-width="1.6" stroke-dasharray="4 3">
+    <line x1="115" y1="158" x2="115" y2="80" marker-end="url(#arrG)"/>
+    <line x1="340" y1="158" x2="340" y2="80" marker-end="url(#arrG)"/>
+    <line x1="565" y1="158" x2="565" y2="80" marker-end="url(#arrG)"/>
+  </g>
+  <text x="340" y="238" text-anchor="middle" font-size="11.5" fill="#52514e">수정 후: 동일 반복 질의 1.2초, 그래프 888KB 안정, 문서가 소스로 인용됨</text>
+</svg>
+<figcaption><strong>그림 3.</strong> 자기 기록 되먹임 팽창의 순환(적색)과 세 차단 지점(녹색).
+수행 기록이 검색 대상이 되는 순간 기록 자체가 복리적으로 팽창하는 위험은, 이력을 기억하는
+에이전트 일반이 공유한다.</figcaption>
+</figure>
+
+<p>수행 결과(연구 보고서 전문 포함)가 세계모델 전이와 경험 노드에 원문 그대로 내장되고, 다음
+수행의 회상·연구가 그 거대 기록을 다시 소스로 회수해 재내장하는 순환이 발생했다. 실측에서
+동일 질의를 수 회 반복하는 것만으로 단일 전이 노드가 6.7MB, 그래프 파일이 12.7MB에 도달했고
+이후 질의는 2분 제한을 초과했다(사실상 발산). 이는 <strong>수행 기록을 기억에 남기는 에이전트 일반이
+공유하는 위험</strong>으로, 기록이 검색 대상이 되는 순간 매 반복이 직전 기록을 재내장하며 기록
+자체가 복리적으로 팽창할 수 있다.
+<strong>수정</strong>: (i) 기록 저장 시 결과 요약본만 내장(상태·플래너·오류/산출 300자), (ii) 그래프 노드 내용
+상한(8,000자), (iii) 연구 소스 랭킹에서 내용성 노드(문서·개념·근거)를 자기 활동 기록보다 우선.
+<strong>효과</strong>: 동일 반복 질의 1.2초, 그래프 888KB 안정, 반복 질의가 자기 로그 대신 문서를 인용.</p>
+
+<h3>6.3 결함 C: 토큰화기의 한글 불가시성</h3>
+<p>검색 토큰화가 ASCII 패턴만 추출해, 한국어 질의는 문서 내 우연한 영단어·숫자로만 매칭되고
+있었다. 한국어 중심 코퍼스에서 검색 품질이 낮았던 근본 원인이며, 단위 시험이 영어 위주로
+작성되어 은폐되었다. <strong>수정</strong>: 4.3절의 바이그램 + TF-IDF. <strong>효과</strong>: 통제 코퍼스에서 주제 일치
+문서가 1위로 랭크되고("우크라이나 전쟁의 드론 교훈"→해당 문서), 장문서 간 점수 포화
+동점(전원 1.25)이 차등(3.73/3.55/3.45)으로 해소되었다.</p>
+
+<figure>
+<div class="tiles">
+  <div class="tile">
+    <div class="t-label">대량 흡수 (33파일 · 389청크)</div>
+    <div class="t-before">수정 전: <b>사실상 정지</b> (20초에 69노드)</div>
+    <div class="t-after">0.9<span class="t-unit">초</span></div>
+  </div>
+  <div class="tile">
+    <div class="t-label">동일 질의 반복 (자기 기록 재노출)</div>
+    <div class="t-before">수정 전: <b>발산</b> (2분 제한 초과)</div>
+    <div class="t-after">1.2<span class="t-unit">초</span></div>
+  </div>
+  <div class="tile">
+    <div class="t-label">지식그래프 파일 크기</div>
+    <div class="t-before">수정 전: <b>12.7MB</b> (폭주)</div>
+    <div class="t-after">888<span class="t-unit">KB 안정</span></div>
+  </div>
+</div>
+<figcaption><strong>그림 4.</strong> 세 결함 수정의 정량 효과 (동일 실코퍼스, 수정 전 → 후).
+단위가 서로 다른 지표이므로 개별 수치로 병렬 제시한다.</figcaption>
+</figure>
+
+<h3>6.4 함의</h3>
+<p>세 결함의 공통점은 <strong>작은 규모의 통제된 시험에서는 원리적으로 보이지 않는다</strong>는 것이다(A: n이
+작으면 저렴, B: 1회 수행에는 순환 없음, C: 영어 시험 데이터에서는 정상). 기억을 가진 에이전트의
+검증에는 단위 시험·커버리지와 별도로 (i) 실데이터 규모 실증, (ii) 반복 사용(자기 기록 재노출)
+실증이 필요함을 시사한다.</p>
+
+<h2 id="pp7">7. 적용 연구: 온톨로지 결합과 임무형지휘의 소프트웨어적 번역</h2>
+<p class="note">임무형지휘를 코드로 옮기게 된 동기와 그 과정의 이야기는
+<a href="#part4">제1편 4부</a>에 있다.</p>
+<p>본 절은 MAIOS의 인지 계층에 형식 온톨로지(RDFS/OWL)를 결합한 적용 연구를 보고한다. 결합
+대상 온톨로지는 저자가 별도 연구에서 구축한 임무형지휘 온톨로지 스키마 v1(영문 식별자 +
+한국어 rdfs:label, OWL-lite, 약 180트리플)에서 지휘관 의도 핵심부(의도 5요소와 그 정렬
+관계)를 발췌한 66트리플 축약본이며, 모든 실증은 LLM 없이 오프라인으로 수행되었다. 전체
+스키마가 아닌 발췌본을 사용한 이유는 스키마 v1에 동일 개념의 한국어 라벨 표기
+변형("지휘관의도"/"지휘관 의도")이 중복 수록되어 있어, 공백 무시 정규화에 기반한 현
+어댑터에서 라벨 충돌(섀도잉)이 발생하기 때문이다(한계는 7.5절에서 논한다). 재현용 발췌
+온톨로지는 저장소의 <code>examples/mission_command_intent_core.ttl</code>에 수록하였다.</p>
+
+<h3>7.1 접합 설계</h3>
+
+<figure>
+<svg class="fig-svg" viewBox="0 0 680 260" role="img" aria-label="온톨로지 접합부 4곳">
+  <defs>
+    <marker id="arrV" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4a3aa7"/>
+    </marker>
+  </defs>
+  <!-- ttl -->
+  <rect x="20" y="98" width="130" height="60" rx="8" fill="#f3f2ee" stroke="#dedcd5"/>
+  <text x="85" y="122" text-anchor="middle" font-size="12.5" font-weight="700">ontology.ttl</text>
+  <text x="85" y="140" text-anchor="middle" font-size="11" fill="#52514e">임무형지휘 스키마 v1 발췌본</text>
+  <line x1="150" y1="128" x2="208" y2="128" stroke="#4a3aa7" stroke-width="1.8" marker-end="url(#arrV)"/>
+  <!-- adapter -->
+  <rect x="210" y="88" width="180" height="80" rx="10" fill="#ffffff" stroke="#4a3aa7" stroke-width="2"/>
+  <text x="300" y="115" text-anchor="middle" font-size="13.5" font-weight="700" fill="#4a3aa7">OntologyAdapter</text>
+  <text x="300" y="134" text-anchor="middle" font-size="11" fill="#52514e">라벨 이웃 인덱스</text>
+  <text x="300" y="150" text-anchor="middle" font-size="10.5" fill="#52514e">subClassOf · type · domain/range</text>
+  <!-- junctions -->
+  <g font-size="12" text-anchor="middle">
+    <rect x="470" y="14" width="190" height="46" rx="8" fill="#e8f0fb" stroke="#2a78d6"/>
+    <text x="565" y="33" font-weight="700">J1 회상 확장</text>
+    <text x="565" y="50" font-size="10.5" fill="#52514e">질의 → 개념 이웃 합류 (7.2)</text>
+    <rect x="470" y="72" width="190" height="46" rx="8" fill="#e8f0fb" stroke="#2a78d6"/>
+    <text x="565" y="91" font-weight="700">J2 거버넌스 상향</text>
+    <text x="565" y="108" font-size="10.5" fill="#52514e">위험 개념 이웃 → 인간 승인 (7.3)</text>
+    <rect x="470" y="130" width="190" height="46" rx="8" fill="#e8f0fb" stroke="#2a78d6"/>
+    <text x="565" y="149" font-weight="700">J4 의도-행동 정렬</text>
+    <text x="565" y="166" font-size="10.5" fill="#52514e">ALIGNED / CHECK / CONFLICT (7.4)</text>
+    <rect x="470" y="188" width="190" height="46" rx="8" fill="#fbfaf8" stroke="#8a887f" stroke-dasharray="5 4"/>
+    <text x="565" y="207" font-weight="700" fill="#52514e">J3 ABox 개체 추출</text>
+    <text x="565" y="224" font-size="10.5" fill="#8a887f">미구현 — LLM 결합 필요</text>
+  </g>
+  <g stroke="#4a3aa7" stroke-width="1.6" fill="none">
+    <path d="M 390 108 C 430 100 430 44 468 38" marker-end="url(#arrV)"/>
+    <path d="M 390 122 C 430 118 430 96 468 95" marker-end="url(#arrV)"/>
+    <path d="M 390 140 C 430 144 430 152 468 152" marker-end="url(#arrV)"/>
+    <path d="M 390 154 C 430 164 430 210 468 210" stroke-dasharray="5 4" marker-end="url(#arrV)"/>
+  </g>
+  <text x="85" y="196" font-size="11.5" fill="#52514e">폴백(P7): 온톨로지 부재·</text>
+  <text x="85" y="212" font-size="11.5" fill="#52514e">파싱 실패 시 기존 동작 유지</text>
+</svg>
+<figcaption><strong>그림 5.</strong> 온톨로지 접합부 4곳. 어댑터가 온톨로지를 라벨 이웃 인덱스로
+사상하고, 회상(J1)·거버넌스(J2)·의도 정렬(J4)이 이를 소비한다. J3(점선)은 향후 과제.</figcaption>
+</figure>
+
+<table>
+<tr><th>접합부</th><th>결합 방식</th><th>상태</th></tr>
+<tr><td>J1. 회상 확장</td><td>질의에 등장한 개념의 온톨로지 이웃을 검색어에 합류</td><td>구현·실증 (7.2)</td></tr>
+<tr><td>J2. 거버넌스 상향</td><td>위험 개념 이웃을 건드리는 목표의 위험 상향</td><td>구현·실증 (7.3)</td></tr>
+<tr><td>J3. 흡수 시 개체 추출</td><td>문서에서 인스턴스·관계 추출로 ABox 구축</td><td>미구현 (LLM 필요)</td></tr>
+<tr><td>J4. 의도-행동 정렬</td><td>지휘관 의도 요소 대비 행동의 정렬 판정</td><td>구현·실증 (7.4)</td></tr>
+</table>
+
+<p>어댑터(OntologyAdapter)는 온톨로지를 "라벨 이웃 인덱스"로 사상한다: 모든 라벨 있는 항에
+대해 rdfs:subClassOf 상하위, rdf:type 인스턴스-클래스, 객체 속성의 domain/range로 연결된
+클래스들, 그리고 라벨 있는 속성으로 직접 연결된 개체 쌍을 이웃으로 수집하고, 한국어 라벨은
+공백 무시로 본문과 대조한다. rdflib은 선택 의존성이며, 온톨로지 부재·파싱 실패 시 전 기능이
+기존 동작으로 퇴행한다(P7).</p>
+
+<h3>7.2 J1: 온톨로지 확장 회상</h3>
+
+<figure>
+<svg class="fig-svg" viewBox="0 0 680 230" role="img" aria-label="의도 간극을 온톨로지가 매개하는 구조">
+  <defs>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2a78d6"/>
+    </marker>
+    <marker id="arrG6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1baf7a"/>
+    </marker>
+  </defs>
+  <!-- query -->
+  <rect x="20" y="20" width="180" height="66" rx="8" fill="#0b0b0b"/>
+  <text x="110" y="44" text-anchor="middle" font-size="12.5" fill="#fff" font-weight="700">상급 제대의 질의</text>
+  <text x="110" y="64" text-anchor="middle" font-size="11.5" fill="#c3c2b7">"지휘관 의도 전파</text>
+  <text x="110" y="79" text-anchor="middle" font-size="11.5" fill="#c3c2b7">실태 점검"</text>
+  <!-- ontology middle -->
+  <rect x="240" y="10" width="200" height="150" rx="10" fill="#ffffff" stroke="#4a3aa7" stroke-width="2"/>
+  <text x="340" y="32" text-anchor="middle" font-size="12.5" font-weight="700" fill="#4a3aa7">온톨로지 관계망</text>
+  <g font-size="11" text-anchor="middle" fill="#0b0b0b">
+    <rect x="272" y="42" width="136" height="22" rx="5" fill="#efeaf9" stroke="#4a3aa7"/><text x="340" y="57">지휘관의도</text>
+    <g fill="#52514e" font-size="10">
+      <text x="340" y="80">hasPurpose · hasEndState · hasKeyTask ↓</text>
+    </g>
+    <rect x="252" y="90" width="80" height="20" rx="5" fill="#f3f2ee" stroke="#dedcd5"/><text x="292" y="104">목적</text>
+    <rect x="348" y="90" width="80" height="20" rx="5" fill="#f3f2ee" stroke="#dedcd5"/><text x="388" y="104">최종상태</text>
+    <rect x="252" y="118" width="80" height="20" rx="5" fill="#f3f2ee" stroke="#dedcd5"/><text x="292" y="132">핵심과업</text>
+    <rect x="348" y="118" width="80" height="20" rx="5" fill="#f3f2ee" stroke="#dedcd5"/><text x="388" y="132">제한사항 …</text>
+  </g>
+  <!-- doc -->
+  <rect x="480" y="20" width="180" height="120" rx="8" fill="#fbfaf8" stroke="#dedcd5"/>
+  <text x="570" y="42" text-anchor="middle" font-size="12.5" font-weight="700">예하 제대의 문서</text>
+  <text x="570" y="64" text-anchor="middle" font-size="11" fill="#52514e">"예하 중대들이 최종상태를</text>
+  <text x="570" y="80" text-anchor="middle" font-size="11" fill="#52514e">서로 다르게 이해했고,</text>
+  <text x="570" y="96" text-anchor="middle" font-size="11" fill="#52514e">핵심과업의 우선순위가…"</text>
+  <text x="570" y="122" text-anchor="middle" font-size="10.5" fill="#e34948">('지휘관'·'의도'라는 단어 없음)</text>
+  <g stroke="#2a78d6" stroke-width="1.8" fill="none">
+    <line x1="200" y1="53" x2="238" y2="53" marker-end="url(#arrB)"/>
+    <line x1="440" y1="90" x2="478" y2="90" marker-end="url(#arrB)"/>
+  </g>
+  <path d="M 570 140 C 570 195 110 195 110 88" fill="none" stroke="#1baf7a" stroke-width="1.8" marker-end="url(#arrG6)"/>
+  <text x="340" y="205" text-anchor="middle" font-size="12" fill="#1baf7a" font-weight="700">회수 성공 — 표층 공유 토큰 0개, 개념 관계만으로 연결</text>
+</svg>
+<figcaption><strong>그림 6.</strong> 의도 간극의 온톨로지 매개(7.2절 실증).
+상급 어휘("지휘관 의도")가 관계망을 타고 예하 어휘("최종상태·핵심과업")로 확장되어,
+표층 검색이 놓치는 문서를 회수한다.</figcaption>
+</figure>
+
+<p>질의 "지휘관 의도 전파 실태 점검"과, '지휘관'·'의도'라는 단어가 전혀 없이 "예하 중대들이
+최종상태를 서로 다르게 이해했고, 핵심과업의 우선순위가 명령과 달랐다…"로만 기술된 훈련 관찰
+메모를 준비했다. 표층 검색은 이 메모를 회수하지 못한다(공유 토큰 없음). 온톨로지 결합 후,
+질의의 "지휘관의도" 개념이 hasPurpose·hasEndState·hasKeyTask 등의 domain/range를 타고
+목적·최종상태·핵심과업·제한사항·수용가능위험으로 확장되었고, 메모가 정확히 회수되었다.
+즉 상급 제대의 어휘("의도")와 예하 제대의 어휘("최종상태·핵심과업") 사이의 간극을 온톨로지가
+매개하는 것으로, 이는 해당 온톨로지가 목표한 "의도 간극 해소"의 검색 층위 구현이다.</p>
+
+<h3>7.3 J2: 온톨로지 기반 거버넌스 상향</h3>
+<p>워크스페이스 설정(governance.json)에 위험 개념 라벨(예: 제한사항, 수용가능위험)을 선언하면,
+그 개념 또는 이웃을 언급하는 목표가 HIGH로 분류되어 인간 승인 없이는 실행되지 않는다.
+실증에서 (a) "제한사항을 넘는 야간 침투 기동 승인"은 직접 언급으로, (b) "이 행동이 제한과
+충돌하는지 검토"는 이웃 개념(conflictsWith 속성 라벨 '제한과충돌'이 domain/range로 제한사항과
+연결)을 통해 각각 승인 대기(PENDING_APPROVAL)로 상향되었고, (c) "주간 정비 일지 정리"는
+통과되었다. 키워드 목록이 아닌 개념 체계가 통제 근거가 된다는 점에서, 임무형지휘의 "제한 속
+자유"를 실행 전 관문으로 옮긴 것이다.</p>
+
+<h3>7.4 J4: 지휘관 의도 정렬 판정</h3>
+
+<figure>
+<svg class="fig-svg" viewBox="0 0 680 250" role="img" aria-label="의도-행동 정렬 판정 흐름도">
+  <defs>
+    <marker id="arrK" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52514e"/>
+    </marker>
+  </defs>
+  <rect x="20" y="96" width="130" height="52" rx="8" fill="#0b0b0b"/>
+  <text x="85" y="118" text-anchor="middle" font-size="12.5" fill="#fff" font-weight="700">행동(목표)</text>
+  <text x="85" y="136" text-anchor="middle" font-size="10.5" fill="#c3c2b7">± 온톨로지 확장</text>
+  <line x1="150" y1="122" x2="186" y2="122" stroke="#52514e" stroke-width="1.6" marker-end="url(#arrK)"/>
+  <!-- decision 1 -->
+  <rect x="188" y="92" width="150" height="60" rx="8" fill="#fbfaf8" stroke="#dedcd5"/>
+  <text x="263" y="116" text-anchor="middle" font-size="12" font-weight="700">제한사항 접촉?</text>
+  <text x="263" y="134" text-anchor="middle" font-size="10.5" fill="#52514e">conflictsWith</text>
+  <!-- risk covered -->
+  <rect x="378" y="20" width="160" height="56" rx="8" fill="#fbfaf8" stroke="#dedcd5"/>
+  <text x="458" y="43" text-anchor="middle" font-size="12" font-weight="700">수용가능위험으로</text>
+  <text x="458" y="60" text-anchor="middle" font-size="12" font-weight="700">면책?</text>
+  <!-- decision 2 -->
+  <rect x="378" y="112" width="160" height="60" rx="8" fill="#fbfaf8" stroke="#dedcd5"/>
+  <text x="458" y="136" text-anchor="middle" font-size="12" font-weight="700">핵심과업·목적 지원?</text>
+  <text x="458" y="154" text-anchor="middle" font-size="10.5" fill="#52514e">supportsTask · servesPurpose</text>
+  <!-- verdicts -->
+  <g text-anchor="middle" font-size="13" font-weight="800">
+    <rect x="578" y="16" width="84" height="40" rx="8" fill="#fdecec" stroke="#e34948" stroke-width="1.8"/>
+    <text x="620" y="41" fill="#a12a29">CONFLICT</text>
+    <rect x="578" y="112" width="84" height="40" rx="8" fill="#e9f3e6" stroke="#008300" stroke-width="1.8"/>
+    <text x="620" y="137" fill="#005c00">ALIGNED</text>
+    <rect x="578" y="184" width="84" height="40" rx="8" fill="#fdf3dd" stroke="#eda100" stroke-width="1.8"/>
+    <text x="620" y="209" fill="#8a5c00">CHECK</text>
+  </g>
+  <g stroke="#52514e" stroke-width="1.5" fill="none">
+    <path d="M 263 92 L 263 48 L 376 48" marker-end="url(#arrK)"/>
+    <path d="M 338 130 L 376 138" marker-end="url(#arrK)"/>
+    <path d="M 538 36 L 576 36" marker-end="url(#arrK)"/>
+    <path d="M 538 140 L 576 132" marker-end="url(#arrK)"/>
+    <path d="M 458 172 L 458 204 L 576 204" marker-end="url(#arrK)"/>
+    <path d="M 458 76 L 458 110" marker-end="url(#arrK)"/>
+  </g>
+  <g font-size="10.5" fill="#52514e">
+    <text x="300" y="42">예</text>
+    <text x="352" y="124">아니오</text>
+    <text x="552" y="30">아니오</text>
+    <text x="470" y="94">예 ↓</text>
+    <text x="552" y="134">예</text>
+    <text x="468" y="194">아니오 (미확인)</text>
+  </g>
+  <text x="620" y="70" text-anchor="middle" font-size="10" fill="#a12a29">→ 거버넌스 HIGH</text>
+  <text x="620" y="82" text-anchor="middle" font-size="10" fill="#a12a29">인간 승인 필요</text>
+  <text x="620" y="238" text-anchor="middle" font-size="10" fill="#8a5c00">인간 확인 권장</text>
+</svg>
+<figcaption><strong>그림 7.</strong> 의도-행동 정렬의 3치 판정 흐름.
+CHECK는 "모른다"를 모른다고 말하는 판정이며, CONFLICT는 거버넌스 승인 관문과 연동된다.</figcaption>
+</figure>
+
+<p>지휘관 의도를 온톨로지의 CommandersIntent 구조 그대로
+5요소(목적·최종상태·핵심과업·제한사항·수용가능위험)로 명세(intent.json)하면, 모든 목표가
+실행 전 3치 판정을 받는다: 핵심과업·목적을 지원하면 <strong>ALIGNED</strong>(supportsTask·servesPurpose의
+구현), 수용가능위험으로 면책되지 않는 제한사항 접촉이면 <strong>CONFLICT</strong>(conflictsWith), 연결이
+확인되지 않으면 <strong>CHECK</strong> — "모른다"를 모른다고 말하는 판정이며 인간 확인을 요구한다.
+CONFLICT는 거버넌스와 연동되어 자동으로 인간 승인 관문에 걸리고, 판정 전체가 수행 일지에
+영속되어 사후 감사가 가능하다. 온톨로지는 판정의 어휘 폭을 넓힌다: 포병⊑화력지원 관계를
+담은 별도의 통제(합성) 온톨로지를 결합한 실험에서, 과업 "화력지원 태세 확립"에 대한 행동
+"포병 사격 준비"는 표층 매칭으로는 CHECK였으나 관계 결합 후 ALIGNED로 판정되었다(해당
+관계는 스키마 v1에 포함된 것이 아니라 이 실험을 위해 구성한 것이다).</p>
+
+<h3>7.5 함의와 경계</h3>
+<p>세 접합의 총합은 임무형지휘 통제 양식의 소프트웨어적 번역이다: 의도의 구조적 공유(intent
+명세) → 실행의 위임(자율 수행 루프) → 한계의 명시적 통제(거버넌스 상향 + 정렬 판정 + 인간
+승인). 전 과정이 오프라인에서 동작하므로 폐쇄망 환경과 양립한다. 경계도 분명하다: 정렬 판정은
+어휘·개념 매칭 기반의 1차 분류(triage)이지 의미론적 증명이 아니며, CHECK 판정률이 실무
+유용성을 좌우한다. 또한 현 어댑터는 라벨 문자열을 열쇠로 삼으므로, 동일 개념의 라벨 표기
+변형이 중복 수록된 온톨로지에서는 이웃 병합·섀도잉이 발생할 수 있다 — 실제로 스키마 v1
+전체를 그대로 결합하면 7.2의 확장이 재현되지 않으며, 이것이 발췌본을 사용한 이유다. 라벨
+정규화 규약 또는 IRI 기반 매칭, 그리고 ABox의 자동 구축(J3)과 판정의 의미 수준 향상은 향후
+과제다.</p>
+
+<h2 id="pp8">8. 한계와 향후 과제</h2>
+<ul>
+<li><strong>실모델 미검증</strong>: 본고 시점까지 전 기능은 mock/스크립트드 프로바이더로 검증되었고, 실LLM 종단 검증은 하네스만 준비된 상태다. 분해 프롬프트의 실모델 출력 적합성 등은 실검증 후 보고할 것이다.</li>
+<li><strong>검색의 어휘 한계</strong>: 바이그램 TF-IDF는 표층 매칭이다. 의미 검색(임베딩)은 P2·P7을 유지하는 선택적 증강으로 설계 예정이다.</li>
+<li><strong>단일 코퍼스 사례연구(N=1)</strong>: 6절의 실증은 단일 사용자·단일 코퍼스·단일 실행의 사례연구다. 수치는 규모 등급 차이의 예시이며, 일반화에는 반복 측정과 이종 코퍼스 검증이 필요하다.</li>
+<li><strong>단일 사용자·단일 머신</strong>: 워크스페이스는 동시 쓰기에 안전하지 않다.</li>
+<li><strong>정렬·거버넌스의 표층성</strong>: 위험 분류와 의도 정렬 판정이 어휘·개념 매칭 기반의 1차 분류다(7.5절). 의미 수준 판정은 향후 과제다.</li>
+<li><strong>용어의 수사적 위험</strong>: "인지", "자기 성찰" 등의 어휘는 기능적 은유이며, 공개 문서 전반에 그 한정을 명시했다.</li>
+</ul>
+
+<h2 id="pp9">9. 결론</h2>
+<p>MAIOS는 휘발적 채팅을 넘어 기억·회상·거버넌스를 갖춘 임무 중심 AI 운용을 로컬 환경에서
+구현했고, 실사용 코퍼스 실증으로 기억형 에이전트 특유의 규모 결함 세 가지를 식별·해소했다.
+특히 자기 기록 되먹임 팽창은 수행 이력을 기억하는 모든 에이전트 설계가 점검해야 할 위험이라
+판단한다. 나아가 형식 온톨로지를 회상·거버넌스·의도 정렬에 결합함으로써, 군사 지휘 이론이
+정식화해 온 인간-부하 간 통제 양식(임무형지휘)이 인간-AI 통제 구조의 설계 언어로 이식될 수
+있음을 작동 수준에서 보였다. 전 구현은 공개 저장소에서 확인 가능하다.</p>
+<p><strong>공개</strong>: <a href="https://github.com/yhkwon6454-boop/MAIOS">github.com/yhkwon6454-boop/MAIOS</a>
+(MIT, v1.3.0+, 테스트 506개). 코드 변경과 주요 수치의 요지는 커밋 이력에 기록되어 있으나,
+6절의 실증 코퍼스는 사적 저술 자료로 공개되지 않으며 세부 측정값 일부는 개발 세션 기록에
+근거한다.</p>
+
+<hr class="divider">
+
+<h2 id="pp-refs">참고문헌 <span class="note">(초고 — 서지사항 확정 필요)</span></h2>
+<ol class="refs">
+<li>Significant Gravitas, "AutoGPT," GitHub repository, 2023.</li>
+<li>H. Chase, "LangChain," GitHub repository, 2022.</li>
+<li>Q. Wu et al., "AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation," arXiv:2308.08155, 2023.</li>
+<li>J. Moura, "CrewAI," GitHub repository, 2023.</li>
+<li>C. Packer et al., "MemGPT: Towards LLMs as Operating Systems," arXiv:2310.08560, 2023.</li>
+<li>J. E. Laird, <em>The Soar Cognitive Architecture</em>, MIT Press, 2012.</li>
+<li>J. R. Anderson, <em>How Can the Human Mind Occur in the Physical Universe?</em>, Oxford University Press, 2007.</li>
+<li>A. S. Rao and M. P. Georgeff, "BDI Agents: From Theory to Practice," ICMAS, 1995.</li>
+<li>임무형지휘 관련 문헌 (저자 기존 연구 연계, 확정 예정)</li>
+<li>G. Salton and C. Buckley, "Term-Weighting Approaches in Automatic Text Retrieval," <em>Information Processing &amp; Management</em>, 24(5), 1988.</li>
+</ol>
+
+
+</div>
+
+<div class="page">
+
+<section id="afterword">
+<div class="part-divider">
+  <div class="num head-font">Epilogue</div>
+  <h2>남은 질문들</h2>
+</div>
+
+<h3 id="af-1">1. 세 한계는 어떻게 됐는가</h3>
+<p>1부에서 나는 채팅형 AI의 세 가지 한계를 적었다. 휘발성, 수동성, 통제 부재. 이 책의
+나머지는 그 세 한계에 대한 대답을 만들어가는 과정이었다고 할 수 있다.</p>
+<p>휘발성에는 <code>.maios/</code> 작업공간과 기억 회상으로 답했다. 세션이 끝나도 목표
+추구 일지와 산출물은 남고, 다음 목표를 받으면 그 기록이 먼저 불려온다. 수동성에는 목표
+분해와 실제 작업 실행기로 답했다. 큰 목표는 하위 목표로 쪼개지고, 각 조각의 산출물이
+다음 조각의 입력이 된다. 통제 부재에는 거버넌스 게이트와, 4부에서 다룬 임무형지휘의 세
+접합부로 답했다. 위험한 목표는 승인을 거치고, 행동은 명세된 의도에 대해
+ALIGNED·CHECK·CONFLICT로 판정된다.</p>
+<p>세 대답 모두 완벽하지 않다. 기억 회상은 여전히 어휘 기반 검색의 한계 안에 있다. 목표
+분해는 mock 프로바이더로만 검증됐다. 정렬 판정은 4부에서 밝힌 대로 의미를
+이해해서 내리는 판단이 아니라 어휘와 개념 매칭에 기반한 1차 분류다. 그래도 이 세
+대답은 3부가 증명한 것 — 뼈대가 서는 것과 그 뼈대가 실제 무게를 견디는 것은 다른
+문제라는 것 — 을 통과하며 만들어진 것들이다. 말뿐인 대답은 아니라는 뜻이다.</p>
+
+<h3 id="af-2">2. 아직 답하지 못한 것들</h3>
+<p>정직하게 남겨야 할 목록이 있다.</p>
+<p>실LLM을 상대로 한 종단 검증은 여전히 하네스만 준비된 채 멈춰 있다. 5부에서 적은
+결제 잠금이 풀려야 다음 단계로 넘어간다. J3, 텍스트에서 온톨로지 인스턴스를 자동으로
+뽑아내는 작업은 같은 이유로 손대지 못했다. 3부의 실증은 코퍼스 하나, 사용자 한 명의
+사례연구(N=1)다 — 일반화를 주장할 수 있는 규모가 아니다. 검색은 여전히 바이그램과
+IDF에 기반한 표층 어휘 매칭이고, 의미 기반 검색(임베딩)은 아직 선택적 증강으로 설계된
+계획일 뿐 구현되지 않았다. 그리고 연구논문은 아직 저자 표기 방식도, 투고처도 정하지
+못했다.</p>
+<p>이 목록을 감추고 싶은 유혹이 없었다면 거짓말일 것이다. 하지만 2부에서
+<code>AGIFoundation</code>이라는 이름에 각주를 달았던 것, 4부에서 온톨로지가 발췌본이고
+관계 하나가 합성이었다고 밝힌 것, 5부에서 연구를 멈춘 게 알고리즘이 아니라 결제
+서비스였다고 인정한 것 — 이 모든 것이 같은 원칙에서 나온다. 이 프로젝트가 스스로를
+과장하는 순간, 그동안 쌓아온 것의 신뢰도 함께 무너진다는 것. 그래서 이 목록도 그대로
+둔다.</p>
+
+<h3 id="af-3">3. 배운 것</h3>
+<p>돌이켜 보면 이 몇 주가 내게 가르친 건 기술적인 것보다 태도에 가까운 것들이었다.</p>
+<p>첫째, 단위 테스트가 통과한다는 것과 실제 규모에서 안전하다는 것은 다른 명제다.
+3부의 세 결함은 506개의 초록 불이 켜진 화면 앞에서도 여전히 실제 데이터를 한 번
+밀어넣어봐야 한다는 걸 가르쳤다. 둘째, 이름과 은유는 위험하다. "AGI", "인지 루프",
+"임무형지휘" 같은 말들은 실제로 구현된 것보다 쉽게 앞서 나간다. 그 간극을 계속
+확인하고 줄이는 일이 설계만큼이나 중요한 작업이었다. 셋째, AI와 협업한다는 것은
+초안을 빨리 받는 일이 아니라 그 초안이 과장하고 있지 않은지 함께, 혹은 서로 번갈아
+확인하는 일에 가깝다. 5부의 27개 파일 커밋의 큰 몫도 이 확인의 기록이었다.</p>
+<p>그리고 마지막 하나 — 되돌리기 어려운 행동 앞에서는 재량을 자동화에 넘기지 않는다는
+원칙은, 코드 안의 거버넌스 게이트든 결제 화면 앞의 내 손가락이든 똑같이 적용되어야
+한다는 것. 이 책을 쓰기 전에는 이 둘이 같은 원칙이라는 걸 명확히 언어화하지 못했다.
+쓰면서 알았다.</p>
+
+<h3 id="af-4">4. 진행 중인 기록으로 남긴다</h3>
+<p>서문에서 나는 이 책이 완결된 성공담이 아니라고 썼다. 여기까지 쓰고 나서도 그
+문장은 그대로다. 결제는 여전히 막혀 있고, J3는 비어 있고, 논문은 투고되지 않았다.
+하지만 처음의 그 갑갑함 — 창을 닫으면 증발하던 기억 — 은 더 이상 없다. 지금 이
+문장을 쓰고 있는 것도 <code>.maios/</code>에 쌓인 지난 스프린트의 기록을 다시 불러올
+수 있기 때문이고, 이 책 자체도 그 워크스페이스의 산출물 중 하나다.</p>
+<p>MAIOS가 언젠가 완성되는 날이 있을지는 모르겠다. 다만 확실한 건, 그날이 오기 전까지
+이 기록은 계속 갱신될 것이라는 점이다. 이 책도 마찬가지다. 다음 판은 결제가 풀린 뒤,
+실LLM으로 처음 J3를 돌려본 이야기에서 시작할 것이다.</p>
+
+<div class="end-mark">· · ·</div>
+
+
+</section>
+
+</div>
+
+<div class="part-divider" id="appendix">
+  <div class="num head-font">Appendix</div>
+  <h2>부록 — 투고 후보와 개작 방향</h2>
+  <p class="part-note">연구논문의 내부 메모. 논문 본문이 아닌 저자의 작업 기록이다.</p>
+  <div class="rule"></div>
+</div>
+
+<div class="part-paper">
+
+<h2>부록 A. 투고 후보와 개작 방향 <span class="note">(내부 메모)</span></h2>
+<p class="draft-flag">이 절은 논문 본문이 아니라 저자의 작업용 메모다 — 투고처 검토
+상황과 진행 중인 행정 이슈(크레딧 잠금 등)를 그대로 남겨 이 문서 자체를 살아 있는
+기록으로 유지한다. 인용·심사용으로는 본문 1~9절만 참고하라. 크레딧 잠금 사건의 전말은
+<a href="#part5">제1편 5부</a>에 있다.</p>
+<table>
+<tr><th style="width:32%">후보</th><th>개작 방향</th></tr>
+<tr><td>한국방위산업학회지</td><td>7절(온톨로지×임무형지휘)을 중심 축으로 재편, 6절 결함 사례는 압축, 기존 투고 양식(21×28cm) 적용. 저자의 온톨로지 3부작·임무형지휘 연구와 연계 인용</td></tr>
+<tr><td>J. of Defense Modeling &amp; Simulation</td><td>영역(英譯), 아키텍처·실증(6절) 축, 7절은 사례로</td></tr>
+<tr><td>arXiv (cs.AI / cs.SE)</td><td>영역, 6절 사례연구 중심의 시스템 논문으로, 7절은 응용 절</td></tr>
+</table>
+<p class="note">남은 v2 확정 조건: 실LLM 종단 검증(validate_live) 결과를 6절에 추가.
+현재 크레딧 잠금 건으로 Anthropic 지원 처리 대기 중(2026-07-10 접수).</p>
+
+
+</div>
+
+<div class="status">
+통합본 — 서문 · 제1편(이야기) · 제2편(사용 안내) · 제3편(설계와 실증) · 에필로그 · 부록.
+원문은 <code>BOOK_NARRATIVE.ko.md</code> · <code>MANUAL.ko.md</code> · <code>PAPER.ko.md</code>에서 관리되며
+이 HTML은 세 문서의 합본 조판본이다.
+</div>
+
+<footer>
+MAIOS — MUSA AI Operating System · 저장소: github.com/yhkwon6454-boop/MAIOS (develop 브랜치)<br>
+이 문서는 세 문서의 통합본이다:
+<a href="./BOOK_NARRATIVE.ko.html">BOOK_NARRATIVE.ko.html</a>(개발 서사) ·
+<a href="./MANUAL.ko.html">MANUAL.ko.html</a>(사용 설명서) ·
+<a href="./PAPER.ko.html">PAPER.ko.html</a>(연구논문) ·
+<code>docs/MAIOS_책_v1.docx</code>(책자판)
+</footer>
+
+</body>
+</html>
