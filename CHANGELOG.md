@@ -7,7 +7,16 @@ and this project follows semantic versioning for release tags.
 
 ## [Unreleased]
 
+Real-LLM validation of this batch (`scripts/validate_live.py` against a live
+provider) is pending an Anthropic billing issue; the cognitive-layer and
+ontology work below is complete on `develop` but held back from a version
+tag until that validation runs. See the project's release-plan notes for
+detail. Everything remains usable today via `--llm mock` or a working
+provider key.
+
 ### Added
+
+**Search and validation**
 
 - Term-frequency weighting in knowledge search: documents that discuss a
   query term repeatedly outrank ones that mention it once, fixing score
@@ -16,10 +25,9 @@ and this project follows semantic versioning for release tags.
   cognitive stack against a real LLM provider (provider connectivity,
   pursuit deliverable, ingestion + recall, research, project decomposition).
 - Architecture docs now describe the cognitive layer (v1.1+).
-- Korean user manual (`docs/MANUAL.ko.md`) covering every command,
-  workspace structure, governance, workflows, and troubleshooting.
-- Research paper draft (`docs/PAPER.ko.md`) documenting the design
-  principles, architecture, and the real-corpus case study.
+
+**Ontology integration (J1/J2/J4)**
+
 - Ontology-expanded recall: drop an RDFS/OWL `ontology.ttl` into the
   workspace (optional `rdflib` dependency) and queries expand along
   subclass, instance, and domain/range relations, so documents that share
@@ -32,7 +40,41 @@ and this project follows semantic versioning for release tags.
   tasks, constraints, acceptable risks) in `intent.json` and every pursued
   goal is judged ALIGNED/CHECK/CONFLICT before execution; conflicts with
   constraints escalate to human approval. New `maios align` command and
-  shell `/align`, ontology-widened matching included.
+  shell `/align`, ontology-widened matching included. J3 (automatic
+  ontology-instance extraction from ingested text) remains unimplemented —
+  it needs real LLM calls, so it's blocked on the same billing issue.
+
+**Documentation**
+
+- Korean user manual (`docs/MANUAL.ko.md`, mirrored as `docs/MANUAL.ko.html`)
+  covering every command, workspace structure, governance, workflows, and
+  troubleshooting.
+- Research paper draft (`docs/PAPER.ko.md`, mirrored as `docs/PAPER.ko.html`
+  with 7 illustrated figures) documenting the design principles,
+  architecture, the real-corpus case study, and the ontology application
+  study (section 7).
+- Development-narrative book (`docs/BOOK_NARRATIVE.ko.md` /
+  `docs/BOOK_NARRATIVE.ko.html`): a first-person essay on building MAIOS,
+  covering the mission-command origins, the three real-corpus scale
+  defects, the ontology-integration honesty caveats, and the Stripe/Link
+  payment lockout that has stalled real-LLM validation.
+- Print-ready book compilation (`docs/MAIOS_책_v1.docx`, built by
+  `scripts/build_book.py`) combining the manual and paper with figures.
+- Korean deliverables inventory (`docs/산출물목록.ko.md`).
+
+### Fixed
+
+- Paper overclaiming toned down after a red-team pass: section 6's
+  real-corpus case study now explicitly states it's a single-corpus study
+  (N=1) with a private, undisclosed corpus; section 7.2 now discloses that
+  the demonstrated "포병⊑화력지원" relation was added to a synthetic
+  control ontology for the experiment rather than present in schema v1;
+  section 7 now explains why an excerpt (66 of ~180 triples) of the
+  mission-command ontology was used instead of the full schema (duplicate
+  Korean labels caused adapter shadowing).
+- `docs/PAPER.ko.html` figure 6's arrow marker referenced figure 3's shared
+  `<defs>` instead of defining its own — worked by DOM-order accident but
+  broke if figures were reordered or excerpted.
 
 ## [1.3.0] - 2026-07-10
 
