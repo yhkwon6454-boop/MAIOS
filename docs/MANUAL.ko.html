@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAIOS 사용 설명서</title>
+<style>
+  :root{
+    --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --ink3:#8a887f;
+    --line:#dedcd5; --panel:#f3f2ee;
+    --blue:#2a78d6; --blue-d:#1c5cab; --aqua:#1baf7a; --yellow:#eda100;
+    --green:#008300; --red:#e34948; --violet:#4a3aa7;
+    --code-bg:#1e1e1c; --code-ink:#e8e6df; --code-ink2:#9c9a90;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--surface); color:var(--ink);
+    font-family:'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+    font-size:16px; line-height:1.85; word-break:keep-all;}
+  .paper{max-width:800px; margin:0 auto; padding:56px 24px 96px;}
+  h1{font-size:25px; line-height:1.5; margin-bottom:14px;}
+  .meta{color:var(--ink2); font-size:13.5px; line-height:1.7; border-left:3px solid var(--blue);
+    padding-left:12px; margin:18px 0 8px;}
+  nav.toc{background:var(--panel); border-radius:10px; padding:18px 22px; margin:26px 0 8px;
+    font-size:14px; line-height:2;}
+  nav.toc a{color:var(--blue-d); text-decoration:none;}
+  nav.toc a:hover{text-decoration:underline;}
+  nav.toc ol{margin-left:20px;}
+  h2{font-size:20px; margin:52px 0 16px; padding-bottom:8px; border-bottom:2px solid var(--ink);}
+  h3{font-size:16.5px; margin:32px 0 10px; color:var(--ink);}
+  p{margin:0 0 14px;}
+  ul,ol{margin:0 0 14px 22px;}
+  li{margin-bottom:6px;}
+  strong{font-weight:700;}
+  code{font-family:Consolas,'D2Coding',monospace; font-size:14px; background:var(--panel);
+    padding:1px 5px; border-radius:4px;}
+  pre{background:var(--code-bg); color:var(--code-ink); border-radius:10px;
+    padding:16px 18px; margin:0 0 18px; overflow-x:auto; font-size:13.5px; line-height:1.7;}
+  pre code{background:none; padding:0; color:inherit; font-size:inherit;}
+  pre .c{color:var(--code-ink2);}
+  table{border-collapse:collapse; width:100%; margin:16px 0 22px; font-size:14.5px; line-height:1.6;}
+  th{background:var(--panel); text-align:left; font-weight:700;}
+  th,td{border:1px solid var(--line); padding:8px 11px; vertical-align:top;}
+  .badge{display:inline-block; font-size:12px; font-weight:700; padding:2px 9px; border-radius:20px;
+    margin-left:2px;}
+  .b-ok{background:#e4f5ea; color:var(--green);}
+  .b-warn{background:#fdf1de; color:var(--yellow);}
+  .b-block{background:#fbe6e5; color:var(--red);}
+  .divider{border:none; border-top:1px solid var(--line); margin:40px 0;}
+  .note{font-size:13.5px; color:var(--ink2);}
+  footer{margin-top:60px; padding-top:20px; border-top:1px solid var(--line);
+    font-size:12.5px; color:var(--ink3); text-align:center; line-height:1.9;}
+  @media print{ body{font-size:11.5pt;} .paper{max-width:100%; padding:0;}
+    h2{page-break-after:avoid; break-after:avoid-page;}
+    h3{page-break-after:avoid; break-after:avoid-page;}
+    pre,table{page-break-inside:avoid; break-inside:avoid;} }
+</style>
+</head>
+<body>
+<div class="paper">
+
+<h1>MAIOS 사용 설명서</h1>
+<div class="meta">
+MUSA AI Operating System — 임무 중심 인지형 AI 운영체제 매뉴얼 (v1.3 기준)
+</div>
+
+<nav class="toc">
+<ol>
+<li><a href="#s1">MAIOS란 무엇인가</a></li>
+<li><a href="#s2">설치</a></li>
+<li><a href="#s3">5분 훑어보기</a></li>
+<li><a href="#s4">명령어 상세</a></li>
+<li><a href="#s5">워크스페이스의 구조</a></li>
+<li><a href="#s6">거버넌스 (안전장치)</a></li>
+<li><a href="#s7">실전 워크플로우 예시</a></li>
+<li><a href="#s8">파이썬 API</a></li>
+<li><a href="#s9">문제 해결</a></li>
+<li><a href="#s10">자주 묻는 질문</a></li>
+</ol>
+</nav>
+
+<h2 id="s1">1. MAIOS란 무엇인가</h2>
+<p>MAIOS는 "AI를 도구로 쓰는 것"과 "AI를 임무 중심으로 운용하는 것"의 차이에서 출발한 로컬 AI
+운영체제입니다. 챗봇은 대화가 끝나면 잊지만, MAIOS는:</p>
+<ul>
+<li><strong>기억합니다</strong> — 모든 목표 수행, 교훈, 지식이 워크스페이스에 영속 저장됩니다.</li>
+<li><strong>회상합니다</strong> — 새 목표를 받으면 과거의 경험·문서·성찰을 스스로 찾아 반영합니다.</li>
+<li><strong>일합니다</strong> — LLM을 연결하면 요약·번역·초안 작성 같은 실제 산출물을 만듭니다.</li>
+<li><strong>성찰합니다</strong> — 매 수행 후 교훈을 추출해 다음 수행에 주입합니다.</li>
+<li><strong>통제받습니다</strong> — 고위험 목표는 거버넌스가 차단하고 인간 승인을 요구합니다.</li>
+</ul>
+
+<h3>핵심 개념 세 가지</h3>
+<table>
+<tr><th style="width:20%">개념</th><th>설명</th></tr>
+<tr><td><strong>인지 루프</strong></td><td>모든 목표는 관찰→이해→계획→행동→성찰→학습 6단계를 거칩니다</td></tr>
+<tr><td><strong>워크스페이스</strong></td><td><code>.maios/</code> 디렉터리 = 장기 기억. 지식그래프·수행일지·산출물이 여기 삽니다</td></tr>
+<tr><td><strong>폴백 설계</strong></td><td>LLM이 없어도 모든 기능이 규칙 기반으로 동작합니다 (품질은 낮아짐)</td></tr>
+</table>
+
+<hr class="divider">
+
+<h2 id="s2">2. 설치</h2>
+<p>Python 3.11 또는 3.12가 필요합니다.</p>
+<pre><code>git clone https://github.com/yhkwon6454-boop/MAIOS.git
+cd MAIOS
+python -m venv .venv
+
+<span class="c"># Windows</span>
+.\.venv\Scripts\python.exe -m pip install -e .[dev]
+<span class="c"># macOS/Linux</span>
+.venv/bin/python -m pip install -e .[dev]</code></pre>
+
+<p>설치 확인:</p>
+<pre><code>maios --version        <span class="c"># 1.3.0</span></code></pre>
+
+<h3>LLM 연결 (선택이지만 강력 권장)</h3>
+<p><code>.env.example</code>을 <code>.env</code>로 복사하고 사용할 프로바이더의 키를 넣습니다:</p>
+<pre><code>ANTHROPIC_API_KEY=sk-ant-...     <span class="c"># Claude</span>
+OPENAI_API_KEY=sk-...            <span class="c"># GPT</span>
+GEMINI_API_KEY=...               <span class="c"># Gemini</span></code></pre>
+<p>키 없이도 모든 명령이 동작하지만, 산출물 생성·목표 분해·상황 이해가 규칙 기반으로 대체됩니다.
+<code>--llm mock</code>은 오프라인 테스트용 가짜 모델입니다.</p>
+
+<hr class="divider">
+
+<h2 id="s3">3. 5분 훑어보기</h2>
+<pre><code><span class="c"># 1) 목표 하나 수행 (거버넌스 → 인지 루프 → 교훈 축적)</span>
+maios pursue "주간 보고서를 세 문장으로 요약"  --llm claude
+
+<span class="c"># 2) 내 문서를 지식으로 흡수 (md/txt/html, 한글 인코딩 자동)</span>
+maios ingest ~/내문서폴더
+
+<span class="c"># 3) 흡수한 지식 위에서 연구</span>
+maios research "우리 문서에서 드론 방어의 핵심 교훈은?"
+
+<span class="c"># 4) 큰 목표를 하위 목표로 쪼개 순차 수행 후 종합</span>
+maios project "드론 위협 분석 2부작 브리핑 작성" --llm claude
+
+<span class="c"># 5) 시스템 자기 점검</span>
+maios introspect
+
+<span class="c"># 6) 대화형 세션 (가장 편한 사용법)</span>
+maios shell --llm claude</code></pre>
+<p>대부분의 명령 끝에 <code>[memory] nodes=N pursuits=M workspace=경로</code>가
+출력됩니다(<code>align</code>·미션 파일 실행 제외) — 기억이 쌓이는 것이 눈에 보입니다.</p>
+
+<hr class="divider">
+
+<h2 id="s4">4. 명령어 상세</h2>
+
+<h3>4.1 <code>maios pursue &lt;목표&gt;</code> — 단일 목표 수행</h3>
+<p>목표 하나를 인지 루프 전체에 태웁니다.</p>
+<pre><code>maios pursue "국방 AI 동향을 다섯 줄로 정리" --llm claude</code></pre>
+<p>출력 해설:</p>
+<pre><code>[MAIOS] objective: ...            <span class="c">목표</span>
+[governance] risk=LOW approved=True   <span class="c">거버넌스 심사 결과</span>
+[cycles] 1 executed               <span class="c">실행된 인지 사이클 수</span>
+  cycle 1: COMPLETED (observe -&gt; understand -&gt; ... -&gt; learn)
+  [recall] ...                    <span class="c">과거 기억에서 회상한 항목</span>
+  [understanding] ...             <span class="c">LLM의 상황 해석 (--llm 사용 시)</span>
+[lessons]                         <span class="c">이번 수행에서 추출된 교훈</span>
+[output] ...                      <span class="c">생성된 산출물 미리보기 (500자)</span>
+[status] COMPLETED
+[artifact] .maios\artifacts\GP-xxxx.md   <span class="c">산출물 전문 파일</span>
+[memory] nodes=15 pursuits=3      <span class="c">누적 기억 현황</span></code></pre>
+
+<p>옵션:</p>
+<table>
+<tr><th style="width:26%">옵션</th><th>설명</th></tr>
+<tr><td><code>--llm PROVIDER</code></td><td>mock / openai / claude / gemini</td></tr>
+<tr><td><code>--capability NAME</code></td><td>요구 능력 지정, 반복 가능 (예: research)</td></tr>
+<tr><td><code>--max-cycles N</code></td><td>실패 시 재시도 사이클 상한 (기본 3)</td></tr>
+<tr><td><code>--approve</code></td><td>고위험 목표에 인간 승인 부여</td></tr>
+<tr><td><code>--workspace DIR</code></td><td>워크스페이스 위치 (기본 <code>.maios</code>)</td></tr>
+</table>
+
+<h3>4.2 <code>maios project &lt;목표&gt;</code> — 다단계 프로젝트</h3>
+<p>큰 목표를 LLM이 하위 목표 목록으로 분해하고, 순차 수행하면서 <strong>앞 단계의 산출물을 뒤
+단계에 전달</strong>한 뒤, 최종 종합본을 만듭니다.</p>
+<pre><code>maios project "신간 서평 작성: 자료 조사 후 초안" --max-subgoals 4 --llm claude</code></pre>
+<ul>
+<li>하위 목표 하나가 실패하면 거기서 중단하고 프로젝트는 FAILED가 됩니다.</li>
+<li>종합 산출물은 <code>artifacts/PJ-xxxx.md</code>로 저장됩니다.</li>
+<li>LLM이 없으면 분해 없이 단일 목표로 수행됩니다.</li>
+</ul>
+
+<h3>4.3 <code>maios research &lt;질문&gt;</code> — 자기 지식 연구</h3>
+<p>지식그래프(흡수한 문서 + 축적된 경험·성찰)를 소스로 연구 보고서를 만듭니다.</p>
+<pre><code>maios ingest ~/책원고
+maios research "원고 전체를 관통하는 핵심 주장은?"</code></pre>
+<p>보고서는 하위 질문·발견·공백·출처 구조의 마크다운으로 산출되며, <strong>보고서 자체가 다시
+지식그래프에 들어가</strong> 다음 연구의 소스가 됩니다. 출처 선정은 문서·개념·근거를 시스템 자신의
+활동 기록보다 우선합니다.</p>
+
+<h3>4.4 <code>maios ingest &lt;경로&gt;</code> — 문서 흡수</h3>
+<p>로컬 문서를 지식그래프의 회상·연구 가능한 노드로 만듭니다.</p>
+<pre><code>maios ingest 보고서.md 메모.txt          <span class="c"># 개별 파일</span>
+maios ingest ~/문서폴더                   <span class="c"># 디렉터리 재귀</span></code></pre>
+<ul>
+<li>지원 형식: <code>.md</code> <code>.txt</code> <code>.html</code> (HTML은 태그·스크립트 제거)</li>
+<li>마크다운은 제목(<code>#</code>) 단위, 텍스트는 문단 단위로 분할 (긴 절은 1,200자)</li>
+<li>한글 cp949 인코딩 파일 자동 처리</li>
+<li><strong>같은 파일을 다시 흡수하면 중복 없이 갱신</strong>됩니다 (경로 기반 결정적 ID)</li>
+<li>대량 흡수는 벌크 모드로 동작합니다 (33개 파일 389청크 기준 약 1초)</li>
+</ul>
+
+<h3>4.5 <code>maios introspect</code> — 자기 점검</h3>
+<p>시스템이 자기 구성을 보고합니다.</p>
+<pre><code>$ maios introspect --llm claude
+[MAIOS] identity=maios version=1.3.0 readiness=0.67
+[available] cognitive_loop, executive_brain, governance, knowledge_graph, llm, ...
+[missing] distributed_runtime, negotiation, swarm, ...</code></pre>
+<p class="note">(<code>--llm</code> 없이 실행하면 llm·task_execution 등이 missing으로 이동하고
+readiness가 낮게 나옵니다 — 정상입니다.)</p>
+<p>readiness는 전체 계층 중 가용 계층의 비율입니다. missing 항목은 해당 엔진이 주입되지
+않았다는 뜻이며 오류가 아닙니다.</p>
+
+<h3>4.6 <code>maios shell</code> — 대화형 세션 (권장 사용법)</h3>
+<p>한 세션에서 연속으로 목표를 수행하며 기억을 공유합니다.</p>
+<pre><code>maios shell --llm claude</code></pre>
+<pre><code>maios&gt; 오늘 회의록 요약해줘              <span class="c">← 일반 목표</span>
+maios&gt; /ingest ~/회의록모음              <span class="c">← 문서 흡수</span>
+maios&gt; /research 최근 회의의 반복 쟁점은?  <span class="c">← 연구</span>
+maios&gt; /project 월간 보고서 초안 작성      <span class="c">← 프로젝트</span>
+maios&gt; /history                          <span class="c">← 최근 수행 이력</span>
+maios&gt; /introspect                       <span class="c">← 자기 점검</span>
+maios&gt; /evolve                           <span class="c">← 누적 성공률·교훈 보고</span>
+maios&gt; /approve                          <span class="c">← 마지막 수행 목표를 인간 승인으로 재실행 (차단 직후 바로 사용)</span>
+maios&gt; /exit</code></pre>
+
+<h3>4.7 기존 v1.0 명령</h3>
+<pre><code>maios mission.yaml     <span class="c"># YAML 미션 파일 실행 (v1.0 런타임 파이프라인)</span></code></pre>
+
+<h3>4.8 온톨로지 확장 검색 (선택)</h3>
+<p>워크스페이스에 <code>ontology.ttl</code>(RDFS/OWL, rdfs:label 한국어 지원)을 넣으면 회상·연구
+검색이 온톨로지 관계를 따라 확장됩니다:</p>
+<pre><code>pip install rdflib                        <span class="c"># 선택 의존성</span>
+cp 나의온톨로지.ttl .maios/ontology.ttl    <span class="c"># 워크스페이스에 배치하면 자동 감지</span>
+maios pursue "지휘관 의도 전파 실태 점검"
+  [ontology] 목적, 최종상태, 핵심과업, 제한사항, ...   <span class="c">← 확장된 용어</span>
+  [recall] 훈련메모.md: ... 최종상태를 서로 다르게 이해 ...</code></pre>
+<p>질의에 온톨로지 용어가 등장하면 그 이웃(상하위 클래스, 인스턴스, domain/range로 연결된
+개념)이 검색어에 합류합니다 — 표층 단어가 하나도 겹치지 않는 문서도 개념적으로 연결되면
+회수됩니다. rdflib이 없거나 파일이 없으면 조용히 기존 검색으로 동작합니다(introspect의
+ontology 항목으로 가용 여부 확인).</p>
+
+<p><strong>온톨로지 기반 거버넌스</strong>: 워크스페이스에 <code>governance.json</code>을 두면
+특정 온톨로지 개념(과 그 이웃)을 건드리는 목표가 자동으로 고위험으로 분류되어 인간 승인을
+요구합니다:</p>
+<pre><code>{"ontology_risk_labels": ["제한사항", "수용가능위험"]}</code></pre>
+<pre><code>maios pursue "제한사항을 넘는 야간 침투 기동 승인"
+[governance] risk=HIGH approved=False ...
+[status] PENDING_APPROVAL          <span class="c">← --approve로만 실행 가능</span></code></pre>
+<p>"제한과 충돌" 같은 이웃 개념을 언급해도 관계를 타고 상향됩니다 — 임무형지휘의 "제한 속
+자유"가 거버넌스 규칙이 되는 방식입니다.</p>
+
+<h3>4.9 지휘관 의도 정렬 판정 (<code>maios align</code>)</h3>
+<p>워크스페이스에 <code>intent.json</code>으로 지휘관 의도를 명세하면, 행동(목표)이 의도에
+부합하는지 실행 전에 판정합니다:</p>
+<pre><code>{
+  "purpose": "적 방어선 돌파로 후속 부대 진출 여건 보장",
+  "end_state": "주교량 확보 및 적 포병 무력화 상태",
+  "key_tasks": ["교량 확보", "적 포병 무력화"],
+  "constraints": ["민간 지역 포격 금지"],
+  "acceptable_risks": ["야간 기동 간 소부대 고립"]
+}</code></pre>
+<pre><code>maios align 1중대가 교량을 확보하고 통로 개척
+[verdict] ALIGNED      <span class="c">← 핵심과업 지원: 교량 확보</span>
+
+maios align 민간 지역 인근 포격 준비
+[verdict] CONFLICT     <span class="c">← 제한사항과 충돌</span>
+
+maios pursue "민간 지역 포격 계획 수립"
+[alignment] CONFLICT - 제한사항과 충돌: 민간 지역 포격 금지
+[status] PENDING_APPROVAL   <span class="c">← 충돌 목표는 자동으로 인간 승인 관문 통과 필요</span></code></pre>
+<p>판정 3종: <strong>ALIGNED</strong>(핵심과업·목적 지원) / <strong>CHECK</strong>(연결 미확인 —
+인간 확인 필요) / <strong>CONFLICT</strong>(제한사항 접촉, 수용가능위험으로 커버되지 않음).
+온톨로지가 있으면 개념 관계를 타고 판정 폭이 넓어집니다(예: 과업 "화력지원 태세" ← 행동 "포병
+사격 준비"). 셸에서는 <code>/align &lt;행동&gt;</code>. 이 판정은 표층 매칭 기반의 1차 분류이며,
+CHECK는 "모른다"는 정직한 신호입니다 — 최종 판단은 항상 인간의 몫입니다.</p>
+
+<hr class="divider">
+
+<h2 id="s5">5. 워크스페이스의 구조</h2>
+<pre><code>.maios/
+├── knowledge_graph.json   <span class="c">지식그래프 (문서·경험·성찰·개념 노드와 관계)</span>
+├── memory_store.json      <span class="c">장기 기억 저장소</span>
+├── pursuits.json          <span class="c">목표 수행 일지 (교훈·산출물 포함)</span>
+├── projects.json          <span class="c">프로젝트 일지</span>
+└── artifacts/             <span class="c">산출물 (GP-*.md = 목표, PJ-*.md = 프로젝트)</span></code></pre>
+<ul>
+<li>전부 사람이 읽을 수 있는 JSON/마크다운입니다.</li>
+<li>프로젝트마다 다른 워크스페이스를 쓰려면 <code>--workspace 경로</code>를 지정하세요.</li>
+<li>워크스페이스를 지우면 기억이 초기화됩니다 (파일 복사 = 백업).</li>
+<li><strong>평문 저장</strong>이므로 민감한 문서를 흡수할 때는 보관 위치에 주의하세요.</li>
+</ul>
+
+<hr class="divider">
+
+<h2 id="s6">6. 거버넌스 (안전장치)</h2>
+<p>모든 목표는 실행 전에 정책 심사를 받습니다.</p>
+<table>
+<tr><th style="width:18%">판정</th><th style="width:34%">조건</th><th>동작</th></tr>
+<tr><td><span class="badge b-ok">승인</span></td><td>저위험</td><td>즉시 실행</td></tr>
+<tr><td><span class="badge b-warn">PENDING_APPROVAL</span></td>
+  <td>고위험 키워드 (deploy, delete, production 등)</td>
+  <td><code>--approve</code> 또는 셸 <code>/approve</code>로 인간 승인 필요</td></tr>
+<tr><td><span class="badge b-block">BLOCKED</span></td><td>금지 키워드 (운영자 설정)</td><td>실행 거부</td></tr>
+</table>
+<p>모든 심사는 감사 로그에 기록됩니다. 프로그래밍 방식으로 키워드·위험 등급을 조정하려면
+<code>GovernanceManager</code>와 <code>PolicyEngine</code>을 직접 구성하세요.</p>
+
+<hr class="divider">
+
+<h2 id="s7">7. 실전 워크플로우 예시</h2>
+
+<h3>7.1 저술 보조: 내 원고 위에서 일하기</h3>
+<pre><code>maios ingest ~/책원고                    <span class="c"># 원고 전체 흡수</span>
+maios shell --llm claude
+maios&gt; /research 3장과 7장의 논리적 충돌은 없는가?
+maios&gt; 4장 도입부를 두 문단으로 다시 써줘   <span class="c"># 회상이 원고 맥락을 주입</span>
+maios&gt; /project 출판사 투고용 시놉시스 작성</code></pre>
+
+<h3>7.2 연구 보조: 자료 축적형 리서치</h3>
+<pre><code>maios ingest ~/수집자료/                 <span class="c"># 수시로 자료 추가 (재흡수 안전)</span>
+maios research "수집 자료에서 상반되는 주장 정리"
+<span class="c"># 보고서가 지식그래프에 쌓임 → 다음 연구가 이전 연구를 인용</span></code></pre>
+
+<h3>7.3 정기 업무: 기억이 쌓이는 요약</h3>
+<p>매일 실행하면 어제의 교훈·맥락이 오늘 요약에 반영됩니다:</p>
+<pre><code>maios pursue "오늘자 안보 뉴스 다섯 꼭지 요약" --llm claude</code></pre>
+
+<hr class="divider">
+
+<h2 id="s8">8. 파이썬 API</h2>
+<p>CLI가 하는 모든 일은 코드로도 가능합니다:</p>
+<pre><code>from maios.governance import GovernanceManager
+from maios.kernel import DocumentIngestor, Workspace
+from maios.adapters.llm_provider import create_llm_provider
+from maios.config import load_config
+
+config = load_config()
+config.model_provider = "claude"
+provider = create_llm_provider(config)
+
+space = Workspace(".maios")
+agi = space.build_foundation(governance=GovernanceManager(), llm_provider=provider)
+
+DocumentIngestor(agi.knowledge_graph).ingest("~/문서")   <span class="c"># ~ 자동 확장</span>
+pursuit = agi.pursue("문서 핵심을 요약", capabilities=())
+project = agi.pursue_project("2부작 브리핑 작성")
+report = agi.evolve()          <span class="c"># 누적 성공률·교훈</span>
+model = agi.introspect()       <span class="c"># 자기 모델</span>
+space.save(agi)                <span class="c"># 일지·산출물 저장</span></code></pre>
+<p>v1.0 API(<code>maios.run(goal)</code>, <code>MAIOSCore</code>)도 그대로 사용 가능합니다.</p>
+
+<hr class="divider">
+
+<h2 id="s9">9. 문제 해결</h2>
+<table>
+<tr><th style="width:34%">증상</th><th>원인·해법</th></tr>
+<tr><td><code>[understanding]</code>이 안 나온다</td>
+  <td>LLM 미연결 또는 호출 실패 → 폴백 동작 중. <code>.env</code> 키와 크레딧 확인</td></tr>
+<tr><td><code>credit balance is too low</code></td><td>API 크레딧 부족 → 콘솔에서 충전</td></tr>
+<tr><td>산출물이 목표 문장 그대로다</td><td>LLM 없이 실행됨 (echo 폴백). <code>--llm</code> 지정</td></tr>
+<tr><td>프로젝트가 하위 목표 1개로 돈다</td><td>LLM의 분해 응답이 목록 형식이 아님 → 실모델에서는 정상 동작</td></tr>
+<tr><td>회상이 엉뚱한 것을 가져온다</td><td>검색은 한글 바이그램 TF-IDF — 질문에 구체적 명사를 넣을수록 정확</td></tr>
+<tr><td>한글 파일이 깨진다</td><td>UTF-8/cp949 외 인코딩 → UTF-8로 재저장 후 흡수</td></tr>
+<tr><td>흡수가 느리다</td><td>v1.3 미만 버전 사용 중 → 업그레이드 (벌크 모드)</td></tr>
+</table>
+<p>전체 파이프라인 자가 진단:</p>
+<pre><code>python scripts/validate_live.py --provider mock    <span class="c"># 오프라인 점검</span>
+python scripts/validate_live.py                    <span class="c"># 실모델 점검 (키·크레딧 필요)</span></code></pre>
+
+<hr class="divider">
+
+<h2 id="s10">10. 자주 묻는 질문</h2>
+
+<p><strong>Q. 인터넷 없이 쓸 수 있나?</strong><br>
+LLM 프로바이더 호출을 제외한 전부(흡수·회상·연구·기억)가 오프라인입니다.</p>
+
+<p><strong>Q. 데이터가 외부로 나가나?</strong><br>
+LLM 호출 시 프롬프트(목표·회상된 기억 일부)가 해당 프로바이더로 전송됩니다. 그 외에는 아무것도
+로컬을 떠나지 않습니다.</p>
+
+<p><strong>Q. AGIFoundation이라는 이름은 AGI라는 뜻인가?</strong><br>
+아닙니다. 아키텍처상 최상위 통합 계층이라는 뜻의 이름이며, 실체는 자율 워크플로우 오케스트레이션
+계층입니다.</p>
+
+<p><strong>Q. 여러 사람이 같이 쓸 수 있나?</strong><br>
+현재는 단일 사용자·단일 머신 설계입니다. 워크스페이스 디렉터리를 공유 저장소에 두는 방식은
+동시 쓰기에 안전하지 않습니다.</p>
+
+<footer>
+MAIOS — MUSA AI Operating System · 저장소: github.com/yhkwon6454-boop/MAIOS (develop 브랜치)<br>
+관련 문서: <code>docs/PAPER.ko.md</code> · <code>docs/BOOK_NARRATIVE.ko.md</code> ·
+<code>docs/MAIOS_책_v1.docx</code>
+</footer>
+
+</div>
+</body>
+</html>
