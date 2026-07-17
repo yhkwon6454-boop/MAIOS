@@ -1,0 +1,49 @@
+# 임무형지휘 온톨로지 — 지휘관 의도 핵심부 발췌본
+#
+# 논문 7절(온톨로지 적용 연구)의 실증에 사용한 것과 동등한 발췌 온톨로지.
+# 원본: 저자의 별도 연구 "임무형지휘 온톨로지 스키마 v1"(약 180트리플) 중
+# 1절(지휘관 의도) — 의도 5요소·구성 관계·정렬 관계.
+# 전체 스키마 v1에는 동일 개념의 한국어 라벨 표기 변형("지휘관의도"/"지휘관 의도")이
+# 중복 수록되어 있어 라벨 기반 어댑터에서 섀도잉이 발생하므로(논문 7.5절),
+# 실증은 이 핵심부 발췌본으로 수행되었다.
+#
+# 사용법: 워크스페이스에 .maios/ontology.ttl 로 복사하면
+# 회상 확장(J1)·거버넌스 상향(J2)·의도 정렬(J4)이 이 온톨로지를 사용한다.
+#   cp examples/mission_command_intent_core.ttl .maios/ontology.ttl
+
+@prefix mc:   <http://mc.mil.kr/ontology#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+mc: a owl:Ontology ;
+    rdfs:label "임무형지휘 온톨로지 (지휘관 의도 핵심부)"@ko ;
+    rdfs:comment "지휘관 의도 5요소와 정렬 관계 — 스키마 v1의 1절 발췌"@ko .
+
+mc:CommandersIntent a owl:Class ; rdfs:label "지휘관의도"@ko .
+mc:Purpose        a owl:Class ; rdfs:label "목적"@ko ;       rdfs:comment "왜 — 상황 변화 시 부하 응용의 근거(필수)"@ko .
+mc:EndState       a owl:Class ; rdfs:label "최종상태"@ko ;   rdfs:comment "임무 종료 시의 모습 — 자율 판단의 기준(필수)"@ko .
+mc:KeyTask        a owl:Class ; rdfs:label "핵심과업"@ko ;   rdfs:comment "반드시 달성할 과업(1개 이상 필수)"@ko .
+mc:Constraint     a owl:Class ; rdfs:label "제한사항"@ko ;   rdfs:comment "제한 속 자유의 경계(권장)"@ko .
+mc:AcceptableRisk a owl:Class ; rdfs:label "수용가능위험"@ko ; rdfs:comment "지휘관이 명시 수용하는 위험(권장)"@ko .
+mc:Action         a owl:Class ; rdfs:label "부하의 행동"@ko ; rdfs:comment "예하 제대가 제안·실행하는 행동(정렬 판정 대상)"@ko .
+
+# 구성 관계 (의도 → 5요소)
+mc:hasPurpose    a owl:ObjectProperty ; rdfs:label "목적을가짐"@ko    ; rdfs:domain mc:CommandersIntent ; rdfs:range mc:Purpose .
+mc:hasEndState   a owl:ObjectProperty ; rdfs:label "최종상태를가짐"@ko ; rdfs:domain mc:CommandersIntent ; rdfs:range mc:EndState .
+mc:hasKeyTask    a owl:ObjectProperty ; rdfs:label "핵심과업을가짐"@ko ; rdfs:domain mc:CommandersIntent ; rdfs:range mc:KeyTask .
+mc:hasConstraint a owl:ObjectProperty ; rdfs:label "제한을가짐"@ko    ; rdfs:domain mc:CommandersIntent ; rdfs:range mc:Constraint .
+mc:acceptsRisk   a owl:ObjectProperty ; rdfs:label "위험을수용"@ko    ; rdfs:domain mc:CommandersIntent ; rdfs:range mc:AcceptableRisk .
+
+# 정렬 관계 (과업·행동의 의도 부합성)
+mc:servesPurpose      a owl:ObjectProperty ; rdfs:label "목적에기여"@ko     ; rdfs:domain mc:KeyTask ; rdfs:range mc:Purpose .
+mc:supportsTask       a owl:ObjectProperty ; rdfs:label "과업을지원"@ko     ; rdfs:domain mc:Action ; rdfs:range mc:KeyTask .
+mc:conflictsWith      a owl:ObjectProperty ; rdfs:label "제한과충돌"@ko     ; rdfs:domain mc:Action ; rdfs:range mc:Constraint .
+mc:withinAcceptedRisk a owl:ObjectProperty ; rdfs:label "수용위험범위내"@ko ; rdfs:domain mc:Action ; rdfs:range mc:AcceptableRisk .
+
+# 필수성(application-level 제약, OWL cardinality로 표기)
+mc:CommandersIntent rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty mc:hasPurpose  ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty mc:hasEndState ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty mc:hasKeyTask  ; owl:minCardinality 1 ] .

@@ -37,22 +37,29 @@ tiles_html = tiles.group(0)
 
 # figure order in the document: fig1(arch), fig2(chart), fig3(inflation),
 # tiles(fig4), fig5(junctions), fig6(gap), fig7(alignment)
-jobs: list[tuple[str, str, int]] = []
+# fig4 renders as a vertical stack (column) so the tile labels stay legible
+# at book width; see the extra CSS below.
+FIG4_CSS = (
+    ".tiles{flex-direction:column;max-width:560px;gap:12px;}"
+    ".tile{flex:0 0 auto;}"
+    "body{overflow:hidden;}"
+)
+jobs: list[tuple[str, str, int, int, str]] = []
 heights = [330, 300, 250, 260, 230, 250]
 for index, svg in enumerate(svgs):
     number = index + 1 if index < 3 else index + 2  # tiles take slot 4
-    jobs.append((f"fig{number}", svg, heights[index]))
-jobs.append(("fig4", tiles_html, 180))
+    jobs.append((f"fig{number}", svg, heights[index], 1400, ""))
+jobs.append(("fig4", tiles_html, 170, 600, FIG4_CSS))
 
-for name, body, height in jobs:
+for name, body, height, width, extra_css in jobs:
     page = OUT / f"{name}.html"
     page.write_text(
         f"<!DOCTYPE html><html><head><meta charset='utf-8'>"
-        f"<style>{BASE_CSS}</style></head><body>{body}</body></html>",
+        f"<style>{BASE_CSS}{extra_css}</style></head><body>{body}</body></html>",
         encoding="utf-8",
     )
     png = OUT / f"{name}.png"
-    window = f"--window-size=1400,{int(height * 2.06) + 40}"
+    window = f"--window-size={width},{int(height * 2.06) + 40}"
     subprocess.run(
         [
             CHROME,

@@ -11,7 +11,8 @@ mypy
 pytest
 ```
 
-Pytest runs package coverage and fails below 95% line coverage.
+Pytest runs package coverage (branch coverage enabled, CLI entry module
+omitted) and fails below 95%.
 
 ## Pre-Commit
 

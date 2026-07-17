@@ -45,6 +45,12 @@ for extension and testing.
 - Interactive `maios shell` session.
 - Document ingestion (`maios ingest`) for markdown, text, and HTML files,
   with Korean cp949 fallback and Hangul-aware IDF-weighted search.
+- Optional ontology integration (unreleased, on `develop`): an RDFS/OWL
+  adapter (`rdflib` extra) that expands memory recall with concept
+  neighbors, raises governance risk for goals touching declared risk
+  concepts (`governance.json`), and checks every goal against a
+  commander's-intent specification (`intent.json`) with
+  ALIGNED/CHECK/CONFLICT verdicts (`maios align`, shell `/align`).
 - Local examples and a pytest suite covering implemented behavior.
 
 ## Installation
@@ -103,8 +109,8 @@ Every command prints `[memory]` stats; goals with generated output write
 `artifacts/<id>.md` in the workspace. `maios ingest` accepts files or
 directories (md, txt, html) and makes their content recallable and
 researchable. `maios shell` keeps one session with `/ingest`, `/project`,
-`/research`, `/approve`, `/history`, `/introspect`, and `/evolve`. See
-`examples/agi_foundation_demo.py` for the same flow as a script.
+`/research`, `/align`, `/approve`, `/history`, `/introspect`, and `/evolve`.
+See `examples/agi_foundation_demo.py` for the same flow as a script.
 
 ## REST API
 

@@ -24,33 +24,34 @@ svg text{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;}
   </defs>
   <!-- cycle nodes -->
   <g text-anchor="middle" font-size="12.5">
-    <rect x="40"  y="30" width="150" height="46" rx="8" fill="#fdecec" stroke="#e34948"/>
+    <rect x="30"  y="30" width="170" height="46" rx="8" fill="#fdecec" stroke="#e34948"/>
     <text x="115" y="49" font-weight="700" fill="#0b0b0b">수행 결과 기록</text>
     <text x="115" y="66" font-size="11" fill="#52514e">보고서 전문이 원문 내장</text>
-    <rect x="265" y="30" width="150" height="46" rx="8" fill="#fdecec" stroke="#e34948"/>
+    <rect x="255" y="30" width="170" height="46" rx="8" fill="#fdecec" stroke="#e34948"/>
     <text x="340" y="49" font-weight="700" fill="#0b0b0b">지식그래프 저장</text>
     <text x="340" y="66" font-size="11" fill="#52514e">전이·경험 노드 비대화</text>
-    <rect x="490" y="30" width="150" height="46" rx="8" fill="#fdecec" stroke="#e34948"/>
+    <rect x="480" y="30" width="170" height="46" rx="8" fill="#fdecec" stroke="#e34948"/>
     <text x="565" y="49" font-weight="700" fill="#0b0b0b">회상·연구가 재회수</text>
-    <text x="565" y="66" font-size="11" fill="#52514e">질의어를 담은 기록이 상위 랭크</text>
+    <text x="565" y="66" font-size="10.5" fill="#52514e">질의어 담은 기록이 상위 랭크</text>
   </g>
   <g stroke="#e34948" stroke-width="1.8">
-    <line x1="190" y1="53" x2="263" y2="53" marker-end="url(#arrR)"/>
-    <line x1="415" y1="53" x2="488" y2="53" marker-end="url(#arrR)"/>
+    <line x1="200" y1="53" x2="253" y2="53" marker-end="url(#arrR)"/>
+    <line x1="425" y1="53" x2="478" y2="53" marker-end="url(#arrR)"/>
   </g>
   <path d="M 565 76 L 565 112 L 115 112 L 115 78" fill="none" stroke="#e34948" stroke-width="1.8" marker-end="url(#arrR)"/>
-  <text x="340" y="106" text-anchor="middle" font-size="12" fill="#e34948" font-weight="700">거대 기록이 새 결과에 재내장 → 지수적 자기 증식 (실측: 단일 노드 6.7MB, 질의 발산)</text>
+  <rect x="98" y="95" width="484" height="15" fill="#fcfcfb"/>
+  <text x="340" y="106" text-anchor="middle" font-size="12" fill="#e34948" font-weight="700">거대 기록이 새 결과에 재내장 → 복리적 팽창 (실측: 단일 노드 6.7MB, 질의 발산)</text>
   <!-- fixes -->
   <g text-anchor="middle" font-size="12">
-    <rect x="40"  y="160" width="150" height="52" rx="8" fill="#e6f4ee" stroke="#1baf7a"/>
+    <rect x="30"  y="160" width="170" height="52" rx="8" fill="#e6f4ee" stroke="#1baf7a"/>
     <text x="115" y="180" font-weight="700" fill="#0b0b0b">차단 ① 요약 내장</text>
     <text x="115" y="198" font-size="11" fill="#52514e">상태·플래너·산출 300자만</text>
-    <rect x="265" y="160" width="150" height="52" rx="8" fill="#e6f4ee" stroke="#1baf7a"/>
+    <rect x="255" y="160" width="170" height="52" rx="8" fill="#e6f4ee" stroke="#1baf7a"/>
     <text x="340" y="180" font-weight="700" fill="#0b0b0b">차단 ② 내용 상한</text>
     <text x="340" y="198" font-size="11" fill="#52514e">노드당 8,000자 캡</text>
-    <rect x="490" y="160" width="150" height="52" rx="8" fill="#e6f4ee" stroke="#1baf7a"/>
+    <rect x="480" y="160" width="170" height="52" rx="8" fill="#e6f4ee" stroke="#1baf7a"/>
     <text x="565" y="180" font-weight="700" fill="#0b0b0b">차단 ③ 문서 우선</text>
-    <text x="565" y="198" font-size="11" fill="#52514e">소스 랭킹: 내용성 &gt; 자기 기록</text>
+    <text x="565" y="198" font-size="10.5" fill="#52514e">소스 랭킹: 내용성 &gt; 자기 기록</text>
   </g>
   <g stroke="#1baf7a" stroke-width="1.6" stroke-dasharray="4 3">
     <line x1="115" y1="158" x2="115" y2="80" marker-end="url(#arrG)"/>

@@ -48,7 +48,11 @@
   .refs li{margin-bottom:5px;}
   .note{font-size:13.5px; color:var(--ink2);}
   .divider{border:none; border-top:1px solid var(--line); margin:40px 0;}
-  @media print{ body{font-size:11.5pt;} .paper{max-width:100%; padding:0;} h2{page-break-after:avoid;} figure{page-break-inside:avoid;} }
+  @media print{ body{font-size:11.5pt;} .paper{max-width:100%; padding:0;}
+    h2{page-break-after:avoid; break-after:avoid-page;}
+    h3{page-break-after:avoid; break-after:avoid-page;}
+    figure{page-break-inside:avoid; break-inside:avoid;}
+    table{page-break-inside:avoid; break-inside:avoid;} }
 </style>
 </head>
 <body>
@@ -72,13 +76,13 @@
 (3) 새 목표 수행 시 과거 경험과 문서를 자동 회수해 프롬프트에 주입하는 기억 회상,
 (4) 고위험 목표를 차단하고 인간 승인을 요구하는 거버넌스 게이트를 통합한다.
 모든 LLM 의존 단계는 프로바이더 부재 시 결정론적 휴리스틱으로 대체되는 폴백 설계를 따르며,
-이로써 전체 시스템이 API 접근 없이 시험 가능하다(본고 시점 테스트 506개, 분기 커버리지 95.9%).
+이로써 전체 시스템이 API 접근 없이 시험 가능하다(본고 시점 테스트 506개, 분기 포함 커버리지 95.9%).
 실제 저술 코퍼스(33개 파일, 728KB)를 이용한 실증에서 단위 시험이 포착하지 못한 세 가지 규모 결함
 — 삽입당 전체 영속화와 이차적 자동 연결의 결합, 수행 기록이 자기 자신을 재섭취하는 되먹임
 팽창(단일 노드 6.7MB 도달), 토큰화기의 한글 불가시성 — 을 발견·수정하였고, 수정 후 대량 흡수는
 1초 미만, 반복 질의는 약 1.2초에 안정화되었다. 나아가 형식 온톨로지(RDFS/OWL)를
 회상·거버넌스·의도 정렬의 세 지점에 결합하는 적용 연구를 수행하여, 실제 군 임무형지휘
-온톨로지를 이용해 (a) 표층 어휘가 전혀 겹치지 않는 문서의 개념적 회수, (b) 온톨로지 개념
+온톨로지(의도 핵심부 발췌본)를 이용해 (a) 표층 어휘가 전혀 겹치지 않는 문서의 개념적 회수, (b) 온톨로지 개념
 이웃에 기반한 위험 상향과 인간 승인 요구, (c) 지휘관 의도 5요소에 대한 행동 정렬 판정
 (ALIGNED/CHECK/CONFLICT)을 시연하였다. 본 연구는 개인 지식노동의 맥락에서 "기억하는 AI
 체계"가 부딪히는 실제 공학 문제와 그 해법, 그리고 군 지휘 이론과 소프트웨어 통제의 접합
@@ -106,7 +110,7 @@
 
 <h3>1.3 기여</h3>
 <ol>
-<li>인지 루프·영속 기억·회상·거버넌스를 단일 체계로 통합한 공개 구현체 (GitHub, MIT 라이선스, v1.3.0 기준 테스트 478개·본고 시점 506개, 분기 커버리지 약 96%).</li>
+<li>인지 루프·영속 기억·회상·거버넌스를 단일 체계로 통합한 공개 구현체 (GitHub, MIT 라이선스, v1.3.0 기준 테스트 478개·본고 시점 506개, 분기 포함 커버리지 약 96%).</li>
 <li>모든 LLM 단계가 휴리스틱으로 대체되는 <strong>폴백 설계 원칙</strong>의 정식화 — API 없는 완전 오프라인 시험 가능성.</li>
 <li>실사용 코퍼스 실증에서 발견한 세 가지 규모 결함의 사례 분석과 정량적 수정 효과(6절) — 특히 <strong>자기 기록 되먹임 팽창</strong>은 기억을 가진 에이전트 일반에 적용되는 위험으로, 본 연구가 명명·분석한다.</li>
 <li>한글 교착어 특성을 반영한 무의존성(zero-dependency) 검색 개선 — 음절 바이그램 + TF-IDF.</li>
@@ -123,7 +127,7 @@
 기법을 제안했다. MAIOS의 워크스페이스는 이와 상보적으로, 모델 외부의 구조화된 장기
 기억(지식그래프·일지)을 두고 회상 시점에만 발췌를 프롬프트에 주입한다. 이는 모델
 교체(model-agnostic)에 강건하다.</p>
-<p><strong>인지 아키텍처.</strong> SOAR[6], ACT-R[7], BDI[8] 등 고전 인지 아키텍처는 지각-결정-행동 순환과
+<p><strong>인지 아키텍처.</strong> SOAR[6], ACT-R[7], BDI[8] 등 고전 인지·에이전트 아키텍처는 지각-결정-행동 순환과
 장기/작업 기억의 분리를 정식화했다. MAIOS의 6단계 루프는 이 전통의 경량 실용화로 볼 수 있으며,
 차이는 각 단계가 LLM 호출로 증강되되 호출 실패 시 결정론적으로 퇴행한다는 점이다.</p>
 <p><strong>임무형 지휘와 인간 통제.</strong> 군사 지휘 이론의 임무형 지휘(Auftragstaktik)는 "의도를 공유하고
@@ -142,6 +146,7 @@
 <tr><td>P5. 장기 지속 (Long-term Continuity)</td><td>워크스페이스 영속화, 재실행 간 복원</td></tr>
 <tr><td>P6. 인간 지휘·AI 실행 (Human Command, AI Execution)</td><td>거버넌스 게이트, 고위험 인간 승인</td></tr>
 </table>
+<p>여기에 구현 과정에서 일곱째 원칙이 추가되었다:</p>
 <p><strong>P7. 폴백 설계(Graceful Degradation)</strong> — LLM을 요구하는 모든 단계(이해·실행·성찰·분해·종합)는
 프로바이더 부재 또는 호출 실패 시 결정론적 휴리스틱으로 대체된다. 이 원칙의 실익은 두 가지다.
 (a) 전체 파이프라인이 API 키 없이 시험 가능해져 CI가 외부 의존을 갖지 않는다.
@@ -160,7 +165,7 @@
   </defs>
   <!-- 사용자 -->
   <rect x="140" y="8" width="400" height="34" rx="8" fill="#0b0b0b"/>
-  <text x="340" y="30" text-anchor="middle" font-size="13.5" fill="#ffffff" font-weight="700">사용자 목표 (pursue · project · research · shell)</text>
+  <text x="340" y="30" text-anchor="middle" font-size="13.5" fill="#ffffff" font-weight="700">사용자 목표 (pursue · project · research · ingest · shell)</text>
   <line x1="340" y1="42" x2="340" y2="58" stroke="#52514e" stroke-width="1.6" marker-end="url(#arr)"/>
   <!-- Workspace -->
   <rect x="60" y="60" width="560" height="46" rx="8" fill="#f3f2ee" stroke="#dedcd5"/>
@@ -241,7 +246,7 @@ Loop(v1.1의 세 번째 모듈) 이후의 전 기능 — 인지 루프, 통합 �
 <h3>5.2 품질 게이트</h3>
 <p>모든 커밋은 black(포맷), ruff(린트), mypy(타입), pytest(분기 커버리지 95% 강제)를 통과해야
 하며 GitHub Actions CI가 Python 3.11/3.12에서 동일 게이트를 재검한다. v1.3.0 기준 테스트
-478개(본고 시점 506개), 분기 커버리지 약 96%이며, 인지 계층 모듈
+478개(본고 시점 506개), 분기 포함 커버리지 약 96%(CLI 진입 모듈은 산정에서 제외)이며, 인지 계층 모듈
 대부분(루프·해석기·회상·실행기·분해기·흡수기·워크스페이스·통합 계층)이 문장 기준 100%,
 나머지(집행 두뇌·세계 모델)는 96~97%다. P7(폴백 설계) 덕분에 이 모든 검증은 네트워크 접근
 없이 수행된다. LLM 경로 자체는 스크립트드 프로바이더(응답 대본 주입)로 시험하며, 실모델 종단
@@ -251,38 +256,38 @@ Loop(v1.1의 세 번째 모듈) 이후의 전 기능 — 인지 루프, 통합 �
 <svg class="fig-svg" viewBox="0 0 680 300" role="img" aria-label="스프린트별 테스트 수 성장 라인 차트">
   <!-- grid -->
   <g stroke="#e8e6df" stroke-width="1">
-    <line x1="40" y1="228.9" x2="648" y2="228.9"/>
-    <line x1="40" y1="173.3" x2="648" y2="173.3"/>
-    <line x1="40" y1="117.8" x2="648" y2="117.8"/>
-    <line x1="40" y1="62.2"  x2="648" y2="62.2"/>
+    <line x1="40" y1="224.5" x2="648" y2="224.5"/>
+    <line x1="40" y1="166.8" x2="648" y2="166.8"/>
+    <line x1="40" y1="109.2" x2="648" y2="109.2"/>
+    <line x1="40" y1="51.5"  x2="648" y2="51.5"/>
   </g>
   <g font-size="11" fill="#8a887f" text-anchor="end">
-    <text x="34" y="232">350</text><text x="34" y="177">400</text>
-    <text x="34" y="122">450</text><text x="34" y="66">500</text>
+    <text x="34" y="228">350</text><text x="34" y="171">400</text>
+    <text x="34" y="113">450</text><text x="34" y="55">500</text>
   </g>
   <!-- line -->
   <polyline fill="none" stroke="#2a78d6" stroke-width="2"
-    points="40,232.2 75,202.2 111,193.3 146,182.2 181,171.1 216,163.3 252,148.9 287,138.9 322,124.4 357,117.8 393,102.2 428,93.3 463,86.7 499,84.4 534,83.3 569,73.3 604,67.8 640,55.6"/>
+    points="40,227.9 75,196.8 111,187.6 146,176.1 181,164.5 216,156.4 252,141.5 287,131.1 322,116.1 357,109.2 393,93.0 428,83.8 463,76.9 499,74.6 534,73.4 569,63.1 604,57.3 640,44.6"/>
   <!-- points with native tooltips -->
   <g fill="#2a78d6" stroke="#fcfcfb" stroke-width="2">
-    <circle cx="40"  cy="232.2" r="4"><title>Sprint 12-3 (Cognitive Loop): 347</title></circle>
-    <circle cx="75"  cy="202.2" r="4"><title>Sprint 12-4 (AGI Foundation): 374</title></circle>
-    <circle cx="111" cy="193.3" r="4"><title>Sprint 13-1 (CLI): 382</title></circle>
-    <circle cx="146" cy="182.2" r="4"><title>Sprint 13-2 (LLM 주입): 392</title></circle>
-    <circle cx="181" cy="171.1" r="4"><title>Sprint 14-1 (지속 기억): 402</title></circle>
-    <circle cx="216" cy="163.3" r="4"><title>Sprint 14-2 (실제 실행): 409</title></circle>
-    <circle cx="252" cy="148.9" r="4"><title>Sprint 14-3 (셸): 422</title></circle>
-    <circle cx="287" cy="138.9" r="4"><title>Sprint 15-1 (기억 회상): 431</title></circle>
-    <circle cx="322" cy="124.4" r="4"><title>Sprint 15-2 (목표 분해): 444</title></circle>
-    <circle cx="357" cy="117.8" r="4"><title>Sprint 15-3 (리서치): 450</title></circle>
-    <circle cx="393" cy="102.2" r="4"><title>Sprint 16-1 (문서 흡수): 464</title></circle>
-    <circle cx="428" cy="93.3"  r="4"><title>Sprint 16-2 (실증·스케일링): 472</title></circle>
-    <circle cx="463" cy="86.7"  r="4"><title>Sprint 17 (한국어 검색): 478</title></circle>
-    <circle cx="499" cy="84.4"  r="4"><title>Sprint 18 (TF 가중): 480</title></circle>
-    <circle cx="534" cy="83.3"  r="4"><title>레드팀·경로 수정: 481</title></circle>
-    <circle cx="569" cy="73.3"  r="4"><title>Sprint 19 (온톨로지 회상): 490</title></circle>
-    <circle cx="604" cy="67.8"  r="4"><title>Sprint 20 (온톨로지 거버넌스): 495</title></circle>
-    <circle cx="640" cy="55.6"  r="4"><title>Sprint 21 (의도 정렬): 506</title></circle>
+    <circle cx="40"  cy="227.9" r="4"><title>Sprint 12-3 (Cognitive Loop): 347</title></circle>
+    <circle cx="75"  cy="196.8" r="4"><title>Sprint 12-4 (AGI Foundation): 374</title></circle>
+    <circle cx="111" cy="187.6" r="4"><title>Sprint 13-1 (CLI): 382</title></circle>
+    <circle cx="146" cy="176.1" r="4"><title>Sprint 13-2 (LLM 주입): 392</title></circle>
+    <circle cx="181" cy="164.5" r="4"><title>Sprint 14-1 (지속 기억): 402</title></circle>
+    <circle cx="216" cy="156.4" r="4"><title>Sprint 14-2 (실제 실행): 409</title></circle>
+    <circle cx="252" cy="141.5" r="4"><title>Sprint 14-3 (셸): 422</title></circle>
+    <circle cx="287" cy="131.1" r="4"><title>Sprint 15-1 (기억 회상): 431</title></circle>
+    <circle cx="322" cy="116.1" r="4"><title>Sprint 15-2 (목표 분해): 444</title></circle>
+    <circle cx="357" cy="109.2" r="4"><title>Sprint 15-3 (리서치): 450</title></circle>
+    <circle cx="393" cy="93.0"  r="4"><title>Sprint 16-1 (문서 흡수): 464</title></circle>
+    <circle cx="428" cy="83.8"  r="4"><title>Sprint 16-2 (실증·스케일링): 472</title></circle>
+    <circle cx="463" cy="76.9"  r="4"><title>Sprint 17 (한국어 검색): 478</title></circle>
+    <circle cx="499" cy="74.6"  r="4"><title>Sprint 18 (TF 가중): 480</title></circle>
+    <circle cx="534" cy="73.4"  r="4"><title>레드팀·경로 수정: 481</title></circle>
+    <circle cx="569" cy="63.1"  r="4"><title>Sprint 19 (온톨로지 회상): 490</title></circle>
+    <circle cx="604" cy="57.3"  r="4"><title>Sprint 20 (온톨로지 거버넌스): 495</title></circle>
+    <circle cx="640" cy="44.6"  r="4"><title>Sprint 21 (의도 정렬): 506</title></circle>
   </g>
   <text x="640" y="42" text-anchor="end" font-size="12.5" font-weight="700" fill="#1c5cab">506개 (S21)</text>
   <text x="40" y="248" font-size="11" fill="#8a887f" text-anchor="middle">S12-3</text>
@@ -290,7 +295,7 @@ Loop(v1.1의 세 번째 모듈) 이후의 전 기능 — 인지 루프, 통합 �
   <text x="357" y="248" font-size="11" fill="#8a887f" text-anchor="middle">S15-3</text>
   <text x="499" y="248" font-size="11" fill="#8a887f" text-anchor="middle">S18</text>
   <text x="640" y="248" font-size="11" fill="#8a887f" text-anchor="middle">S21</text>
-  <text x="344" y="278" text-anchor="middle" font-size="11.5" fill="#52514e">스프린트 (2026-07-09 ~ 07-10, 시간순) — 점에 마우스를 올리면 상세</text>
+  <text x="344" y="278" text-anchor="middle" font-size="11.5" fill="#52514e">스프린트 (2026-07-09 ~ 07-10, 시간순) — S12-3부터 S21까지 18개 지점, 347→506</text>
 </svg>
 <figcaption><strong>그림 2.</strong> 스프린트별 누적 테스트 수(347→506).
 분기 커버리지 95% 게이트를 유지한 채 이틀간 18개 지점에서 증가했다.</figcaption>
@@ -299,7 +304,9 @@ Loop(v1.1의 세 번째 모듈) 이후의 전 기능 — 인지 루프, 통합 �
 <h2>6. 실증 평가: 실사용 코퍼스 사례연구</h2>
 <p>단위 시험이 모두 통과한 상태에서, 저자 본인의 실제 저술 코퍼스(단행본 원고 폴더: 33개 파일,
 728KB, 한국어 위주)를 흡수·질의하는 실증을 수행했다. 그 결과 시험이 포착하지 못한 세 가지
-규모 결함이 드러났다. 각 결함과 수정, 정량 효과는 다음과 같다.</p>
+규모 결함이 드러났다. 본 절의 시간·용량 수치는 저자의 단일 개발 머신(Windows 11)에서 개발
+세션 중 실측한 단일 실행 값으로, 통계적 반복 측정이 아니라 규모 등급의 차이(초 대 분, KB 대
+MB)를 보고하는 것이다. 각 결함과 수정, 정량 효과는 다음과 같다.</p>
 
 <h3>6.1 결함 A: 삽입당 영속화 × 이차적 자동 연결</h3>
 <p>지식그래프는 노드 추가마다 전체 JSON을 재기록하고, 신규 노드를 기존 전 노드와 유사도 비교해
@@ -322,33 +329,34 @@ Loop(v1.1의 세 번째 모듈) 이후의 전 기능 — 인지 루프, 통합 �
   </defs>
   <!-- cycle nodes -->
   <g text-anchor="middle" font-size="12.5">
-    <rect x="40"  y="30" width="150" height="46" rx="8" fill="#fdecec" stroke="#e34948"/>
+    <rect x="30"  y="30" width="170" height="46" rx="8" fill="#fdecec" stroke="#e34948"/>
     <text x="115" y="49" font-weight="700" fill="#0b0b0b">수행 결과 기록</text>
     <text x="115" y="66" font-size="11" fill="#52514e">보고서 전문이 원문 내장</text>
-    <rect x="265" y="30" width="150" height="46" rx="8" fill="#fdecec" stroke="#e34948"/>
+    <rect x="255" y="30" width="170" height="46" rx="8" fill="#fdecec" stroke="#e34948"/>
     <text x="340" y="49" font-weight="700" fill="#0b0b0b">지식그래프 저장</text>
     <text x="340" y="66" font-size="11" fill="#52514e">전이·경험 노드 비대화</text>
-    <rect x="490" y="30" width="150" height="46" rx="8" fill="#fdecec" stroke="#e34948"/>
+    <rect x="480" y="30" width="170" height="46" rx="8" fill="#fdecec" stroke="#e34948"/>
     <text x="565" y="49" font-weight="700" fill="#0b0b0b">회상·연구가 재회수</text>
-    <text x="565" y="66" font-size="11" fill="#52514e">질의어를 담은 기록이 상위 랭크</text>
+    <text x="565" y="66" font-size="10.5" fill="#52514e">질의어 담은 기록이 상위 랭크</text>
   </g>
   <g stroke="#e34948" stroke-width="1.8">
-    <line x1="190" y1="53" x2="263" y2="53" marker-end="url(#arrR)"/>
-    <line x1="415" y1="53" x2="488" y2="53" marker-end="url(#arrR)"/>
+    <line x1="200" y1="53" x2="253" y2="53" marker-end="url(#arrR)"/>
+    <line x1="425" y1="53" x2="478" y2="53" marker-end="url(#arrR)"/>
   </g>
   <path d="M 565 76 L 565 112 L 115 112 L 115 78" fill="none" stroke="#e34948" stroke-width="1.8" marker-end="url(#arrR)"/>
-  <text x="340" y="106" text-anchor="middle" font-size="12" fill="#e34948" font-weight="700">거대 기록이 새 결과에 재내장 → 지수적 자기 증식 (실측: 단일 노드 6.7MB, 질의 발산)</text>
+  <rect x="98" y="95" width="484" height="15" fill="#fcfcfb"/>
+  <text x="340" y="106" text-anchor="middle" font-size="12" fill="#e34948" font-weight="700">거대 기록이 새 결과에 재내장 → 복리적 팽창 (실측: 단일 노드 6.7MB, 질의 발산)</text>
   <!-- fixes -->
   <g text-anchor="middle" font-size="12">
-    <rect x="40"  y="160" width="150" height="52" rx="8" fill="#e6f4ee" stroke="#1baf7a"/>
+    <rect x="30"  y="160" width="170" height="52" rx="8" fill="#e6f4ee" stroke="#1baf7a"/>
     <text x="115" y="180" font-weight="700" fill="#0b0b0b">차단 ① 요약 내장</text>
     <text x="115" y="198" font-size="11" fill="#52514e">상태·플래너·산출 300자만</text>
-    <rect x="265" y="160" width="150" height="52" rx="8" fill="#e6f4ee" stroke="#1baf7a"/>
+    <rect x="255" y="160" width="170" height="52" rx="8" fill="#e6f4ee" stroke="#1baf7a"/>
     <text x="340" y="180" font-weight="700" fill="#0b0b0b">차단 ② 내용 상한</text>
     <text x="340" y="198" font-size="11" fill="#52514e">노드당 8,000자 캡</text>
-    <rect x="490" y="160" width="150" height="52" rx="8" fill="#e6f4ee" stroke="#1baf7a"/>
+    <rect x="480" y="160" width="170" height="52" rx="8" fill="#e6f4ee" stroke="#1baf7a"/>
     <text x="565" y="180" font-weight="700" fill="#0b0b0b">차단 ③ 문서 우선</text>
-    <text x="565" y="198" font-size="11" fill="#52514e">소스 랭킹: 내용성 &gt; 자기 기록</text>
+    <text x="565" y="198" font-size="10.5" fill="#52514e">소스 랭킹: 내용성 &gt; 자기 기록</text>
   </g>
   <g stroke="#1baf7a" stroke-width="1.6" stroke-dasharray="4 3">
     <line x1="115" y1="158" x2="115" y2="80" marker-end="url(#arrG)"/>
@@ -358,7 +366,7 @@ Loop(v1.1의 세 번째 모듈) 이후의 전 기능 — 인지 루프, 통합 �
   <text x="340" y="238" text-anchor="middle" font-size="11.5" fill="#52514e">수정 후: 동일 반복 질의 1.2초, 그래프 888KB 안정, 문서가 소스로 인용됨</text>
 </svg>
 <figcaption><strong>그림 3.</strong> 자기 기록 되먹임 팽창의 순환(적색)과 세 차단 지점(녹색).
-수행 기록이 검색 대상이 되는 순간 기록 자체가 자기 증식하는 위험은, 이력을 기억하는
+수행 기록이 검색 대상이 되는 순간 기록 자체가 복리적으로 팽창하는 위험은, 이력을 기억하는
 에이전트 일반이 공유한다.</figcaption>
 </figure>
 
@@ -366,7 +374,8 @@ Loop(v1.1의 세 번째 모듈) 이후의 전 기능 — 인지 루프, 통합 �
 수행의 회상·연구가 그 거대 기록을 다시 소스로 회수해 재내장하는 순환이 발생했다. 실측에서
 동일 질의를 수 회 반복하는 것만으로 단일 전이 노드가 6.7MB, 그래프 파일이 12.7MB에 도달했고
 이후 질의는 2분 제한을 초과했다(사실상 발산). 이는 <strong>수행 기록을 기억에 남기는 에이전트 일반이
-공유하는 위험</strong>으로, 기록이 검색 대상이 되는 순간 기록 자체가 지수적으로 자기 증식할 수 있다.
+공유하는 위험</strong>으로, 기록이 검색 대상이 되는 순간 매 반복이 직전 기록을 재내장하며 기록
+자체가 복리적으로 팽창할 수 있다.
 <strong>수정</strong>: (i) 기록 저장 시 결과 요약본만 내장(상태·플래너·오류/산출 300자), (ii) 그래프 노드 내용
 상한(8,000자), (iii) 연구 소스 랭킹에서 내용성 노드(문서·개념·근거)를 자기 활동 기록보다 우선.
 <strong>효과</strong>: 동일 반복 질의 1.2초, 그래프 888KB 안정, 반복 질의가 자기 로그 대신 문서를 인용.</p>
@@ -409,8 +418,12 @@ Loop(v1.1의 세 번째 모듈) 이후의 전 기능 — 인지 루프, 통합 �
 <h2>7. 적용 연구: 온톨로지 결합과 임무형지휘의 소프트웨어적 번역</h2>
 <p>본 절은 MAIOS의 인지 계층에 형식 온톨로지(RDFS/OWL)를 결합한 적용 연구를 보고한다. 결합
 대상 온톨로지는 저자가 별도 연구에서 구축한 임무형지휘 온톨로지 스키마 v1(영문 식별자 +
-한국어 rdfs:label, 지휘관 의도 5요소·개념 체계·정렬 관계를 포함하는 OWL-lite)이며, 모든
-실증은 LLM 없이 오프라인으로 수행되었다.</p>
+한국어 rdfs:label, OWL-lite, 약 180트리플)에서 지휘관 의도 핵심부(의도 5요소와 그 정렬
+관계)를 발췌한 66트리플 축약본이며, 모든 실증은 LLM 없이 오프라인으로 수행되었다. 전체
+스키마가 아닌 발췌본을 사용한 이유는 스키마 v1에 동일 개념의 한국어 라벨 표기
+변형("지휘관의도"/"지휘관 의도")이 중복 수록되어 있어, 공백 무시 정규화에 기반한 현
+어댑터에서 라벨 충돌(섀도잉)이 발생하기 때문이다(한계는 7.5절에서 논한다). 재현용 발췌
+온톨로지는 저장소의 <code>examples/mission_command_intent_core.ttl</code>에 수록하였다.</p>
 
 <h3>7.1 접합 설계</h3>
 
@@ -424,7 +437,7 @@ Loop(v1.1의 세 번째 모듈) 이후의 전 기능 — 인지 루프, 통합 �
   <!-- ttl -->
   <rect x="20" y="98" width="130" height="60" rx="8" fill="#f3f2ee" stroke="#dedcd5"/>
   <text x="85" y="122" text-anchor="middle" font-size="12.5" font-weight="700">ontology.ttl</text>
-  <text x="85" y="140" text-anchor="middle" font-size="11" fill="#52514e">임무형지휘 스키마 v1</text>
+  <text x="85" y="140" text-anchor="middle" font-size="11" fill="#52514e">임무형지휘 스키마 v1 발췌본</text>
   <line x1="150" y1="128" x2="208" y2="128" stroke="#4a3aa7" stroke-width="1.8" marker-end="url(#arrV)"/>
   <!-- adapter -->
   <rect x="210" y="88" width="180" height="80" rx="10" fill="#ffffff" stroke="#4a3aa7" stroke-width="2"/>
@@ -584,7 +597,7 @@ Loop(v1.1의 세 번째 모듈) 이후의 전 기능 — 인지 루프, 통합 �
     <text x="552" y="30">아니오</text>
     <text x="470" y="94">예 →</text>
     <text x="552" y="134">예</text>
-    <text x="500" y="198">아니오 (연결 미확인)</text>
+    <text x="468" y="194">아니오 (미확인)</text>
   </g>
   <text x="620" y="70" text-anchor="middle" font-size="10" fill="#a12a29">→ 거버넌스 HIGH</text>
   <text x="620" y="82" text-anchor="middle" font-size="10" fill="#a12a29">인간 승인 필요</text>
@@ -600,22 +613,27 @@ CHECK는 "모른다"를 모른다고 말하는 판정이며, CONFLICT는 거버�
 구현), 수용가능위험으로 면책되지 않는 제한사항 접촉이면 <strong>CONFLICT</strong>(conflictsWith), 연결이
 확인되지 않으면 <strong>CHECK</strong> — "모른다"를 모른다고 말하는 판정이며 인간 확인을 요구한다.
 CONFLICT는 거버넌스와 연동되어 자동으로 인간 승인 관문에 걸리고, 판정 전체가 수행 일지에
-영속되어 사후 감사가 가능하다. 온톨로지는 판정의 어휘 폭을 넓힌다: 통제 실험에서 과업
-"화력지원 태세 확립"에 대한 행동 "포병 사격 준비"는 표층 매칭으로는 CHECK였으나,
-포병⊑화력지원 관계 결합 후 ALIGNED로 판정되었다.</p>
+영속되어 사후 감사가 가능하다. 온톨로지는 판정의 어휘 폭을 넓힌다: 포병⊑화력지원 관계를
+담은 별도의 통제(합성) 온톨로지를 결합한 실험에서, 과업 "화력지원 태세 확립"에 대한 행동
+"포병 사격 준비"는 표층 매칭으로는 CHECK였으나 관계 결합 후 ALIGNED로 판정되었다(해당
+관계는 스키마 v1에 포함된 것이 아니라 이 실험을 위해 구성한 것이다).</p>
 
 <h3>7.5 함의와 경계</h3>
 <p>세 접합의 총합은 임무형지휘 통제 양식의 소프트웨어적 번역이다: 의도의 구조적 공유(intent
 명세) → 실행의 위임(자율 수행 루프) → 한계의 명시적 통제(거버넌스 상향 + 정렬 판정 + 인간
 승인). 전 과정이 오프라인에서 동작하므로 폐쇄망 환경과 양립한다. 경계도 분명하다: 정렬 판정은
 어휘·개념 매칭 기반의 1차 분류(triage)이지 의미론적 증명이 아니며, CHECK 판정률이 실무
-유용성을 좌우한다. ABox의 자동 구축(J3)과 판정의 의미 수준 향상은 LLM 결합을 요구하는 향후
+유용성을 좌우한다. 또한 현 어댑터는 라벨 문자열을 열쇠로 삼으므로, 동일 개념의 라벨 표기
+변형이 중복 수록된 온톨로지에서는 이웃 병합·섀도잉이 발생할 수 있다 — 실제로 스키마 v1
+전체를 그대로 결합하면 7.2의 확장이 재현되지 않으며, 이것이 발췌본을 사용한 이유다. 라벨
+정규화 규약 또는 IRI 기반 매칭, 그리고 ABox의 자동 구축(J3)과 판정의 의미 수준 향상은 향후
 과제다.</p>
 
 <h2>8. 한계와 향후 과제</h2>
 <ul>
 <li><strong>실모델 미검증</strong>: 본고 시점까지 전 기능은 mock/스크립트드 프로바이더로 검증되었고, 실LLM 종단 검증은 하네스만 준비된 상태다. 분해 프롬프트의 실모델 출력 적합성 등은 실검증 후 보고할 것이다.</li>
 <li><strong>검색의 어휘 한계</strong>: 바이그램 TF-IDF는 표층 매칭이다. 의미 검색(임베딩)은 P2·P7을 유지하는 선택적 증강으로 설계 예정이다.</li>
+<li><strong>단일 코퍼스 사례연구(N=1)</strong>: 6절의 실증은 단일 사용자·단일 코퍼스·단일 실행의 사례연구다. 수치는 규모 등급 차이의 예시이며, 일반화에는 반복 측정과 이종 코퍼스 검증이 필요하다.</li>
 <li><strong>단일 사용자·단일 머신</strong>: 워크스페이스는 동시 쓰기에 안전하지 않다.</li>
 <li><strong>정렬·거버넌스의 표층성</strong>: 위험 분류와 의도 정렬 판정이 어휘·개념 매칭 기반의 1차 분류다(7.5절). 의미 수준 판정은 향후 과제다.</li>
 <li><strong>용어의 수사적 위험</strong>: "인지", "자기 성찰" 등의 어휘는 기능적 은유이며, 공개 문서 전반에 그 한정을 명시했다.</li>
@@ -627,9 +645,11 @@ CONFLICT는 거버넌스와 연동되어 자동으로 인간 승인 관문에 �
 특히 자기 기록 되먹임 팽창은 수행 이력을 기억하는 모든 에이전트 설계가 점검해야 할 위험이라
 판단한다. 나아가 형식 온톨로지를 회상·거버넌스·의도 정렬에 결합함으로써, 군사 지휘 이론이
 정식화해 온 인간-부하 간 통제 양식(임무형지휘)이 인간-AI 통제 구조의 설계 언어로 이식될 수
-있음을 작동 수준에서 보였다. 전 구현·이력은 공개 저장소에서 재현 가능하다.</p>
+있음을 작동 수준에서 보였다. 전 구현은 공개 저장소에서 확인 가능하다.</p>
 <p><strong>공개</strong>: <a href="https://github.com/yhkwon6454-boop/MAIOS">github.com/yhkwon6454-boop/MAIOS</a>
-(MIT, v1.3.0+, 테스트 506개, 커밋 이력에 본고의 전 실증 과정이 보존됨)</p>
+(MIT, v1.3.0+, 테스트 506개). 코드 변경과 주요 수치의 요지는 커밋 이력에 기록되어 있으나,
+6절의 실증 코퍼스는 사적 저술 자료로 공개되지 않으며 세부 측정값 일부는 개발 세션 기록에
+근거한다.</p>
 
 <hr class="divider">
 

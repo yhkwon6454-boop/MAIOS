@@ -9,7 +9,7 @@ production infrastructure.
 Goal pursuit runs through a phased cognitive loop on top of the runtime:
 
 ```text
-User goal (maios pursue / project / research / shell)
+User goal (maios pursue / project / research / ingest / align / shell)
   -> Workspace (.maios/: knowledge graph, memory store, journals, artifacts)
   -> AGIFoundation (governance gate, goal registry, evolution reports)
   -> CognitiveLoop: Observe -> Understand -> Plan -> Act -> Reflect -> Learn
@@ -26,10 +26,15 @@ User goal (maios pursue / project / research / shell)
 
 Key components in `maios.kernel`: `AGIFoundation`, `CognitiveLoop`,
 `ExecutiveBrain`, `WorldModel`, `MemoryRecall`, `TaskExecutor`,
-`CognitiveInterpreter`, `GoalDecomposer`, `DocumentIngestor`, and
-`Workspace`. Every LLM-backed step degrades to a deterministic heuristic
-when no provider is configured, so the whole loop is offline-testable.
-Knowledge search is Hangul-aware TF-IDF over the knowledge graph.
+`CognitiveInterpreter`, `GoalDecomposer`, `DocumentIngestor`,
+`IntentAlignmentChecker` (commander's-intent ALIGNED/CHECK/CONFLICT
+verdicts from `intent.json`), and `Workspace`. An optional
+`OntologyAdapter` (`maios.knowledge.ontology`, `rdflib` extra) expands
+recall queries and governance risk with concept neighbors from a
+workspace `ontology.ttl`. Every LLM-backed step degrades to a
+deterministic heuristic when no provider is configured, so the whole
+loop is offline-testable. Knowledge search is Hangul-aware TF-IDF over
+the knowledge graph.
 
 ## Runtime Pipeline
 

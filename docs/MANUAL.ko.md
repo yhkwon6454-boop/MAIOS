@@ -83,8 +83,9 @@ maios introspect
 maios shell --llm claude
 ```
 
-모든 명령 끝에 `[memory] nodes=N pursuits=M`이 출력됩니다 —
-기억이 쌓이는 것이 눈에 보입니다.
+대부분의 명령 끝에 `[memory] nodes=N pursuits=M workspace=경로`가
+출력됩니다(`align`·미션 파일 실행 제외) — 기억이 쌓이는 것이 눈에
+보입니다.
 
 ---
 
@@ -109,8 +110,8 @@ maios pursue "국방 AI 동향을 다섯 줄로 정리" --llm claude
   [understanding] ...             LLM의 상황 해석 (--llm 사용 시)
 [lessons]                         이번 수행에서 추출된 교훈
 [output] ...                      생성된 산출물 미리보기 (500자)
-[artifact] .maios\artifacts\GP-xxxx.md   산출물 전문 파일
 [status] COMPLETED
+[artifact] .maios\artifacts\GP-xxxx.md   산출물 전문 파일
 [memory] nodes=15 pursuits=3      누적 기억 현황
 ```
 
@@ -171,7 +172,7 @@ maios ingest ~/문서폴더                   # 디렉터리 재귀
 
 ```text
 $ maios introspect --llm claude
-[MAIOS] identity=maios version=1.3.0 readiness=0.64
+[MAIOS] identity=maios version=1.3.0 readiness=0.67
 [available] cognitive_loop, executive_brain, governance, knowledge_graph, llm, ...
 [missing] distributed_runtime, negotiation, swarm, ...
 ```
@@ -198,7 +199,7 @@ maios> /project 월간 보고서 초안 작성      ← 프로젝트
 maios> /history                          ← 최근 수행 이력
 maios> /introspect                       ← 자기 점검
 maios> /evolve                           ← 누적 성공률·교훈 보고
-maios> /approve                          ← 직전 고위험 목표 승인 재실행
+maios> /approve                          ← 마지막 수행 목표를 인간 승인으로 재실행 (차단 직후 바로 사용)
 maios> /exit
 ```
 
@@ -272,7 +273,7 @@ maios pursue "민간 지역 포격 계획 수립"
 ```
 
 판정 3종: **ALIGNED**(핵심과업·목적 지원) / **CHECK**(연결 미확인 —
-인간 확인 권장) / **CONFLICT**(제한사항 접촉, 수용가능위험으로 커버되지
+인간 확인 필요) / **CONFLICT**(제한사항 접촉, 수용가능위험으로 커버되지
 않음). 온톨로지가 있으면 개념 관계를 타고 판정 폭이 넓어집니다
 (예: 과업 "화력지원 태세" ← 행동 "포병 사격 준비"). 셸에서는
 `/align <행동>`. 이 판정은 표층 매칭 기반의 1차 분류이며, CHECK는

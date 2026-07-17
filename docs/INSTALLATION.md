@@ -5,7 +5,7 @@ MAIOS `v1.3.0` targets Python 3.11 and 3.12.
 ## Local Development
 
 ```bash
-git clone https://github.com/MUSA-AI/MAIOS.git
+git clone https://github.com/yhkwon6454-boop/MAIOS.git
 cd MAIOS
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip

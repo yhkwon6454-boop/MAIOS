@@ -44,9 +44,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/MUSA-AI/MAIOS"
-Repository = "https://github.com/MUSA-AI/MAIOS"
-Issues = "https://github.com/MUSA-AI/MAIOS/issues"
+Homepage = "https://github.com/yhkwon6454-boop/MAIOS"
+Repository = "https://github.com/yhkwon6454-boop/MAIOS"
+Issues = "https://github.com/yhkwon6454-boop/MAIOS/issues"
 
 [project.scripts]
 maios = "maios.cli:main"
