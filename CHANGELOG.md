@@ -69,6 +69,11 @@ provider key.
 
 ### Fixed
 
+- Flaky concurrency test: the distributed-runtime concurrent-dispatch test
+  relied on 10ms sleeps overlapping, so a slow worker-thread start could
+  let one agent serve both tasks; it now uses a two-party barrier so both
+  executions must be in flight simultaneously, and asserts the
+  one-task-per-agent invariant instead of a timing-dependent pairing.
 - Silent provider fallback: when a configured LLM provider fails (missing
   SDK, invalid key, empty credit), task execution now logs a warning naming
   the provider and the likely cause before falling back to echo output,

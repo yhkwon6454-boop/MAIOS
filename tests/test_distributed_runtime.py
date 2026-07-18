@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from time import sleep
+from threading import Barrier
 from typing import Any
 
 from maios.agents import Agent, AgentCapability, CollaborationManager, SharedMemoryManager
@@ -49,16 +49,16 @@ class FakeCore:
 
 
 class RecordingAgent(Agent):
-    def __init__(self, name: str, calls: list[str], delay: float = 0.0) -> None:
+    def __init__(self, name: str, calls: list[str], barrier: Barrier | None = None) -> None:
         self.name = name
         self.calls = calls
-        self.delay = delay
+        self.barrier = barrier
         self.seen_context: dict[str, Any] = {}
 
     def execute(self, context: dict[str, Any]) -> dict[str, Any]:
         self.seen_context = context
-        if self.delay:
-            sleep(self.delay)
+        if self.barrier is not None:
+            self.barrier.wait()
         task = str(context.get("task", ""))
         self.calls.append(f"{self.name}:{task}")
         return {
@@ -235,15 +235,19 @@ def test_distributed_runtime_executes_agent_with_shared_memory_and_events():
 def test_distributed_runtime_runs_agent_tasks_concurrently_across_agents():
     runtime = DistributedRuntime()
     calls: list[str] = []
+    # Both executions must be in flight at the same moment before either can
+    # finish; if the runtime dispatched sequentially (or reused one agent),
+    # the barrier would time out and the tasks would FAIL.
+    rendezvous = Barrier(2, timeout=5.0)
     runtime.register_agent(
-        RecordingAgent("planner-a", calls, delay=0.01),
+        RecordingAgent("planner-a", calls, barrier=rendezvous),
         [AgentCapability("plan")],
         agent_id="planner-a",
         agent_type="planner",
         node_id="node-a",
     )
     runtime.register_agent(
-        RecordingAgent("planner-b", calls, delay=0.01),
+        RecordingAgent("planner-b", calls, barrier=rendezvous),
         [AgentCapability("plan")],
         agent_id="planner-b",
         agent_type="planner",
@@ -260,7 +264,11 @@ def test_distributed_runtime_runs_agent_tasks_concurrently_across_agents():
 
     assert [task.status for task in tasks] == ["COMPLETED", "COMPLETED"]
     assert {task.agent_id for task in tasks} == {"planner-a", "planner-b"}
-    assert sorted(calls) == ["planner-a:one", "planner-b:two"]
+    # Which agent got which task depends on lock-acquisition order; assert
+    # the invariant instead: both tasks ran, one on each agent.
+    assert len(calls) == 2
+    assert {call.split(":")[0] for call in calls} == {"planner-a", "planner-b"}
+    assert {call.split(":")[1] for call in calls} == {"one", "two"}
 
 
 def test_distributed_runtime_uses_collaboration_manager_workspace():
