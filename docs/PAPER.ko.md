@@ -96,6 +96,9 @@ API 접근 없이 시험 가능하다(본고 시점 테스트 506개, 분기 포
 확장하는 관리 기법을 제안했다. MAIOS의 워크스페이스는 이와 상보적으로,
 모델 외부의 구조화된 장기 기억(지식그래프·일지)을 두고 회상 시점에만
 발췌를 프롬프트에 주입한다. 이는 모델 교체(model-agnostic)에 강건하다.
+수행에서 교훈을 뽑아 재주입하는 발상은 Reflexion[11]이, 에이전트의
+경험을 기억 스트림에 축적하고 회상·성찰하는 구조는 Generative
+Agents[12]가 인접 선행이다.
 
 **인지 아키텍처.** Soar[6], ACT-R[7], BDI[8] 등 고전 인지·에이전트 아키텍처는 지각-결정-
 행동 순환과 장기/작업 기억의 분리를 정식화했다. MAIOS의 6단계 루프는
@@ -302,8 +305,8 @@ OWL-lite, 약 180트리플)에서 지휘관 의도 핵심부(의도 5요소와 �
 표층 검색은 이 메모를 회수하지 못한다(공유 토큰 없음). 온톨로지
 결합 후, 질의의 "지휘관의도" 개념이 hasPurpose·hasEndState·hasKeyTask
 등의 domain/range를 타고 목적·최종상태·핵심과업·제한사항·수용가능위험으로
-확장되었고, 메모가 정확히 회수되었다. 즉 상급 제대의 어휘("의도")와
-예하 제대의 어휘("최종상태·핵심과업") 사이의 간극을 온톨로지가
+확장되었고, 메모가 정확히 회수되었다. 즉 "지휘관 의도"라는 총칭
+개념과 그 구성 요소 어휘("최종상태·핵심과업") 사이의 간극을 온톨로지가
 매개하는 것으로, 이는 해당 온톨로지가 목표한 "의도 간극 해소"의
 검색 층위 구현이다.
 
@@ -400,6 +403,10 @@ MAIOS는 휘발적 채팅을 넘어 기억·회상·거버넌스를 갖춘 임�
 9. 임무형지휘 관련 문헌 (저자 기존 연구 연계, 확정 예정)
 10. G. Salton and C. Buckley, "Term-Weighting Approaches in Automatic
     Text Retrieval," *Information Processing & Management*, 24(5), 1988.
+11. N. Shinn et al., "Reflexion: Language Agents with Verbal
+    Reinforcement Learning," NeurIPS, 2023 (arXiv:2303.11366).
+12. J. S. Park et al., "Generative Agents: Interactive Simulacra of
+    Human Behavior," UIST, 2023 (arXiv:2304.03442).
 
 ---
 
