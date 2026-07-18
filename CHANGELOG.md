@@ -62,8 +62,19 @@ provider key.
   `scripts/build_book.py`) combining the manual and paper with figures.
 - Korean deliverables inventory (`docs/산출물목록.ko.md`).
 
+### Changed
+
+- PyPI development-status classifier corrected from Production/Stable to
+  Beta to match the project's actual maturity.
+
 ### Fixed
 
+- Silent provider fallback: when a configured LLM provider fails (missing
+  SDK, invalid key, empty credit), task execution now logs a warning naming
+  the provider and the likely cause before falling back to echo output,
+  instead of swallowing the error invisibly. New `claude` / `gemini` /
+  `providers` optional-dependency extras install the Anthropic and Google
+  Gen AI SDKs, which are not part of the base install.
 - Paper overclaiming toned down after a red-team pass: section 6's
   real-corpus case study now explicitly states it's a single-corpus study
   (N=1) with a private, undisclosed corpus; section 7.2 now discloses that

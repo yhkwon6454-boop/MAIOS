@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from maios.adapters.llm_provider import BaseLLMProvider
+
+logger = logging.getLogger(__name__)
 
 
 class TaskExecutor:
@@ -67,7 +70,14 @@ class TaskExecutor:
         )
         try:
             output = provider.generate(prompt).strip()
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "LLM provider %r failed (%s); falling back to echo output. "
+                "If you configured a real provider, check that its SDK is "
+                "installed and the API key and credit balance are valid.",
+                getattr(provider, "name", type(provider).__name__),
+                exc,
+            )
             return None
         if not output:
             return None
