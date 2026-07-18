@@ -366,7 +366,7 @@ space.save(agi)                <span class="c"># 일지·산출물 저장</span>
   <td>LLM 미연결 또는 호출 실패 → 폴백 동작 중. <code>.env</code> 키와 크레딧 확인</td></tr>
 <tr><td><code>credit balance is too low</code></td><td>API 크레딧 부족 → 콘솔에서 충전</td></tr>
 <tr><td>산출물이 목표 문장 그대로다</td><td>LLM 없이 실행됨 (echo 폴백). <code>--llm</code> 지정</td></tr>
-<tr><td>프로젝트가 하위 목표 1개로 돈다</td><td>LLM의 분해 응답이 목록 형식이 아님 → 실모델에서는 정상 동작</td></tr>
+<tr><td>프로젝트가 하위 목표 1개로 돈다</td><td>LLM의 분해 응답이 목록 형식이 아님 → 실모델에서는 정상 동작하도록 설계됨 (단, 실LLM 검증은 미완)</td></tr>
 <tr><td>회상이 엉뚱한 것을 가져온다</td><td>검색은 한글 바이그램 TF-IDF — 질문에 구체적 명사를 넣을수록 정확</td></tr>
 <tr><td>한글 파일이 깨진다</td><td>UTF-8/cp949 외 인코딩 → UTF-8로 재저장 후 흡수</td></tr>
 <tr><td>흡수가 느리다</td><td>v1.3 미만 버전 사용 중 → 업그레이드 (벌크 모드)</td></tr>
